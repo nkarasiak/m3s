@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2025-08-20
+
 ### Added
 - Example scripts demonstrating practical usage
   - `grid_generation_example.py` - Visualize MGRS, H3, and Geohash grids using matplotlib
