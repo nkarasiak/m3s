@@ -49,7 +49,10 @@ class TestMGRSGrid:
             (-74.1, 40.7)
         ])
         
-        intersecting_cells = grid.intersect_polygon(test_polygon)
+        bounds = test_polygon.bounds
+        min_lon, min_lat, max_lon, max_lat = bounds
+        candidate_cells = grid.get_cells_in_bbox(min_lat, min_lon, max_lat, max_lon)
+        intersecting_cells = [cell for cell in candidate_cells if cell.polygon.intersects(test_polygon)]
         
         assert len(intersecting_cells) >= 0
         for cell in intersecting_cells:

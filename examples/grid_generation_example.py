@@ -26,9 +26,9 @@ h3_grid = H3Grid(resolution=6)         # ~3.2km edge length
 geohash_grid = GeohashGrid(precision=5) # ~4.9km x 4.9km
 
 # Generate grid cells that intersect our test area
-mgrs_result = mgrs_grid.intersect_geodataframe(test_gdf)
-h3_result = h3_grid.intersect_geodataframe(test_gdf)
-geohash_result = geohash_grid.intersect_geodataframe(test_gdf)
+mgrs_result = mgrs_grid.intersects(test_gdf)
+h3_result = h3_grid.intersects(test_gdf)
+geohash_result = geohash_grid.intersects(test_gdf)
 
 print(f"Generated:")
 print(f"  MGRS (10km):   {len(mgrs_result)} cells")

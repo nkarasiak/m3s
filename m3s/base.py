@@ -122,31 +122,6 @@ class BaseGrid(ABC):
         """
         pass
 
-    def intersect_polygon(self, polygon: Polygon) -> List[GridCell]:
-        """
-        Get all grid cells that intersect with the given polygon.
-        
-        Parameters
-        ----------
-        polygon : Polygon
-            A shapely Polygon object defining the area of interest
-            
-        Returns
-        -------
-        List[GridCell]
-            List of GridCell objects that intersect with the polygon
-        """
-        bounds = polygon.bounds
-        min_lon, min_lat, max_lon, max_lat = bounds
-
-        candidate_cells = self.get_cells_in_bbox(min_lat, min_lon, max_lat, max_lon)
-
-        intersecting_cells = []
-        for cell in candidate_cells:
-            if cell.polygon.intersects(polygon):
-                intersecting_cells.append(cell)
-
-        return intersecting_cells
 
     def contains_point(self, polygon: Polygon, lat: float, lon: float) -> bool:
         """
@@ -169,7 +144,7 @@ class BaseGrid(ABC):
         point = Point(lon, lat)
         return polygon.contains(point)
 
-    def intersect_geodataframe(self, gdf: gpd.GeoDataFrame, target_crs: str = "EPSG:4326") -> gpd.GeoDataFrame:
+    def intersects(self, gdf: gpd.GeoDataFrame, target_crs: str = "EPSG:4326") -> gpd.GeoDataFrame:
         """
         Get all grid cells that intersect with geometries in a GeoDataFrame.
         
@@ -208,7 +183,10 @@ class BaseGrid(ABC):
         
         for idx, geometry in enumerate(gdf_transformed.geometry):
             if geometry is not None and not geometry.is_empty:
-                intersecting_cells = self.intersect_polygon(geometry)
+                bounds = geometry.bounds
+                min_lon, min_lat, max_lon, max_lat = bounds
+                candidate_cells = self.get_cells_in_bbox(min_lat, min_lon, max_lat, max_lon)
+                intersecting_cells = [cell for cell in candidate_cells if cell.polygon.intersects(geometry)]
                 for cell in intersecting_cells:
                     all_cells.append({
                         'cell_id': cell.identifier,
@@ -234,72 +212,3 @@ class BaseGrid(ABC):
         
         return result_gdf
 
-    def intersect_geodataframe_aggregated(self, gdf: gpd.GeoDataFrame, 
-                                        target_crs: str = "EPSG:4326") -> gpd.GeoDataFrame:
-        """
-        Get unique grid cells that intersect with any geometry in a GeoDataFrame.
-        
-        Returns one row per unique grid cell, with aggregated information about
-        which source geometries intersect with each cell.
-        
-        Parameters
-        ----------
-        gdf : gpd.GeoDataFrame
-            A GeoDataFrame containing geometries to intersect with grid cells
-        target_crs : str, optional
-            Target CRS for grid operations (default: "EPSG:4326")
-            
-        Returns
-        -------
-        gpd.GeoDataFrame
-            GeoDataFrame with unique grid cells and intersection counts
-        """
-        if gdf.empty:
-            return gpd.GeoDataFrame(columns=['cell_id', 'precision', 'geometry', 'intersection_count'])
-        
-        original_crs = gdf.crs
-        
-        # Transform to target CRS if needed
-        if original_crs is None:
-            raise ValueError("GeoDataFrame CRS must be defined")
-        
-        if original_crs != target_crs:
-            gdf_transformed = gdf.to_crs(target_crs)
-        else:
-            gdf_transformed = gdf.copy()
-        
-        # Collect unique cells and count intersections
-        cell_counts = {}
-        
-        for geometry in gdf_transformed.geometry:
-            if geometry is not None and not geometry.is_empty:
-                intersecting_cells = self.intersect_polygon(geometry)
-                for cell in intersecting_cells:
-                    if cell.identifier not in cell_counts:
-                        cell_counts[cell.identifier] = {
-                            'cell': cell,
-                            'count': 0
-                        }
-                    cell_counts[cell.identifier]['count'] += 1
-        
-        if not cell_counts:
-            return gpd.GeoDataFrame(columns=['cell_id', 'precision', 'geometry', 'intersection_count'])
-        
-        # Create result GeoDataFrame
-        result_data = []
-        for cell_id, data in cell_counts.items():
-            cell = data['cell']
-            result_data.append({
-                'cell_id': cell.identifier,
-                'precision': cell.precision,
-                'geometry': cell.polygon,
-                'intersection_count': data['count']
-            })
-        
-        result_gdf = gpd.GeoDataFrame(result_data, crs=target_crs)
-        
-        # Transform back to original CRS if different
-        if original_crs != target_crs:
-            result_gdf = result_gdf.to_crs(original_crs)
-        
-        return result_gdf

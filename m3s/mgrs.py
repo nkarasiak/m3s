@@ -215,7 +215,7 @@ class MGRSGrid(BaseGrid):
 
         return list(cells)
 
-    def intersect_geodataframe(self, gdf: gpd.GeoDataFrame, target_crs: str = "EPSG:4326") -> gpd.GeoDataFrame:
+    def intersects(self, gdf: gpd.GeoDataFrame, target_crs: str = "EPSG:4326") -> gpd.GeoDataFrame:
         """
         Get all grid cells that intersect with geometries in a GeoDataFrame.
         
@@ -255,7 +255,10 @@ class MGRSGrid(BaseGrid):
         
         for idx, geometry in enumerate(gdf_transformed.geometry):
             if geometry is not None and not geometry.is_empty:
-                intersecting_cells = self.intersect_polygon(geometry)
+                bounds = geometry.bounds
+                min_lon, min_lat, max_lon, max_lat = bounds
+                candidate_cells = self.get_cells_in_bbox(min_lat, min_lon, max_lat, max_lon)
+                intersecting_cells = [cell for cell in candidate_cells if cell.polygon.intersects(geometry)]
                 for cell in intersecting_cells:
                     utm_epsg = self._get_utm_zone_from_mgrs(cell.identifier)
                     all_cells.append({

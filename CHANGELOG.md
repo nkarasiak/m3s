@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `grid_generation_example.py` - Visualize MGRS, H3, and Geohash grids using matplotlib
   - `utm_reprojection_example.py` - Demonstrate UTM zone detection and accurate area calculations
 
+### Changed
+- **BREAKING**: Simplified grid API by consolidating intersection methods
+  - Renamed `intersect_geodataframe()` to `intersects()` across all grid systems
+  - Removed `intersect_geodataframe_aggregated()` method
+  - Removed `intersect_polygon()` method (functionality merged into `intersects()`)
+- Updated all examples and tests to use the new simplified API
+
 ## [0.1.0] - 2025-08-20
 
 ### Added

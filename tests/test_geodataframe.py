@@ -42,10 +42,10 @@ class TestGeoDataFrameIntegration:
         }
         return gpd.GeoDataFrame(data, geometry=geometries, crs="EPSG:3857")
 
-    def test_geohash_intersect_geodataframe_basic(self, sample_gdf_4326):
+    def test_geohash_intersects_basic(self, sample_gdf_4326):
         """Test basic GeoDataFrame intersection with GeohashGrid."""
         grid = GeohashGrid(precision=5)
-        result = grid.intersect_geodataframe(sample_gdf_4326)
+        result = grid.intersects(sample_gdf_4326)
         
         assert isinstance(result, gpd.GeoDataFrame)
         assert len(result) >= 3  # At least one cell per geometry
@@ -59,10 +59,10 @@ class TestGeoDataFrameIntegration:
             assert isinstance(cell_id, str)
             assert len(cell_id) == 5  # precision 5
 
-    def test_mgrs_intersect_geodataframe_basic(self, sample_gdf_4326):
+    def test_mgrs_intersects_basic(self, sample_gdf_4326):
         """Test basic GeoDataFrame intersection with MGRSGrid."""
         grid = MGRSGrid(precision=2)
-        result = grid.intersect_geodataframe(sample_gdf_4326)
+        result = grid.intersects(sample_gdf_4326)
         
         assert isinstance(result, gpd.GeoDataFrame)
         assert len(result) >= 3
@@ -71,10 +71,10 @@ class TestGeoDataFrameIntegration:
         assert 'name' in result.columns
         assert result.crs == sample_gdf_4326.crs
 
-    def test_h3_intersect_geodataframe_basic(self, sample_gdf_4326):
+    def test_h3_intersects_basic(self, sample_gdf_4326):
         """Test basic GeoDataFrame intersection with H3Grid."""
         grid = H3Grid(resolution=7)
-        result = grid.intersect_geodataframe(sample_gdf_4326)
+        result = grid.intersects(sample_gdf_4326)
         
         assert isinstance(result, gpd.GeoDataFrame)
         assert len(result) >= 3
@@ -95,16 +95,11 @@ class TestGeoDataFrameIntegration:
     def test_aggregated_intersection(self, sample_gdf_4326):
         """Test aggregated GeoDataFrame intersection."""
         grid = GeohashGrid(precision=5)
-        result = grid.intersect_geodataframe_aggregated(sample_gdf_4326)
+        # Test that aggregated method no longer exists
+        with pytest.raises(AttributeError):
+            grid.intersect_geodataframe_aggregated(sample_gdf_4326)
         
-        assert isinstance(result, gpd.GeoDataFrame)
-        assert 'cell_id' in result.columns
-        assert 'intersection_count' in result.columns
-        assert result.crs == sample_gdf_4326.crs
-        
-        # Check that intersection counts are positive integers
-        assert all(result['intersection_count'] > 0)
-        assert all(isinstance(count, int) for count in result['intersection_count'])
+        pass  # Test updated to check that method was removed
 
     def test_empty_geodataframe(self):
         """Test handling of empty GeoDataFrame."""
@@ -160,7 +155,7 @@ class TestGeoDataFrameIntegration:
     def test_preserve_original_data(self, sample_gdf_4326):
         """Test that original GeoDataFrame data is preserved in results."""
         grid = GeohashGrid(precision=5)
-        result = grid.intersect_geodataframe(sample_gdf_4326)
+        result = grid.intersects(sample_gdf_4326)
         
         # All original columns should be preserved
         for col in sample_gdf_4326.columns:
@@ -191,10 +186,9 @@ class TestGeoDataFrameIntegration:
         
         assert len(result) > 1  # Should intersect multiple cells
         
-        # Test aggregated version
-        agg_result = grid.intersect_geodataframe_aggregated(gdf)
-        assert len(agg_result) > 1
-        assert all(agg_result['intersection_count'] == 1)  # Each cell intersects once
+        # Aggregated method no longer exists
+        with pytest.raises(AttributeError):
+            grid.intersect_geodataframe_aggregated(gdf)
 
 
 class TestGeoDataFrameEdgeCases:
@@ -231,7 +225,7 @@ class TestGeoDataFrameEdgeCases:
         
         results = []
         for grid in grids:
-            result = grid.intersect_geodataframe(sample_gdf_4326)
+            result = grid.intersects(sample_gdf_4326)
             results.append(result)
             assert isinstance(result, gpd.GeoDataFrame)
             assert len(result) > 0
