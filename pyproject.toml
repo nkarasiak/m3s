@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "m3s"
-version = "0.2.0"
+version = "0.1.0"
 authors = [
-    {name = "Your Name", email = "your.email@example.com"},
+    {name = "Nicolas Karasiak", email = "karasiak@gmail.com"},
 ]
 description = "Multi Spatial Subdivision System - A unified Python package for working with spatial grid systems"
 readme = "README.md"
@@ -53,10 +53,10 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/m3s"
-Documentation = "https://github.com/yourusername/m3s#readme"
-Repository = "https://github.com/yourusername/m3s.git"
-"Bug Tracker" = "https://github.com/yourusername/m3s/issues"
+Homepage = "https://github.com/nkarasiak/m3s"
+Documentation = "https://github.com/nkarasiak/m3s#readme"
+Repository = "https://github.com/nkarasiak/m3s.git"
+"Bug Tracker" = "https://github.com/nkarasiak/m3s/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]

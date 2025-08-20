@@ -7,7 +7,9 @@
       "Bash(pip install:*)",
       "Bash(ruff check:*)",
       "Bash(mv:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git checkout:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
