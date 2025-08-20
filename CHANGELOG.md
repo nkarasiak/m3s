@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Example scripts demonstrating practical usage
+  - `grid_generation_example.py` - Visualize MGRS, H3, and Geohash grids using matplotlib
+  - `utm_reprojection_example.py` - Demonstrate UTM zone detection and accurate area calculations
+
 ## [0.1.0] - 2025-08-20
 
 ### Added
