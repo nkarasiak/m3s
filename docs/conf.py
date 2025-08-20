@@ -34,7 +34,12 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_static']
+
+# Only add _static to path if it contains files (other than .gitkeep)
+import os
+_static_dir = os.path.join(os.path.dirname(__file__), '_static')
+_static_files = [f for f in os.listdir(_static_dir) if not f.startswith('.') and f != '.gitkeep'] if os.path.exists(_static_dir) else []
+html_static_path = ['_static'] if _static_files else []
 
 # -- Extension configuration -------------------------------------------------
 
