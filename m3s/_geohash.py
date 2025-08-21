@@ -51,7 +51,7 @@ class GeohashEncoder:
                 bits = 0
                 bit_count = 0
 
-        return ''.join(geohash)
+        return "".join(geohash)
 
     def decode(self, geohash: str) -> Tuple[float, float]:
         """Decode geohash string to latitude and longitude."""
@@ -139,14 +139,14 @@ class GeohashEncoder:
 
         # Define the 8 directions
         deltas = [
-            (lat_delta, 0),           # North
-            (-lat_delta, 0),          # South
-            (0, lon_delta),           # East
-            (0, -lon_delta),          # West
-            (lat_delta, lon_delta),   # Northeast
+            (lat_delta, 0),  # North
+            (-lat_delta, 0),  # South
+            (0, lon_delta),  # East
+            (0, -lon_delta),  # West
+            (lat_delta, lon_delta),  # Northeast
             (lat_delta, -lon_delta),  # Northwest
             (-lat_delta, lon_delta),  # Southeast
-            (-lat_delta, -lon_delta), # Southwest
+            (-lat_delta, -lon_delta),  # Southwest
         ]
 
         for dlat, dlon in deltas:
@@ -165,18 +165,22 @@ class GeohashEncoder:
 # Create a global instance
 _encoder = GeohashEncoder()
 
+
 # Export functions
 def encode(lat: float, lon: float, precision: int = 5) -> str:
     """Encode latitude and longitude to geohash string."""
     return _encoder.encode(lat, lon, precision)
 
+
 def decode(geohash: str) -> Tuple[float, float]:
     """Decode geohash string to latitude and longitude."""
     return _encoder.decode(geohash)
 
+
 def bbox(geohash: str) -> Tuple[float, float, float, float]:
     """Get bounding box for geohash string."""
     return _encoder.bbox(geohash)
+
 
 def neighbors(geohash: str) -> List[str]:
     """Get neighboring geohash strings."""

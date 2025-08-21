@@ -2,7 +2,6 @@
 C-squares (Concise Spatial Query and Representation System) grid implementation.
 """
 
-import math
 from typing import List
 
 from shapely.geometry import Polygon
@@ -95,13 +94,15 @@ class CSquaresGrid(BaseGrid):
         try:
             min_lat, min_lon, max_lat, max_lon = self._decode_csquare(identifier)
 
-            polygon = Polygon([
-                (min_lon, min_lat),
-                (max_lon, min_lat),
-                (max_lon, max_lat),
-                (min_lon, max_lat),
-                (min_lon, min_lat)
-            ])
+            polygon = Polygon(
+                [
+                    (min_lon, min_lat),
+                    (max_lon, min_lat),
+                    (max_lon, max_lat),
+                    (min_lon, max_lat),
+                    (min_lon, min_lat),
+                ]
+            )
 
             # Determine precision from identifier length
             precision = self._get_precision_from_identifier(identifier)
@@ -156,8 +157,9 @@ class CSquaresGrid(BaseGrid):
         except:
             return []
 
-    def get_cells_in_bbox(self, min_lat: float, min_lon: float,
-                         max_lat: float, max_lon: float) -> List[GridCell]:
+    def get_cells_in_bbox(
+        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
+    ) -> List[GridCell]:
         """
         Get all C-squares cells within the given bounding box.
 
@@ -190,10 +192,15 @@ class CSquaresGrid(BaseGrid):
         extended_max_lon = min(180, max_lon + margin)
 
         # Create bbox polygon for intersection testing
-        bbox_polygon = Polygon([
-            (min_lon, min_lat), (max_lon, min_lat),
-            (max_lon, max_lat), (min_lon, max_lat), (min_lon, min_lat)
-        ])
+        bbox_polygon = Polygon(
+            [
+                (min_lon, min_lat),
+                (max_lon, min_lat),
+                (max_lon, max_lat),
+                (min_lon, max_lat),
+                (min_lon, min_lat),
+            ]
+        )
 
         lat = extended_min_lat
         while lat < extended_max_lat:
@@ -302,7 +309,7 @@ class CSquaresGrid(BaseGrid):
         tuple
             (min_lat, min_lon, max_lat, max_lon)
         """
-        parts = identifier.split(':')
+        parts = identifier.split(":")
         if len(parts) < 1:
             raise ValueError("Invalid C-squares identifier format")
 
@@ -387,7 +394,7 @@ class CSquaresGrid(BaseGrid):
         int
             Precision level
         """
-        parts = identifier.split(':')
+        parts = identifier.split(":")
         return len(parts)
 
     def _get_cell_size(self, precision: int) -> float:
@@ -445,6 +452,6 @@ class CSquaresGrid(BaseGrid):
             2: "5° x 5° cells (regional scale)",
             3: "1° x 1° cells (national scale)",
             4: "0.5° x 0.5° cells (30' x 30', sub-national)",
-            5: "0.1° x 0.1° cells (6' x 6', local scale)"
+            5: "0.1° x 0.1° cells (6' x 6', local scale)",
         }
         return descriptions[precision]
