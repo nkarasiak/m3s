@@ -7,6 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2025-08-21
+
+### Added
+- **Performance & Scalability Enhancements**: Major optimization improvements for large-scale processing
+  - `cache.py` - Comprehensive caching system with LRU cache, spatial cache, and decorators
+  - `memory.py` - Memory-efficient processing with monitoring, lazy loading, and streaming
+  - `@cached_method` and `@cached_property` decorators for expensive operations
+  - `MemoryMonitor` class with automatic memory pressure detection and adaptive chunk sizing
+  - `LazyGeodataFrame` for processing large geospatial files without full memory load
+  - `StreamingGridProcessor` with memory-aware processing and automatic optimization
+- **Comprehensive CSquares Grid Testing**: Test coverage increased from 9% to 98%
+  - 21 new test cases covering all CSquares functionality
+  - Edge case testing for error handling and boundary conditions
+  - Added missing `area_km2` property implementation for CSquares
+- **Smart Caching for Expensive Operations**:
+  - Geographic coordinate lookups cached with spatial-aware key generation
+  - Grid cell area calculations cached using cached_property
+  - Neighbor finding operations cached to avoid repeated computation
+  - UTM zone calculations cached with coordinate rounding for efficiency
+
+### Enhanced
+- **Parallel Processing Engine**: Memory-aware enhancements
+  - Added `optimize_memory` and `adaptive_chunking` configuration options
+  - Automatic GeoDataFrame memory optimization before processing
+  - Dynamic chunk size adjustment based on memory pressure
+  - Enhanced error handling for memory-constrained environments
+- **GeohashGrid**: Applied caching to expensive operations
+  - `get_cell_from_point()` now uses spatial caching
+  - `get_neighbors()` operations cached for repeated requests
+- **BaseGrid**: Enhanced with cached area calculations
+  - `area_km2` property now uses cached_property for performance
+
+### Fixed
+- **Parallel Processing Bugs**: Fixed critical issues in Dask integration
+  - Resolved `NameError: name 'delayed' is not defined` in Dask processing
+  - Fixed GPU fallback test failures with proper mock handling
+  - Added proper import fallbacks for missing Dask/GPU dependencies
+- **Memory Management**: Graceful handling of optional dependencies
+  - `psutil` made optional with fallback implementations for memory monitoring
+  - All memory features work without optional dependencies installed
+  - Proper warnings when advanced features are unavailable
+
+### Performance
+- **Significant Memory Reduction**: Optimized memory usage for large datasets
+  - Lazy evaluation prevents unnecessary data loading
+  - Automatic garbage collection during processing
+  - Memory pressure monitoring with adaptive responses
+- **Caching Performance**: Substantial speedup for repeated operations
+  - Coordinate-based operations benefit from spatial caching
+  - Area calculations cached to avoid repeated expensive projections
+  - Neighbor queries cached for common access patterns
+- **Streaming Efficiency**: Process datasets larger than available memory
+  - Chunked processing with automatic size optimization
+  - Memory-aware fallbacks for problematic data chunks
+  - Streaming iterators for minimal memory footprint
+
+### Technical
+- **New Modules**: Added two major new modules
+  - `m3s.cache` - Caching utilities and decorators
+  - `m3s.memory` - Memory optimization and monitoring tools
+- **Enhanced Test Suite**: Added comprehensive test coverage
+  - `test_cache.py` - 13 tests covering all caching functionality
+  - `test_csquares.py` - 21 tests bringing CSquares to 98% coverage
+  - All parallel processing tests now pass (27/27)
+
 ## [0.3.0] - 2025-08-21
 
 ### Added

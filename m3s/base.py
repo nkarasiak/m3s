@@ -10,6 +10,8 @@ import pyproj
 from shapely.geometry import Point, Polygon
 from shapely.ops import transform
 
+from .cache import cached_method, cached_property, geo_cache_key, cell_cache_key, bbox_cache_key
+
 
 class GridCell:
     """
@@ -23,9 +25,8 @@ class GridCell:
         self.identifier = identifier
         self.polygon = polygon
         self.precision = precision
-        self._area_km2 = None  # Cached area calculation
 
-    @property
+    @cached_property
     def area_km2(self) -> float:
         """
         Calculate the area of the grid cell in square kilometers.
@@ -35,9 +36,7 @@ class GridCell:
         float
             Area of the cell in square kilometers
         """
-        if self._area_km2 is None:
-            self._area_km2 = self._calculate_area_km2()
-        return self._area_km2
+        return self._calculate_area_km2()
 
     def _calculate_area_km2(self) -> float:
         """

@@ -455,3 +455,19 @@ class CSquaresGrid(BaseGrid):
             5: "0.1° x 0.1° cells (6' x 6', local scale)",
         }
         return descriptions[precision]
+
+    @property
+    def area_km2(self) -> float:
+        """
+        Theoretical area of a C-squares cell at this precision in km².
+
+        Returns
+        -------
+        float
+            Theoretical area in square kilometers
+        """
+        cell_size_degrees = self._get_cell_size(self.precision)
+        # Convert degrees to kilometers (approximate)
+        # 1 degree ≈ 111.32 km at equator
+        cell_size_km = cell_size_degrees * 111.32
+        return cell_size_km * cell_size_km

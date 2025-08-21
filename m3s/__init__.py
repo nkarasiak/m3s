@@ -18,11 +18,18 @@ from .parallel import (
     parallel_intersect,
     stream_grid_processing,
 )
+from .memory import (
+    MemoryMonitor,
+    LazyGeodataFrame,
+    StreamingGridProcessor,
+    optimize_geodataframe_memory,
+    estimate_memory_usage,
+)
 from .quadkey import QuadkeyGrid
 from .s2 import S2Grid
 from .slippy import SlippyGrid
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 __all__ = [
     "BaseGrid",
     "GeohashGrid",
@@ -38,4 +45,9 @@ __all__ = [
     "stream_grid_processing",
     "create_data_stream",
     "create_file_stream",
+    "MemoryMonitor",
+    "LazyGeodataFrame",
+    "StreamingGridProcessor",
+    "optimize_geodataframe_memory",
+    "estimate_memory_usage",
 ]

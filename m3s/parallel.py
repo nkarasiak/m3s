@@ -13,6 +13,8 @@ from typing import Any, Callable, Dict, Iterator, List, Optional
 import geopandas as gpd
 import pandas as pd
 
+from .memory import MemoryMonitor, optimize_geodataframe_memory
+
 try:
     import dask
     import dask.dataframe as dd
@@ -23,8 +25,13 @@ try:
     DASK_AVAILABLE = True
 except ImportError:
     DASK_AVAILABLE = False
+    dask = None
+    delayed = None
+    Client = None
+    dask_as_completed = None
     warnings.warn(
-        "Dask not available. Parallel operations will use threading fallback.", stacklevel=2
+        "Dask not available. Parallel operations will use threading fallback.",
+        stacklevel=2,
     )
 
 try:
@@ -35,6 +42,9 @@ try:
     GPU_AVAILABLE = True
 except ImportError:
     GPU_AVAILABLE = False
+    cudf = None
+    cp = None
+    cuspatial = None
     warnings.warn("RAPIDS/CuPy not available. GPU acceleration disabled.", stacklevel=2)
 
 from .base import BaseGrid
@@ -52,6 +62,8 @@ class ParallelConfig:
         memory_limit: str = "2GB",
         threads_per_worker: int = 2,
         scheduler_address: Optional[str] = None,
+        optimize_memory: bool = True,
+        adaptive_chunking: bool = True,
     ):
         self.use_dask = use_dask and DASK_AVAILABLE
         self.use_gpu = use_gpu and GPU_AVAILABLE
@@ -60,12 +72,18 @@ class ParallelConfig:
         self.memory_limit = memory_limit
         self.threads_per_worker = threads_per_worker
         self.scheduler_address = scheduler_address
+        self.optimize_memory = optimize_memory
+        self.adaptive_chunking = adaptive_chunking
 
         if use_dask and not DASK_AVAILABLE:
-            warnings.warn("Dask requested but not available. Using threading fallback.", stacklevel=2)
+            warnings.warn(
+                "Dask requested but not available. Using threading fallback.",
+                stacklevel=2,
+            )
         if use_gpu and not GPU_AVAILABLE:
             warnings.warn(
-                "GPU requested but RAPIDS/CuPy not available. Using CPU fallback.", stacklevel=2
+                "GPU requested but RAPIDS/CuPy not available. Using CPU fallback.",
+                stacklevel=2,
             )
 
 
@@ -113,6 +131,7 @@ class ParallelGridEngine:
     def __init__(self, config: Optional[ParallelConfig] = None):
         self.config = config or ParallelConfig()
         self._client: Optional[Any] = None
+        self.memory_monitor = MemoryMonitor() if self.config.optimize_memory else None
         self._setup_client()
 
     def _setup_client(self):
@@ -132,7 +151,8 @@ class ParallelGridEngine:
                 )
         except Exception as e:
             warnings.warn(
-                f"Failed to setup Dask client: {e}. Using threading fallback.", stacklevel=2
+                f"Failed to setup Dask client: {e}. Using threading fallback.",
+                stacklevel=2,
             )
             self.config.use_dask = False
 
@@ -165,6 +185,14 @@ class ParallelGridEngine:
             return gpd.GeoDataFrame()
 
         chunk_size = chunk_size or self.config.chunk_size
+        
+        # Optimize input GeoDataFrame memory usage if enabled
+        if self.config.optimize_memory:
+            gdf = optimize_geodataframe_memory(gdf)
+            
+            # Adjust chunk size based on memory pressure
+            if self.memory_monitor and self.config.adaptive_chunking:
+                chunk_size = self.memory_monitor.suggest_chunk_size(chunk_size)
 
         if self.config.use_dask and self._client:
             return self._intersect_dask(grid, gdf, chunk_size)
@@ -177,6 +205,9 @@ class ParallelGridEngine:
         self, grid: BaseGrid, gdf: gpd.GeoDataFrame, chunk_size: int
     ) -> gpd.GeoDataFrame:
         """Dask-based parallel intersection."""
+        if not DASK_AVAILABLE:
+            return self._intersect_threaded(grid, gdf, chunk_size)
+            
         # Split GeoDataFrame into chunks
         chunks = [gdf.iloc[i : i + chunk_size] for i in range(0, len(gdf), chunk_size)]
 
@@ -221,7 +252,9 @@ class ParallelGridEngine:
             return gpd.GeoDataFrame(combined, crs=gdf.crs)
 
         except Exception as e:
-            warnings.warn(f"GPU processing failed: {e}. Falling back to CPU.", stacklevel=2)
+            warnings.warn(
+                f"GPU processing failed: {e}. Falling back to CPU.", stacklevel=2
+            )
             return self._intersect_threaded(grid, gdf, chunk_size)
 
     def _intersect_threaded(
@@ -398,7 +431,9 @@ class ParallelGridEngine:
                     try:
                         results[name] = future.result()
                     except Exception as e:
-                        warnings.warn(f"Grid {name} processing failed: {e}", stacklevel=2)
+                        warnings.warn(
+                            f"Grid {name} processing failed: {e}", stacklevel=2
+                        )
                         results[name] = gpd.GeoDataFrame()
 
             return results

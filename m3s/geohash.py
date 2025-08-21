@@ -9,6 +9,7 @@ from shapely.geometry import Polygon
 
 from . import _geohash as geohash
 from .base import BaseGrid, GridCell
+from .cache import cached_method, geo_cache_key, cell_cache_key
 
 
 class GeohashGrid(BaseGrid):
@@ -67,6 +68,7 @@ class GeohashGrid(BaseGrid):
         }
         return areas.get(self.precision, 4892.0)  # Default to precision 5
 
+    @cached_method(cache_key_func=geo_cache_key)
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
         """
         Get the geohash cell containing the given point.
@@ -115,6 +117,7 @@ class GeohashGrid(BaseGrid):
 
         return GridCell(identifier, polygon, len(identifier))
 
+    @cached_method(cache_key_func=cell_cache_key)
     def get_neighbors(self, cell: GridCell) -> List[GridCell]:
         """
         Get neighboring geohash cells.
