@@ -7,6 +7,8 @@ from typing import List, Union, Optional
 
 import geopandas as gpd
 from shapely.geometry import Point, Polygon
+from shapely.ops import transform
+import pyproj
 
 
 class GridCell:
@@ -21,9 +23,73 @@ class GridCell:
         self.identifier = identifier
         self.polygon = polygon
         self.precision = precision
+        self._area_km2 = None  # Cached area calculation
+
+    @property
+    def area_km2(self) -> float:
+        """
+        Calculate the area of the grid cell in square kilometers.
+        
+        Returns
+        -------
+        float
+            Area of the cell in square kilometers
+        """
+        if self._area_km2 is None:
+            self._area_km2 = self._calculate_area_km2()
+        return self._area_km2
+    
+    def _calculate_area_km2(self) -> float:
+        """
+        Calculate the area of the polygon in square kilometers.
+        
+        Uses equal-area projection for accurate area calculation.
+        """
+        try:
+            # Get the centroid to determine appropriate UTM zone
+            centroid = self.polygon.centroid
+            lon, lat = centroid.x, centroid.y
+            
+            # Determine UTM zone
+            utm_zone = int((lon + 180) / 6) + 1
+            hemisphere = 'north' if lat >= 0 else 'south'
+            
+            # Create UTM projection (equal-area for accurate area calculation)
+            utm_crs = f"+proj=utm +zone={utm_zone} +{hemisphere} +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+            
+            # Transform from WGS84 to UTM
+            transformer = pyproj.Transformer.from_crs("EPSG:4326", utm_crs, always_xy=True)
+            projected_polygon = transform(transformer.transform, self.polygon)
+            
+            # Calculate area in square meters, convert to square kilometers
+            area_m2 = projected_polygon.area
+            return area_m2 / 1_000_000  # Convert to km²
+            
+        except Exception:
+            # Fallback: use simple spherical approximation
+            # This is less accurate but always works
+            bounds = self.polygon.bounds
+            min_lon, min_lat, max_lon, max_lat = bounds
+            
+            # Approximate area using spherical formula
+            # This is a rough approximation for small areas
+            lat_diff = max_lat - min_lat
+            lon_diff = max_lon - min_lon
+            
+            # Earth's radius in km
+            R = 6371.0
+            
+            # Convert degrees to radians
+            lat_rad = (min_lat + max_lat) / 2 * 3.14159 / 180
+            lat_diff_rad = lat_diff * 3.14159 / 180
+            lon_diff_rad = lon_diff * 3.14159 / 180
+            
+            # Approximate area
+            area_km2 = R * R * abs(lat_diff_rad * lon_diff_rad * abs(lat_rad))
+            return area_km2
 
     def __repr__(self):
-        return f"GridCell(id={self.identifier}, precision={self.precision})"
+        return f"GridCell(id={self.identifier}, precision={self.precision}, area={self.area_km2:.2f}km²)"
 
     def __eq__(self, other):
         if not isinstance(other, GridCell):
@@ -164,7 +230,12 @@ class BaseGrid(ABC):
             GeoDataFrame with grid cell identifiers, geometries, and original data
         """
         if gdf.empty:
-            return gpd.GeoDataFrame(columns=['cell_id', 'precision', 'geometry'] + list(gdf.columns))
+            # Create columns without duplicating 'geometry'
+            result_columns = ['cell_id', 'precision', 'geometry']
+            for col in gdf.columns:
+                if col != 'geometry':
+                    result_columns.append(col)
+            return gpd.GeoDataFrame(columns=result_columns, crs=gdf.crs)
         
         original_crs = gdf.crs
         
@@ -196,7 +267,12 @@ class BaseGrid(ABC):
                     source_indices.append(idx)
         
         if not all_cells:
-            return gpd.GeoDataFrame(columns=['cell_id', 'precision', 'geometry'] + list(gdf.columns))
+            # Create columns without duplicating 'geometry'
+            result_columns = ['cell_id', 'precision', 'geometry']
+            for col in gdf.columns:
+                if col != 'geometry':
+                    result_columns.append(col)
+            return gpd.GeoDataFrame(columns=result_columns, crs=target_crs)
         
         # Create result GeoDataFrame
         result_gdf = gpd.GeoDataFrame(all_cells, crs=target_crs)

@@ -37,6 +37,35 @@ class GeohashGrid(BaseGrid):
         if not 1 <= precision <= 12:
             raise ValueError("Geohash precision must be between 1 and 12")
         super().__init__(precision)
+    
+    @property
+    def area_km2(self) -> float:
+        """
+        Get the theoretical area of Geohash cells at this precision in square kilometers.
+        
+        Returns
+        -------
+        float
+            Theoretical area in square kilometers for cells at this precision
+        """
+        # Approximate area calculation based on geohash precision
+        # These are approximate areas as geohash cells vary by latitude
+        # Values are for mid-latitudes (~45°)
+        areas = {
+            1: 5009400.0,    # ~5M km² (continent scale)
+            2: 1252350.0,    # ~1.25M km² 
+            3: 156540.0,     # ~156k km²
+            4: 39135.0,      # ~39k km² (country scale)
+            5: 4892.0,       # ~4.9k km² 
+            6: 1223.0,       # ~1.2k km² (state scale)
+            7: 153.0,        # ~153 km²
+            8: 38.0,         # ~38 km² (city scale)
+            9: 4.8,          # ~4.8 km²
+            10: 1.2,         # ~1.2 km² (neighborhood scale)
+            11: 0.15,        # ~0.15 km²
+            12: 0.037        # ~0.037 km² (building scale)
+        }
+        return areas.get(self.precision, 4892.0)  # Default to precision 5
 
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
         """

@@ -10,6 +10,32 @@ from .csquares import CSquaresGrid
 from .geohash import GeohashGrid
 from .h3 import H3Grid
 from .mgrs import MGRSGrid
+from .quadkey import QuadkeyGrid
+from .s2 import S2Grid
+from .slippy import SlippyGrid
+from .parallel import (
+    ParallelConfig,
+    ParallelGridEngine,
+    parallel_intersect,
+    stream_grid_processing,
+    create_data_stream,
+    create_file_stream
+)
 
-__version__ = "0.1.0"
-__all__ = ["BaseGrid", "GeohashGrid", "MGRSGrid", "H3Grid", "CSquaresGrid"]
+__version__ = "0.3.0"
+__all__ = [
+    "BaseGrid", 
+    "GeohashGrid", 
+    "MGRSGrid", 
+    "H3Grid", 
+    "CSquaresGrid",
+    "QuadkeyGrid",
+    "S2Grid",
+    "SlippyGrid",
+    "ParallelConfig",
+    "ParallelGridEngine", 
+    "parallel_intersect",
+    "stream_grid_processing",
+    "create_data_stream",
+    "create_file_stream"
+]

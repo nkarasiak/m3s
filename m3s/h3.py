@@ -54,6 +54,44 @@ class H3Grid(BaseGrid):
         if not 0 <= resolution <= 15:
             raise ValueError("H3 resolution must be between 0 and 15")
         super().__init__(resolution)
+    
+    @property
+    def area_km2(self) -> float:
+        """
+        Get the theoretical area of H3 cells at this resolution in square kilometers.
+        
+        Returns
+        -------
+        float
+            Theoretical area in square kilometers for cells at this resolution
+        """
+        # H3 provides the exact area for each resolution level
+        try:
+            # h3.cell_area returns area in square meters for the given resolution
+            area_m2 = h3.cell_area(self.precision, unit='m^2')
+            return area_m2 / 1_000_000  # Convert to km²
+        except:
+            # Fallback with approximate values if h3.cell_area is not available
+            # These are approximate areas for each H3 resolution level in km²
+            areas = {
+                0: 4357449.43,  # ~4.36M km²
+                1: 609788.44,   # ~610k km²
+                2: 86801.78,    # ~87k km²
+                3: 12393.43,    # ~12.4k km²
+                4: 1770.35,     # ~1.77k km²
+                5: 252.9,       # ~253 km²
+                6: 36.13,       # ~36 km²
+                7: 5.16,        # ~5.2 km²
+                8: 0.737,       # ~0.74 km²
+                9: 0.105,       # ~0.11 km²
+                10: 0.015,      # ~0.015 km²
+                11: 0.002,      # ~0.002 km²
+                12: 0.0003,     # ~0.0003 km²
+                13: 0.00004,    # ~0.00004 km²
+                14: 0.000006,   # ~0.000006 km²
+                15: 0.0000009   # ~0.0000009 km²
+            }
+            return areas.get(self.precision, 5.16)  # Default to resolution 7
 
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
         """

@@ -47,6 +47,21 @@ class MGRSGrid(BaseGrid):
             raise ValueError("MGRS precision must be between 0 and 5")
         super().__init__(precision)
         self.mgrs_converter = mgrs.MGRS()
+    
+    @property
+    def area_km2(self) -> float:
+        """
+        Get the theoretical area of MGRS cells at this precision in square kilometers.
+        
+        Returns
+        -------
+        float
+            Theoretical area in square kilometers for cells at this precision
+        """
+        # MGRS cells are square grids with well-defined sizes
+        grid_size_m = self._get_grid_size()  # Get size in meters
+        area_m2 = grid_size_m * grid_size_m  # Square area
+        return area_m2 / 1_000_000  # Convert to km²
 
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
         """Get the MGRS cell containing the given point."""

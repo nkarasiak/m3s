@@ -86,7 +86,7 @@ class TestGeoDataFrameIntegration:
     def test_crs_transformation(self, sample_gdf_3857):
         """Test CRS transformation during intersection."""
         grid = GeohashGrid(precision=5)
-        result = grid.intersect_geodataframe(sample_gdf_3857)
+        result = grid.intersects(sample_gdf_3857)
         
         assert isinstance(result, gpd.GeoDataFrame)
         assert result.crs == sample_gdf_3857.crs  # Should be transformed back
@@ -97,7 +97,7 @@ class TestGeoDataFrameIntegration:
         grid = GeohashGrid(precision=5)
         # Test that aggregated method no longer exists
         with pytest.raises(AttributeError):
-            grid.intersect_geodataframe_aggregated(sample_gdf_4326)
+            grid.intersects_aggregated(sample_gdf_4326)
         
         pass  # Test updated to check that method was removed
 
@@ -106,7 +106,7 @@ class TestGeoDataFrameIntegration:
         grid = GeohashGrid(precision=5)
         empty_gdf = gpd.GeoDataFrame(geometry=[], crs="EPSG:4326")
         
-        result = grid.intersect_geodataframe(empty_gdf)
+        result = grid.intersects(empty_gdf)
         assert isinstance(result, gpd.GeoDataFrame)
         assert len(result) == 0
         assert 'cell_id' in result.columns
@@ -120,7 +120,7 @@ class TestGeoDataFrameIntegration:
         )
         
         with pytest.raises(ValueError, match="GeoDataFrame CRS must be defined"):
-            grid.intersect_geodataframe(gdf_no_crs)
+            grid.intersects(gdf_no_crs)
 
     def test_null_geometries(self):
         """Test handling of null geometries in GeoDataFrame."""
@@ -133,7 +133,7 @@ class TestGeoDataFrameIntegration:
         gdf = gpd.GeoDataFrame(data, geometry=geometries, crs="EPSG:4326")
         
         grid = GeohashGrid(precision=5)
-        result = grid.intersect_geodataframe(gdf)
+        result = grid.intersects(gdf)
         
         # Should only get results for non-null geometries
         assert len(result) == 2
@@ -146,7 +146,7 @@ class TestGeoDataFrameIntegration:
         grid = GeohashGrid(precision=5)
         
         # Use a different CRS for grid operations
-        result = grid.intersect_geodataframe(sample_gdf_4326, target_crs="EPSG:3857")
+        result = grid.intersects(sample_gdf_4326)
         
         assert isinstance(result, gpd.GeoDataFrame)
         assert result.crs == sample_gdf_4326.crs  # Should be transformed back
@@ -182,7 +182,7 @@ class TestGeoDataFrameIntegration:
         )
         
         grid = GeohashGrid(precision=4)  # Lower precision for more cells
-        result = grid.intersect_geodataframe(gdf)
+        result = grid.intersects(gdf)
         
         assert len(result) > 1  # Should intersect multiple cells
         
@@ -208,7 +208,7 @@ class TestGeoDataFrameEdgeCases:
         )
         
         grid = GeohashGrid(precision=5)
-        result = grid.intersect_geodataframe(gdf)
+        result = grid.intersects(gdf)
         
         assert len(result) >= 3
         assert 'point' in result['type'].values

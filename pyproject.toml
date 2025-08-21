@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "m3s"
-version = "0.2.0"
+version = "0.3.0"
 authors = [
     {name = "Nicolas Karasiak", email = "karasiak@gmail.com"},
 ]
@@ -25,13 +25,14 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: GIS",
 ]
-keywords = ["gis", "spatial", "grid", "geohash", "mgrs", "h3", "hierarchical", "subdivision", "geometry"]
+keywords = ["gis", "spatial", "grid", "geohash", "mgrs", "h3", "quadkey", "s2", "hierarchical", "subdivision", "geometry"]
 dependencies = [
     "shapely>=2.0.0",
     "pyproj>=3.4.0",
     "mgrs>=1.4.0",
     "h3>=3.7.0",
     "geopandas>=0.13.0",
+    "s2sphere>=0.2.5",
 ]
 
 [project.optional-dependencies]
@@ -49,6 +50,15 @@ dev = [
     "sphinx>=7.0.0",
     "sphinx-rtd-theme>=2.0.0",
     "sphinx-autodoc-typehints>=1.20.0",
+]
+parallel = [
+    "dask[complete]>=2024.1.0",
+    "distributed>=2024.1.0",
+]
+gpu = [
+    "cupy>=12.0.0",
+    "cudf>=24.02",
+    "cuspatial>=24.02",
 ]
 test = [
     "pytest>=7.0.0",
