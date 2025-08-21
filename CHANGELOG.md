@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2025-08-21
+
+### Fixed
+- **Plus Codes Grid**: Fixed cell boundary intersection logic
+  - Now correctly returns 8 cells (4 columns × 2 rows) for test areas
+  - Removed incorrect inclusion of boundary-only cells that don't actually overlap
+  - Improved intersection filtering to match expected spatial behavior
+- **Maidenhead Grid**: Fixed missing eastern column cells in bounding box queries
+  - Enhanced sampling algorithm to use 3x denser grid points
+  - Now correctly finds all intersecting cells including boundary cases
+  - Fixed issue where F column cells were missed due to sparse sampling
+  - Now correctly returns 9 cells (3 columns × 3 rows) for test areas
+
+### Enhanced
+- **Grid Sampling Algorithms**: Improved boundary condition handling
+  - Plus codes and Maidenhead grids now use more robust intersection detection
+  - Better handling of floating-point precision issues in grid boundaries
+  - More accurate cell discovery for bounding box queries
+
 ## [0.4.0] - 2025-08-21
 
 ### Added
