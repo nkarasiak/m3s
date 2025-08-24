@@ -36,7 +36,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "sphinx_material"
+html_theme = "pydata_sphinx_theme"
 
 # Only add _static to path if it contains files (other than .gitkeep)
 _static_dir = os.path.join(os.path.dirname(__file__), "_static")
@@ -85,63 +85,80 @@ intersphinx_mapping = {
     "geopandas": ("https://geopandas.org/en/stable/", None),
 }
 
-# HTML theme options for Sphinx Material
+# HTML theme options for PyData Sphinx Theme
 html_theme_options = {
-    # Set the name of the project to appear in the navigation.
-    'nav_title': 'M3S Documentation',
+    # Logo and branding
+    "logo": {
+        "text": "M3S 🌍",
+        "image_light": None,
+        "image_dark": None,
+    },
     
-    # Set you GA account ID to enable tracking
-    # 'google_analytics_account': 'your-analytics-id',
+    # Header and navigation
+    "header_links_before_dropdown": 4,
+    "show_nav_level": 2,
+    "show_toc_level": 2,
     
-    # Specify a base_url used to generate sitemap.xml. If not
-    # specified, then no sitemap will be built.
-    'base_url': 'https://your-project-url.com/',
+    # Footer
+    "footer_start": ["copyright"],
+    "footer_end": ["sphinx-version", "theme-version"],
     
-    # Set the color and the accent color
-    'color_primary': 'blue',
-    'color_accent': 'light-blue',
+    # GitHub integration
+    "github_url": "https://github.com/nkarasiak/m3s",
+    "use_edit_page_button": True,
     
-    # Set the repo location to get a badge with stats
-    'repo_url': 'https://github.com/nkarasiak/m3s/',
-    'repo_name': 'M3S',
+    # Navigation bar
+    "navbar_start": ["navbar-logo"],
+    "navbar_center": ["navbar-nav"],
+    "navbar_end": ["theme-switcher", "navbar-icon-links"],
     
-    # Visible levels of the global TOC; -1 means unlimited
-    'globaltoc_depth': 3,
-    # If False, expand all TOC entries
-    'globaltoc_collapse': False,
-    # If True, show hidden TOC entries
-    'globaltoc_includehidden': False,
+    # Sidebar
+    "primary_sidebar_end": ["sidebar-ethical-ads"],
+    "secondary_sidebar_items": ["page-toc", "sourcelink"],
     
-    # Enable material design theme features
-    'theme_color': 'blue',
-    'master_doc': False,
+    # Search
+    "search_bar_text": "Search documentation...",
     
-    # Make the title clickable to go to homepage
-    'logo_icon': '🌍',
+    # Analytics (uncomment if needed)
+    # "analytics": {"google_analytics_id": "your-analytics-id"},
     
-    # Navigation bar style
-    'nav_links': [
+    # Color scheme
+    "pygments_light_style": "default",
+    "pygments_dark_style": "monokai",
+    
+    # External links
+    "external_links": [
         {
-            'href': 'index',
-            'internal': True,
-            'title': 'Home'
+            "url": "https://github.com/nkarasiak/m3s",
+            "name": "GitHub",
         },
         {
-            'href': 'installation',
-            'internal': True,
-            'title': 'Installation'
+            "url": "https://pypi.org/project/m3s/",
+            "name": "PyPI",
+        },
+    ],
+    
+    # Icon links in navbar
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/nkarasiak/m3s",
+            "icon": "fa-brands fa-github",
         },
         {
-            'href': 'auto_examples/index',
-            'internal': True,
-            'title': 'Gallery'
+            "name": "PyPI",
+            "url": "https://pypi.org/project/m3s/",
+            "icon": "fa-brands fa-python",
         },
-        {
-            'href': 'api',
-            'internal': True,
-            'title': 'API Reference'
-        }
-    ]
+    ],
+}
+
+# Context for edit buttons
+html_context = {
+    "github_user": "nkarasiak",
+    "github_repo": "m3s",
+    "github_version": "main",
+    "doc_path": "docs",
 }
 
 html_title = f"{project} v{release} Documentation"
