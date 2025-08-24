@@ -12,8 +12,8 @@ from .base import BaseGrid, GridCell
 class GARSGrid(BaseGrid):
     """
     GARS (Global Area Reference System) spatial grid.
-    
-    Implements the military/aviation grid system using a hierarchical 
+
+    Implements the military/aviation grid system using a hierarchical
     coordinate system with longitude bands and latitude zones.
     """
 
@@ -25,10 +25,10 @@ class GARSGrid(BaseGrid):
         ----------
         precision : int, optional
             GARS precision level (1-3), by default 1.
-            
+
             Precision levels:
                 1 = 30' × 30' (0.5° × 0.5°) - e.g., "001AA"
-                2 = 15' × 15' (0.25° × 0.25°) - e.g., "001AA1"  
+                2 = 15' × 15' (0.25° × 0.25°) - e.g., "001AA1"
                 3 = 5' × 5' (~0.083° × 0.083°) - e.g., "001AA19"
 
         Raises
@@ -75,8 +75,8 @@ class GARSGrid(BaseGrid):
 
         # Convert latitude zone to letter pairs (AA, AB, ..., ZZ)
         lat_zone_adj = lat_zone - 1  # 0-based
-        first_letter = chr(ord('A') + (lat_zone_adj // 26))
-        second_letter = chr(ord('A') + (lat_zone_adj % 26))
+        first_letter = chr(ord("A") + (lat_zone_adj // 26))
+        second_letter = chr(ord("A") + (lat_zone_adj % 26))
 
         gars_id = f"{lon_band:03d}{first_letter}{second_letter}"
 
@@ -157,8 +157,8 @@ class GARSGrid(BaseGrid):
             raise ValueError("Invalid longitude band")
 
         # Parse latitude zone (next 2 letters)
-        first_letter = ord(gars_id[3]) - ord('A')
-        second_letter = ord(gars_id[4]) - ord('A')
+        first_letter = ord(gars_id[3]) - ord("A")
+        second_letter = ord(gars_id[4]) - ord("A")
         lat_zone = first_letter * 26 + second_letter + 1
 
         if not (1 <= lat_zone <= 360):
@@ -242,13 +242,9 @@ class GARSGrid(BaseGrid):
         """
         south, west, north, east = self.decode(identifier)
 
-        polygon = Polygon([
-            (west, south),
-            (east, south),
-            (east, north),
-            (west, north),
-            (west, south)
-        ])
+        polygon = Polygon(
+            [(west, south), (east, south), (east, north), (west, north), (west, south)]
+        )
 
         return GridCell(identifier, polygon, self.precision)
 
@@ -275,13 +271,13 @@ class GARSGrid(BaseGrid):
         # Define 8 neighboring positions
         offsets = [
             (-lat_size, -lon_size),  # SW
-            (-lat_size, 0),          # S
-            (-lat_size, lon_size),   # SE
-            (0, -lon_size),          # W
-            (0, lon_size),           # E
-            (lat_size, -lon_size),   # NW
-            (lat_size, 0),           # N
-            (lat_size, lon_size),    # NE
+            (-lat_size, 0),  # S
+            (-lat_size, lon_size),  # SE
+            (0, -lon_size),  # W
+            (0, lon_size),  # E
+            (lat_size, -lon_size),  # NW
+            (lat_size, 0),  # N
+            (lat_size, lon_size),  # NE
         ]
 
         center_lat = (south + north) / 2
@@ -329,11 +325,11 @@ class GARSGrid(BaseGrid):
 
         # Determine step size based on precision
         if self.precision == 1:
-            lat_step, lon_step = 0.5, 0.5      # 30' × 30'
+            lat_step, lon_step = 0.5, 0.5  # 30' × 30'
         elif self.precision == 2:
-            lat_step, lon_step = 0.25, 0.25    # 15' × 15'
+            lat_step, lon_step = 0.25, 0.25  # 15' × 15'
         else:  # precision == 3
-            lat_step, lon_step = 0.25/3, 0.25/3  # 5' × 5'
+            lat_step, lon_step = 0.25 / 3, 0.25 / 3  # 5' × 5'
 
         # Generate grid points
         lat = min_lat

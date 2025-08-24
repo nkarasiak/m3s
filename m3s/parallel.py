@@ -17,7 +17,6 @@ from .memory import MemoryMonitor, optimize_geodataframe_memory
 
 try:
     import dask
-    import dask.dataframe as dd
     from dask import delayed
     from dask.distributed import Client
     from dask.distributed import as_completed as dask_as_completed
@@ -185,11 +184,11 @@ class ParallelGridEngine:
             return gpd.GeoDataFrame()
 
         chunk_size = chunk_size or self.config.chunk_size
-        
+
         # Optimize input GeoDataFrame memory usage if enabled
         if self.config.optimize_memory:
             gdf = optimize_geodataframe_memory(gdf)
-            
+
             # Adjust chunk size based on memory pressure
             if self.memory_monitor and self.config.adaptive_chunking:
                 chunk_size = self.memory_monitor.suggest_chunk_size(chunk_size)
@@ -207,7 +206,7 @@ class ParallelGridEngine:
         """Dask-based parallel intersection."""
         if not DASK_AVAILABLE:
             return self._intersect_threaded(grid, gdf, chunk_size)
-            
+
         # Split GeoDataFrame into chunks
         chunks = [gdf.iloc[i : i + chunk_size] for i in range(0, len(gdf), chunk_size)]
 

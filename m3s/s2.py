@@ -308,7 +308,9 @@ class S2Grid(BaseGrid):
 
             return cells
         except Exception as e:
-            warnings.warn(f"Failed to get cells in bbox using s2sphere: {e}", stacklevel=2)
+            warnings.warn(
+                f"Failed to get cells in bbox using s2sphere: {e}", stacklevel=2
+            )
             return []
 
     def get_covering_cells(

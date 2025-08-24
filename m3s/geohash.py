@@ -9,7 +9,7 @@ from shapely.geometry import Polygon
 
 from . import _geohash as geohash
 from .base import BaseGrid, GridCell
-from .cache import cached_method, geo_cache_key, cell_cache_key
+from .cache import cached_method, cell_cache_key, geo_cache_key
 
 
 class GeohashGrid(BaseGrid):
@@ -133,12 +133,10 @@ class GeohashGrid(BaseGrid):
             List of neighboring geohash cells
         """
         neighbor_hashes = geohash.neighbors(cell.identifier)
-        neighbor_cells = []
-
-        for neighbor_hash in neighbor_hashes:
-            neighbor_cells.append(self.get_cell_from_identifier(neighbor_hash))
-
-        return neighbor_cells
+        return [
+            self.get_cell_from_identifier(neighbor_hash)
+            for neighbor_hash in neighbor_hashes
+        ]
 
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float

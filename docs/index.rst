@@ -9,6 +9,7 @@ M3S (Multi Spatial Subdivision System) is a unified Python package for working w
 
    installation
    quickstart
+   auto_examples/index
    api
    examples
    changelog

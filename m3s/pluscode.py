@@ -12,7 +12,7 @@ from .base import BaseGrid, GridCell
 class PlusCodeGrid(BaseGrid):
     """
     Plus codes (Open Location Code) spatial grid system.
-    
+
     Implements Google's open-source alternative to addresses using
     a base-20 encoding system to create hierarchical grid cells.
     """
@@ -23,14 +23,14 @@ class PlusCodeGrid(BaseGrid):
 
     # Grid sizes for different precision levels
     GRID_SIZES = [
-        20.0,      # 0: ~2000km
-        1.0,       # 1: ~100km
-        0.05,      # 2: ~5km
-        0.0025,    # 3: ~250m
+        20.0,  # 0: ~2000km
+        1.0,  # 1: ~100km
+        0.05,  # 2: ~5km
+        0.0025,  # 3: ~250m
         0.000125,  # 4: ~12.5m
-        0.00000625,# 5: ~62cm
-        0.0000003125, # 6: ~3cm
-        0.000000015625, # 7: ~1.5mm
+        0.00000625,  # 5: ~62cm
+        0.0000003125,  # 6: ~3cm
+        0.000000015625,  # 7: ~1.5mm
     ]
 
     def __init__(self, precision: int = 4):
@@ -199,13 +199,9 @@ class PlusCodeGrid(BaseGrid):
         """
         south, west, north, east = self.decode(identifier)
 
-        polygon = Polygon([
-            (west, south),
-            (east, south),
-            (east, north),
-            (west, north),
-            (west, south)
-        ])
+        polygon = Polygon(
+            [(west, south), (east, south), (east, north), (west, north), (west, south)]
+        )
 
         return GridCell(identifier, polygon, self.precision)
 
@@ -232,13 +228,13 @@ class PlusCodeGrid(BaseGrid):
         # Define 8 neighboring positions
         offsets = [
             (-lat_size, -lon_size),  # SW
-            (-lat_size, 0),          # S
-            (-lat_size, lon_size),   # SE
-            (0, -lon_size),          # W
-            (0, lon_size),           # E
-            (lat_size, -lon_size),   # NW
-            (lat_size, 0),           # N
-            (lat_size, lon_size),    # NE
+            (-lat_size, 0),  # S
+            (-lat_size, lon_size),  # SE
+            (0, -lon_size),  # W
+            (0, lon_size),  # E
+            (lat_size, -lon_size),  # NW
+            (lat_size, 0),  # N
+            (lat_size, lon_size),  # NE
         ]
 
         center_lat = (south + north) / 2
@@ -288,40 +284,48 @@ class PlusCodeGrid(BaseGrid):
 
         # Find the grid-aligned bounds that completely cover the target area
         # We need to sample points at the boundaries and just beyond them
-        
+
         # Generate sample points that ensure we catch all boundary cells
         sample_points = []
-        
+
         # Add corner points
         corners = [
             (min_lat, min_lon),
-            (min_lat, max_lon), 
+            (min_lat, max_lon),
             (max_lat, min_lon),
-            (max_lat, max_lon)
+            (max_lat, max_lon),
         ]
         sample_points.extend(corners)
-        
+
         # Add points slightly beyond the boundaries to catch edge cells
         # Use a precise margin to catch boundary cells
         margin = grid_size * 0.05  # 5% of cell size
         extended_corners = [
             (min_lat - margin, min_lon - margin),
             (min_lat - margin, max_lon + margin),
-            (max_lat + margin, min_lon - margin), 
-            (max_lat + margin, max_lon + margin)
+            (max_lat + margin, min_lon - margin),
+            (max_lat + margin, max_lon + margin),
         ]
         sample_points.extend(extended_corners)
-        
+
         # Add a dense grid of sample points within and around the area
         lat_samples = int((max_lat - min_lat) / grid_size * 4) + 4
         lon_samples = int((max_lon - min_lon) / grid_size * 4) + 4
-        
+
         for i in range(lat_samples):
-            lat = min_lat - margin + i * (max_lat - min_lat + 2*margin) / (lat_samples - 1)
+            lat = (
+                min_lat
+                - margin
+                + i * (max_lat - min_lat + 2 * margin) / (lat_samples - 1)
+            )
             for j in range(lon_samples):
-                lon = min_lon - margin + j * (max_lon - min_lon + 2*margin) / (lon_samples - 1)
+                lon = (
+                    min_lon
+                    - margin
+                    + j * (max_lon - min_lon + 2 * margin) / (lon_samples - 1)
+                )
                 sample_points.append((lat, lon))
-        
+
         # Get cells for all sample points
         for lat, lon in sample_points:
             if -90 <= lat <= 90 and -180 <= lon <= 180:
@@ -335,12 +339,7 @@ class PlusCodeGrid(BaseGrid):
 
         # Filter cells to only those that actually intersect the target bbox
         from shapely.geometry import box as shapely_box
-        
-        target_bbox = shapely_box(min_lon, min_lat, max_lon, max_lat)
-        
-        intersecting_cells = []
-        for cell in cells:
-            if cell.polygon.intersects(target_bbox):
-                intersecting_cells.append(cell)
 
-        return intersecting_cells
+        target_bbox = shapely_box(min_lon, min_lat, max_lon, max_lat)
+
+        return [cell for cell in cells if cell.polygon.intersects(target_bbox)]

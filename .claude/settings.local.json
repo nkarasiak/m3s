@@ -13,7 +13,11 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(git filter-branch:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(pytest:*)",
+      "Bash(git tag:*)",
+      "Bash(sphinx-build:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

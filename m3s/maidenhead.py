@@ -12,8 +12,8 @@ from .base import BaseGrid, GridCell
 class MaidenheadGrid(BaseGrid):
     """
     Maidenhead locator system spatial grid.
-    
-    Implements the ham radio grid system using a hierarchical 
+
+    Implements the ham radio grid system using a hierarchical
     coordinate system with alternating letter/number pairs.
     """
 
@@ -25,10 +25,10 @@ class MaidenheadGrid(BaseGrid):
         ----------
         precision : int, optional
             Maidenhead precision level (1-4), by default 3.
-            
+
             Precision levels:
                 1 = Field (20° × 10°) - e.g., "JO"
-                2 = Square (2° × 1°) - e.g., "JO62"  
+                2 = Square (2° × 1°) - e.g., "JO62"
                 3 = Subsquare (5' × 2.5') - e.g., "JO62KO"
                 4 = Extended square (12.5" × 6.25") - e.g., "JO62KO78"
 
@@ -75,7 +75,7 @@ class MaidenheadGrid(BaseGrid):
         if self.precision >= 1:
             field_lon = int(adj_lon / 20)
             field_lat = int(adj_lat / 10)
-            locator += chr(ord('A') + field_lon) + chr(ord('A') + field_lat)
+            locator += chr(ord("A") + field_lon) + chr(ord("A") + field_lat)
             adj_lon -= field_lon * 20
             adj_lat -= field_lat * 10
 
@@ -89,16 +89,16 @@ class MaidenheadGrid(BaseGrid):
 
         # Subsquare (third pair - letters)
         if self.precision >= 3:
-            subsquare_lon = int(adj_lon / (2.0/24))  # 2°/24 = 5'
-            subsquare_lat = int(adj_lat / (1.0/24))  # 1°/24 = 2.5'
-            locator += chr(ord('A') + subsquare_lon) + chr(ord('A') + subsquare_lat)
-            adj_lon -= subsquare_lon * (2.0/24)
-            adj_lat -= subsquare_lat * (1.0/24)
+            subsquare_lon = int(adj_lon / (2.0 / 24))  # 2°/24 = 5'
+            subsquare_lat = int(adj_lat / (1.0 / 24))  # 1°/24 = 2.5'
+            locator += chr(ord("A") + subsquare_lon) + chr(ord("A") + subsquare_lat)
+            adj_lon -= subsquare_lon * (2.0 / 24)
+            adj_lat -= subsquare_lat * (1.0 / 24)
 
         # Extended square (fourth pair - digits)
         if self.precision >= 4:
-            ext_lon = int(adj_lon / (2.0/240))  # 2°/240 = 30"
-            ext_lat = int(adj_lat / (1.0/240))  # 1°/240 = 15"
+            ext_lon = int(adj_lon / (2.0 / 240))  # 2°/240 = 30"
+            ext_lat = int(adj_lat / (1.0 / 240))  # 1°/240 = 15"
             locator += str(ext_lon) + str(ext_lat)
 
         return locator
@@ -127,8 +127,8 @@ class MaidenheadGrid(BaseGrid):
 
         # Field (first pair - letters)
         if len(locator) >= 2:
-            lon += (ord(locator[0]) - ord('A')) * 20
-            lat += (ord(locator[1]) - ord('A')) * 10
+            lon += (ord(locator[0]) - ord("A")) * 20
+            lat += (ord(locator[1]) - ord("A")) * 10
             lon_size = 20.0
             lat_size = 10.0
 
@@ -141,17 +141,17 @@ class MaidenheadGrid(BaseGrid):
 
         # Subsquare (third pair - letters)
         if len(locator) >= 6:
-            lon += (ord(locator[4]) - ord('A')) * (2.0/24)
-            lat += (ord(locator[5]) - ord('A')) * (1.0/24)
-            lon_size = 2.0/24
-            lat_size = 1.0/24
+            lon += (ord(locator[4]) - ord("A")) * (2.0 / 24)
+            lat += (ord(locator[5]) - ord("A")) * (1.0 / 24)
+            lon_size = 2.0 / 24
+            lat_size = 1.0 / 24
 
         # Extended square (fourth pair - digits)
         if len(locator) >= 8:
-            lon += int(locator[6]) * (2.0/240)
-            lat += int(locator[7]) * (1.0/240)
-            lon_size = 2.0/240
-            lat_size = 1.0/240
+            lon += int(locator[6]) * (2.0 / 240)
+            lat += int(locator[7]) * (1.0 / 240)
+            lon_size = 2.0 / 240
+            lat_size = 1.0 / 240
 
         # Convert back to standard coordinates
         west = lon - 180
@@ -196,13 +196,9 @@ class MaidenheadGrid(BaseGrid):
         """
         south, west, north, east = self.decode(identifier)
 
-        polygon = Polygon([
-            (west, south),
-            (east, south),
-            (east, north),
-            (west, north),
-            (west, south)
-        ])
+        polygon = Polygon(
+            [(west, south), (east, south), (east, north), (west, north), (west, south)]
+        )
 
         return GridCell(identifier, polygon, self.precision)
 
@@ -229,13 +225,13 @@ class MaidenheadGrid(BaseGrid):
         # Define 8 neighboring positions
         offsets = [
             (-lat_size, -lon_size),  # SW
-            (-lat_size, 0),          # S
-            (-lat_size, lon_size),   # SE
-            (0, -lon_size),          # W
-            (0, lon_size),           # E
-            (lat_size, -lon_size),   # NW
-            (lat_size, 0),           # N
-            (lat_size, lon_size),    # NE
+            (-lat_size, 0),  # S
+            (-lat_size, lon_size),  # SE
+            (0, -lon_size),  # W
+            (0, lon_size),  # E
+            (lat_size, -lon_size),  # NW
+            (lat_size, 0),  # N
+            (lat_size, lon_size),  # NE
         ]
 
         center_lat = (south + north) / 2
@@ -285,18 +281,18 @@ class MaidenheadGrid(BaseGrid):
         if self.precision == 1:
             lat_step, lon_step = 10.0, 20.0  # Field
         elif self.precision == 2:
-            lat_step, lon_step = 1.0, 2.0    # Square
+            lat_step, lon_step = 1.0, 2.0  # Square
         elif self.precision == 3:
-            lat_step, lon_step = 1.0/24, 2.0/24  # Subsquare
+            lat_step, lon_step = 1.0 / 24, 2.0 / 24  # Subsquare
         else:  # precision == 4
-            lat_step, lon_step = 1.0/240, 2.0/240  # Extended square
+            lat_step, lon_step = 1.0 / 240, 2.0 / 240  # Extended square
 
         # Generate grid points with denser sampling to catch boundary cells
         # Use smaller steps to ensure we sample within each potential cell
         sample_factor = 3  # Sample 3 times denser than cell size
         lat_sample_step = lat_step / sample_factor
         lon_sample_step = lon_step / sample_factor
-        
+
         lat = min_lat
         while lat <= max_lat + lat_step:
             lon = min_lon
@@ -314,11 +310,7 @@ class MaidenheadGrid(BaseGrid):
 
         # Filter cells to only those that actually intersect the target bbox
         from shapely.geometry import box as shapely_box
-        target_bbox = shapely_box(min_lon, min_lat, max_lon, max_lat)
-        
-        intersecting_cells = []
-        for cell in cells:
-            if cell.polygon.intersects(target_bbox):
-                intersecting_cells.append(cell)
 
-        return intersecting_cells
+        target_bbox = shapely_box(min_lon, min_lat, max_lon, max_lat)
+
+        return [cell for cell in cells if cell.polygon.intersects(target_bbox)]

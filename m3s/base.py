@@ -12,6 +12,7 @@ from shapely.ops import transform
 
 from .cache import (
     cached_property,
+    get_spatial_cache,
 )
 
 
@@ -46,17 +47,26 @@ class GridCell:
 
         Uses equal-area projection for accurate area calculation.
         """
+        cache = get_spatial_cache()
+        cached_area = cache.get_area(self.identifier)
+        if cached_area is not None:
+            return cached_area
+
         try:
             # Get the centroid to determine appropriate UTM zone
             centroid = self.polygon.centroid
             lon, lat = centroid.x, centroid.y
 
-            # Determine UTM zone
-            utm_zone = int((lon + 180) / 6) + 1
-            hemisphere = "north" if lat >= 0 else "south"
-
-            # Create UTM projection (equal-area for accurate area calculation)
-            utm_crs = f"+proj=utm +zone={utm_zone} +{hemisphere} +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+            # Check cache for UTM zone first
+            cached_utm = cache.get_utm_zone(lat, lon)
+            if cached_utm:
+                utm_crs = cached_utm
+            else:
+                # Determine UTM zone
+                utm_zone = int((lon + 180) / 6) + 1
+                hemisphere = "north" if lat >= 0 else "south"
+                utm_crs = f"+proj=utm +zone={utm_zone} +{hemisphere} +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+                cache.put_utm_zone(lat, lon, utm_crs)
 
             # Transform from WGS84 to UTM
             transformer = pyproj.Transformer.from_crs(
@@ -66,7 +76,11 @@ class GridCell:
 
             # Calculate area in square meters, convert to square kilometers
             area_m2 = projected_polygon.area
-            return area_m2 / 1_000_000  # Convert to km²
+            area_km2 = area_m2 / 1_000_000  # Convert to km²
+
+            # Cache the result
+            cache.put_area(self.identifier, area_km2)
+            return area_km2
 
         except Exception:
             # Fallback: use simple spherical approximation
@@ -89,6 +103,9 @@ class GridCell:
 
             # Approximate area
             area_km2 = R * R * abs(lat_diff_rad * lon_diff_rad * abs(lat_rad))
+
+            # Cache the fallback result too
+            cache.put_area(self.identifier, area_km2)
             return area_km2
 
     def __repr__(self):
@@ -237,9 +254,7 @@ class BaseGrid(ABC):
         if gdf.empty:
             # Create columns without duplicating 'geometry'
             result_columns = ["cell_id", "precision", "geometry"]
-            for col in gdf.columns:
-                if col != "geometry":
-                    result_columns.append(col)
+            result_columns.extend([col for col in gdf.columns if col != "geometry"])
             return gpd.GeoDataFrame(columns=result_columns, crs=gdf.crs)
 
         original_crs = gdf.crs
@@ -282,9 +297,7 @@ class BaseGrid(ABC):
         if not all_cells:
             # Create columns without duplicating 'geometry'
             result_columns = ["cell_id", "precision", "geometry"]
-            for col in gdf.columns:
-                if col != "geometry":
-                    result_columns.append(col)
+            result_columns.extend([col for col in gdf.columns if col != "geometry"])
             return gpd.GeoDataFrame(columns=result_columns, crs=target_crs)
 
         # Create result GeoDataFrame

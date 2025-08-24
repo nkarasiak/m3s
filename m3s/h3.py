@@ -164,11 +164,10 @@ class H3Grid(BaseGrid):
                 idx for idx in neighbor_indices if idx != cell.identifier
             ]
 
-            neighbor_cells = []
-            for neighbor_index in neighbor_indices:
-                neighbor_cells.append(self.get_cell_from_identifier(neighbor_index))
-
-            return neighbor_cells
+            return [
+                self.get_cell_from_identifier(neighbor_index)
+                for neighbor_index in neighbor_indices
+            ]
         except Exception:
             return []
 
@@ -215,11 +214,7 @@ class H3Grid(BaseGrid):
                     h3.LatLngPoly(bbox_coords), self.precision
                 )
 
-            cells = []
-            for h3_index in h3_indices:
-                cells.append(self.get_cell_from_identifier(h3_index))
-
-            return cells
+            return [self.get_cell_from_identifier(h3_index) for h3_index in h3_indices]
         except Exception:
             # Fallback to sampling method if polyfill fails
             return self._get_cells_in_bbox_fallback(min_lat, min_lon, max_lat, max_lon)
@@ -269,13 +264,19 @@ class H3Grid(BaseGrid):
                 lon += step_size
             lat += step_size
 
-        # Convert back to GridCell objects
+        # Convert back to GridCell objects - batch process to minimize try-except overhead
         result_cells = []
-        for h3_index in cells:
-            try:
-                result_cells.append(self.get_cell_from_identifier(h3_index))
-            except:
-                pass
+        try:
+            result_cells = [
+                self.get_cell_from_identifier(h3_index) for h3_index in cells
+            ]
+        except:
+            # Fallback to individual processing only if batch fails
+            for h3_index in cells:
+                try:
+                    result_cells.append(self.get_cell_from_identifier(h3_index))
+                except:
+                    pass
 
         return result_cells
 
@@ -364,16 +365,14 @@ class H3Grid(BaseGrid):
 
         try:
             child_indices = h3.cell_to_children(cell.identifier, self.precision + 1)
-            children = []
-            for child_index in child_indices:
-                children.append(
-                    GridCell(
-                        child_index,
-                        self._create_h3_polygon(child_index),
-                        self.precision + 1,
-                    )
+            return [
+                GridCell(
+                    child_index,
+                    self._create_h3_polygon(child_index),
+                    self.precision + 1,
                 )
-            return children
+                for child_index in child_indices
+            ]
         except Exception:
             return []
 
@@ -496,14 +495,10 @@ class H3Grid(BaseGrid):
             h3_indices = {cell.identifier for cell in cells}
             uncompacted_indices = h3.uncompact_cells(h3_indices, target_resolution)
 
-            uncompacted_cells = []
-            for h3_index in uncompacted_indices:
-                uncompacted_cells.append(
-                    GridCell(
-                        h3_index, self._create_h3_polygon(h3_index), target_resolution
-                    )
-                )
-            return uncompacted_cells
+            return [
+                GridCell(h3_index, self._create_h3_polygon(h3_index), target_resolution)
+                for h3_index in uncompacted_indices
+            ]
         except Exception:
             return cells  # Return original cells if uncompacting fails
 

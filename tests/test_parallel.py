@@ -462,7 +462,7 @@ class TestEdgeCases:
         """Test GPU processing fallback on error."""
         mock_cudf = Mock()
         mock_cudf.from_pandas.side_effect = Exception("GPU error")
-        
+
         with patch("m3s.parallel.GPU_AVAILABLE", True), patch(
             "m3s.parallel.cudf", mock_cudf
         ):
