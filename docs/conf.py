@@ -27,6 +27,7 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx.ext.intersphinx",
     "sphinx_gallery.gen_gallery",
+    "sphinx_design",
 ]
 
 templates_path = ["_templates"]
@@ -35,7 +36,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "sphinx_material"
 
 # Only add _static to path if it contains files (other than .gitkeep)
 _static_dir = os.path.join(os.path.dirname(__file__), "_static")
@@ -84,13 +85,60 @@ intersphinx_mapping = {
     "geopandas": ("https://geopandas.org/en/stable/", None),
 }
 
-# HTML theme options
+# HTML theme options for Sphinx Material
 html_theme_options = {
-    "collapse_navigation": False,
-    "sticky_navigation": True,
-    "navigation_depth": 4,
-    "includehidden": True,
-    "titles_only": False,
+    # Set the name of the project to appear in the navigation.
+    'nav_title': 'M3S Documentation',
+    
+    # Set you GA account ID to enable tracking
+    # 'google_analytics_account': 'your-analytics-id',
+    
+    # Specify a base_url used to generate sitemap.xml. If not
+    # specified, then no sitemap will be built.
+    'base_url': 'https://your-project-url.com/',
+    
+    # Set the color and the accent color
+    'color_primary': 'blue',
+    'color_accent': 'light-blue',
+    
+    # Set the repo location to get a badge with stats
+    'repo_url': 'https://github.com/nkarasiak/m3s/',
+    'repo_name': 'M3S',
+    
+    # Visible levels of the global TOC; -1 means unlimited
+    'globaltoc_depth': 3,
+    # If False, expand all TOC entries
+    'globaltoc_collapse': False,
+    # If True, show hidden TOC entries
+    'globaltoc_includehidden': False,
+    
+    # Enable material design theme features
+    'theme_color': 'blue',
+    'master_doc': False,
+    
+    # Navigation bar style
+    'nav_links': [
+        {
+            'href': 'index',
+            'internal': True,
+            'title': 'Home'
+        },
+        {
+            'href': 'installation',
+            'internal': True,
+            'title': 'Installation'
+        },
+        {
+            'href': 'auto_examples/index',
+            'internal': True,
+            'title': 'Gallery'
+        },
+        {
+            'href': 'api',
+            'internal': True,
+            'title': 'API Reference'
+        }
+    ]
 }
 
 html_title = f"{project} v{release} Documentation"

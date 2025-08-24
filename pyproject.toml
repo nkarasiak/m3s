@@ -69,7 +69,8 @@ test = [
 ]
 docs = [
     "sphinx>=7.0.0",
-    "sphinx-rtd-theme>=2.0.0",
+    "sphinx-material>=0.0.36",
+    "sphinx-design>=0.6.0",
     "sphinx-autodoc-typehints>=1.20.0",
     "sphinx-gallery>=0.16.0",
     "memory_profiler>=0.60.0",

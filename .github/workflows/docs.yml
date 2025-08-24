@@ -33,6 +33,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
+        pip install sphinx sphinx-material sphinx-design sphinx-gallery
         pip install -e ".[docs]"
     
     - name: Build documentation
