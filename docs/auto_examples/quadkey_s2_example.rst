@@ -18,17 +18,18 @@
 .. _sphx_glr_auto_examples_quadkey_s2_example.py:
 
 
-Example: Quadkey and S2 Grid Systems Demonstration.
+Quadkey and S2 Grid Systems Demonstration
+==========================================
 
 This example showcases the new Quadkey and S2 grid systems added to M3S,
 demonstrating their unique properties and use cases.
 
-.. GENERATED FROM PYTHON SOURCE LINES 7-340
+.. GENERATED FROM PYTHON SOURCE LINES 8-341
 
 
 
 .. image-sg:: /auto_examples/images/sphx_glr_quadkey_s2_example_001.png
-   :alt: Quadkey vs S2 Grid Systems - Manhattan, Quadkey Grid Level 14 (15 cells), S2 Grid Level 16 (1909 cells), Overlay Comparison
+   :alt: Quadkey vs S2 Grid Systems - Manhattan, Quadkey Grid Level 14 (15 cells), S2 Grid Level 16 (16 cells), Overlay Comparison
    :srcset: /auto_examples/images/sphx_glr_quadkey_s2_example_001.png
    :class: sphx-glr-single-img
 
@@ -77,7 +78,12 @@ demonstrating their unique properties and use cases.
     ============================================================
     Processing intersections...
     Quadkey (level 14): 15 cells
-    S2 (level 16): 1909 cells
+    S2 (level 16): 16 cells
+    C:\Users\nicar\git\m3s\examples\quadkey_s2_example.py:210: UserWarning: Legend does not support handles for PatchCollection instances.
+    See: https://matplotlib.org/stable/tutorials/intermediate/legend_guide.html#implementing-a-custom-legend-handler
+      ax3.legend()
+    C:\Users\nicar\git\m3s\examples\quadkey_s2_example.py:210: UserWarning: No artists with labels found to put in legend.  Note that artists whose label start with an underscore are ignored when legend() is called with no argument.
+      ax3.legend()
 
     ============================================================
     SPATIAL PROPERTIES ANALYSIS
@@ -276,7 +282,7 @@ demonstrating their unique properties and use cases.
 
         # Create grids with similar resolutions
         quadkey_grid = QuadkeyGrid(level=14)  # ~600m tiles
-        s2_grid = S2Grid(level=16)  # ~300m cells
+        s2_grid = S2Grid(level=12)  # ~300m cells
 
         print("Processing intersections...")
 
@@ -479,7 +485,7 @@ demonstrating their unique properties and use cases.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.908 seconds)
+   **Total running time of the script:** (0 minutes 0.453 seconds)
 
 
 .. _sphx_glr_download_auto_examples_quadkey_s2_example.py:

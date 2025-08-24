@@ -35,23 +35,6 @@ Run any example by downloading the Python file and executing it in your environm
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Simple test for S2 grid functionality.">
-
-.. only:: html
-
-  .. image:: /auto_examples/images/thumb/sphx_glr_test_s2_simple_thumb.png
-    :alt:
-
-  :ref:`sphx_glr_auto_examples_test_s2_simple.py`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">Simple test for S2 grid functionality.</div>
-    </div>
-
-
-.. raw:: html
-
     <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates how to use the UTM zone information provided by the grid systems to reproject the results and visualize area differences.">
 
 .. only:: html
@@ -63,13 +46,13 @@ Run any example by downloading the Python file and executing it in your environm
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Example 2: Reproject grid using UTM zone information and visualize.</div>
+      <div class="sphx-glr-thumbnail-title">Reproject grid using UTM zone information and visualize</div>
     </div>
 
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="Example demonstrating the new grid systems: Plus codes, Maidenhead, and GARS.">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates the new grid systems added to M3S: Plus codes (Open Location Code), Maidenhead locator system, and GARS (Global Area Reference System).">
 
 .. only:: html
 
@@ -80,7 +63,7 @@ Run any example by downloading the Python file and executing it in your environm
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Example demonstrating the new grid systems: Plus codes, Maidenhead, and GARS.</div>
+      <div class="sphx-glr-thumbnail-title">New grid systems: Plus codes, Maidenhead, and GARS</div>
     </div>
 
 
@@ -97,7 +80,7 @@ Run any example by downloading the Python file and executing it in your environm
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Example 1: Generate and visualize grids from GeoDataFrame geometry.</div>
+      <div class="sphx-glr-thumbnail-title">Generate and visualize grids from GeoDataFrame geometry</div>
     </div>
 
 
@@ -114,7 +97,7 @@ Run any example by downloading the Python file and executing it in your environm
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Example: Quadkey and S2 Grid Systems Demonstration.</div>
+      <div class="sphx-glr-thumbnail-title">Quadkey and S2 Grid Systems Demonstration</div>
     </div>
 
 
@@ -128,7 +111,6 @@ Run any example by downloading the Python file and executing it in your environm
 .. toctree::
    :hidden:
 
-   /auto_examples/test_s2_simple
    /auto_examples/utm_reprojection_example
    /auto_examples/new_grids_example
    /auto_examples/grid_generation_example

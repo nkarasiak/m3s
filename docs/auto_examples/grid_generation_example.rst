@@ -18,12 +18,13 @@
 .. _sphx_glr_auto_examples_grid_generation_example.py:
 
 
-Example 1: Generate and visualize grids from GeoDataFrame geometry.
+Generate and visualize grids from GeoDataFrame geometry
+========================================================
 
 This example shows how to generate different grid types (MGRS, H3, Geohash,
 Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visualize them clearly.
 
-.. GENERATED FROM PYTHON SOURCE LINES 7-187
+.. GENERATED FROM PYTHON SOURCE LINES 8-188
 
 
 
@@ -66,7 +67,7 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
 
     1. MGRS Grid (10km precision):
        Cells generated: 5
-       Sample cell IDs: ['31UDQ51', '31UDQ41', '31UDQ52']
+       Sample cell IDs: ['31UDQ41', '31UDQ62', '31UDQ52']
        UTM zones: [np.int64(32631)]
 
     2. H3 Grid (resolution 6):
@@ -76,7 +77,7 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
 
     3. Geohash Grid (precision 5):
        Cells generated: 15
-       Sample cell IDs: ['u09te', 'u09tu', 'u09tv']
+       Sample cell IDs: ['u09te', 'u09wj', 'u09ts']
        UTM zones: [np.int64(32631)]
 
     4. Quadkey Grid (level 12):
@@ -332,7 +333,7 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.725 seconds)
+   **Total running time of the script:** (0 minutes 2.654 seconds)
 
 
 .. _sphx_glr_download_auto_examples_grid_generation_example.py:

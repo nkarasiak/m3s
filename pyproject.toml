@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "m3s"
 version = "0.4.4"
 authors = [
-    {name = "Nicolas Karasiak", email = "karasiak@gmail.com"},
+    {name = "Nicolas Karasiak", email = "karasiak.nicolas@gmail.com"},
 ]
 description = "Multi Spatial Subdivision System - A unified Python package for working with spatial grid systems"
 readme = "README.md"

@@ -1,5 +1,6 @@
 """
-Example 1: Generate and visualize grids from GeoDataFrame geometry.
+Generate and visualize grids from GeoDataFrame geometry
+========================================================
 
 This example shows how to generate different grid types (MGRS, H3, Geohash,
 Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visualize them clearly.

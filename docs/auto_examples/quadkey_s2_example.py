@@ -1,5 +1,6 @@
 """
-Example: Quadkey and S2 Grid Systems Demonstration.
+Quadkey and S2 Grid Systems Demonstration
+==========================================
 
 This example showcases the new Quadkey and S2 grid systems added to M3S,
 demonstrating their unique properties and use cases.
@@ -138,7 +139,7 @@ def compare_grid_systems():
 
     # Create grids with similar resolutions
     quadkey_grid = QuadkeyGrid(level=14)  # ~600m tiles
-    s2_grid = S2Grid(level=16)  # ~300m cells
+    s2_grid = S2Grid(level=12)  # ~300m cells
 
     print("Processing intersections...")
 

@@ -18,9 +18,13 @@
 .. _sphx_glr_auto_examples_new_grids_example.py:
 
 
-Example demonstrating the new grid systems: Plus codes, Maidenhead, and GARS.
+New grid systems: Plus codes, Maidenhead, and GARS
+===================================================
 
-.. GENERATED FROM PYTHON SOURCE LINES 4-143
+This example demonstrates the new grid systems added to M3S: Plus codes (Open Location Code),
+Maidenhead locator system, and GARS (Global Area Reference System).
+
+.. GENERATED FROM PYTHON SOURCE LINES 8-147
 
 
 
@@ -240,7 +244,7 @@ Example demonstrating the new grid systems: Plus codes, Maidenhead, and GARS.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 1.683 seconds)
+   **Total running time of the script:** (0 minutes 1.602 seconds)
 
 
 .. _sphx_glr_download_auto_examples_new_grids_example.py:

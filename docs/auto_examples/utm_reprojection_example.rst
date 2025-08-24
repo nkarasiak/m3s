@@ -18,12 +18,13 @@
 .. _sphx_glr_auto_examples_utm_reprojection_example.py:
 
 
-Example 2: Reproject grid using UTM zone information and visualize.
+Reproject grid using UTM zone information and visualize
+========================================================
 
 This example demonstrates how to use the UTM zone information provided
 by the grid systems to reproject the results and visualize area differences.
 
-.. GENERATED FROM PYTHON SOURCE LINES 7-134
+.. GENERATED FROM PYTHON SOURCE LINES 8-135
 
 
 
@@ -214,7 +215,7 @@ by the grid systems to reproject the results and visualize area differences.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.424 seconds)
+   **Total running time of the script:** (0 minutes 0.439 seconds)
 
 
 .. _sphx_glr_download_auto_examples_utm_reprojection_example.py:

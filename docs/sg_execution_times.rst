@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:00.000** total execution time for 5 files **from all galleries**:
+**00:05.149** total execution time for 4 files **from all galleries**:
 
 .. container::
 
@@ -33,17 +33,14 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_auto_examples_grid_generation_example.py` (``..\examples\grid_generation_example.py``)
-     - 00:00.000
+     - 00:02.654
      - 0.0
    * - :ref:`sphx_glr_auto_examples_new_grids_example.py` (``..\examples\new_grids_example.py``)
-     - 00:00.000
+     - 00:01.602
      - 0.0
    * - :ref:`sphx_glr_auto_examples_quadkey_s2_example.py` (``..\examples\quadkey_s2_example.py``)
-     - 00:00.000
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_test_s2_simple.py` (``..\examples\test_s2_simple.py``)
-     - 00:00.000
+     - 00:00.453
      - 0.0
    * - :ref:`sphx_glr_auto_examples_utm_reprojection_example.py` (``..\examples\utm_reprojection_example.py``)
-     - 00:00.000
+     - 00:00.439
      - 0.0

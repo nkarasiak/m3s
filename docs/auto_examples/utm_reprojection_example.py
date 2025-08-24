@@ -1,5 +1,6 @@
 """
-Example 2: Reproject grid using UTM zone information and visualize.
+Reproject grid using UTM zone information and visualize
+========================================================
 
 This example demonstrates how to use the UTM zone information provided
 by the grid systems to reproject the results and visualize area differences.
