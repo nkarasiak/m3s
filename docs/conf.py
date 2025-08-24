@@ -116,6 +116,9 @@ html_theme_options = {
     'theme_color': 'blue',
     'master_doc': False,
     
+    # Make the title clickable to go to homepage
+    'logo_icon': '🌍',
+    
     # Navigation bar style
     'nav_links': [
         {
