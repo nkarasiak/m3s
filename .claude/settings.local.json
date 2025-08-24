@@ -21,7 +21,8 @@
       "WebFetch(domain:github.com)",
       "Bash(gh issue view:*)",
       "Bash(gh run list:*)",
-      "Bash(gh run view:*)"
+      "Bash(gh run view:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []
