@@ -104,17 +104,23 @@ html_favicon = None
 html_css_files = []
 
 # -- Sphinx Gallery configuration -------------------------------------------
-from sphinx_gallery.sorting import NumberOfCodeLinesSortKey
+try:
+    from sphinx_gallery.sorting import NumberOfCodeLinesSortKey
+    sorter = NumberOfCodeLinesSortKey
+except ImportError:
+    sorter = None
 
 sphinx_gallery_conf = {
     'examples_dirs': '../examples',   # path to your example scripts
     'gallery_dirs': 'auto_examples',  # path to where to save gallery generated output
     'filename_pattern': r'.*\.py',     # pattern to identify example files
     'ignore_pattern': r'__init__\.py|parallel_processing_example\.py',
-    'plot_gallery': 'True',             # whether to execute examples and create plots
+    'plot_gallery': True,             # whether to execute examples and create plots
     'download_all_examples': False,   # whether to create download links
     'first_notebook_cell': '%matplotlib inline',
     'remove_config_comments': True,
     'thumbnail_size': (200, 200),     # size of thumbnail images
-    'within_subsection_order': NumberOfCodeLinesSortKey,
 }
+
+if sorter:
+    sphinx_gallery_conf['within_subsection_order'] = sorter
