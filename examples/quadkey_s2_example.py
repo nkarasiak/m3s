@@ -1,5 +1,6 @@
 """
-Example: Quadkey and S2 Grid Systems Demonstration.
+Quadkey and S2 Grid Systems Demonstration
+==========================================
 
 This example showcases the new Quadkey and S2 grid systems added to M3S,
 demonstrating their unique properties and use cases.

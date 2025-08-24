@@ -1,5 +1,9 @@
 """
-Example demonstrating the new grid systems: Plus codes, Maidenhead, and GARS.
+New grid systems: Plus codes, Maidenhead, and GARS
+===================================================
+
+This example demonstrates the new grid systems added to M3S: Plus codes (Open Location Code),
+Maidenhead locator system, and GARS (Global Area Reference System).
 """
 
 import geopandas as gpd
