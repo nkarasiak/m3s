@@ -1,8 +1,8 @@
 """
-Griddy - A Python package for creating and working with spatial grids.
+M3S - Multi Spatial Subdivision System.
 
-This package provides functionality to work with various spatial grid systems
-like Geohash, MGRS (Military Grid Reference System), H3, and C-squares.
+A unified Python package for working with hierarchical spatial grid systems,
+including grid conversion utilities, relationship analysis, and multi-resolution operations.
 """
 
 from .base import BaseGrid
@@ -31,9 +31,41 @@ from .pluscode import PlusCodeGrid
 from .quadkey import QuadkeyGrid
 from .s2 import S2Grid
 from .slippy import SlippyGrid
+from .what3words import What3WordsGrid
+
+# New grid system enhancements
+from .conversion import (
+    GridConverter,
+    convert_cell,
+    convert_cells,
+    get_equivalent_precision,
+    create_conversion_table,
+    list_grid_systems,
+)
+from .relationships import (
+    GridRelationshipAnalyzer,
+    RelationshipType,
+    analyze_relationship,
+    is_adjacent,
+    find_contained_cells,
+    find_overlapping_cells,
+    find_adjacent_cells,
+    create_relationship_matrix,
+    create_adjacency_matrix,
+    find_cell_clusters,
+    analyze_coverage,
+)
+from .multiresolution import (
+    MultiResolutionGrid,
+    ResolutionLevel,
+    create_multiresolution_grid,
+    get_hierarchical_cells,
+    create_adaptive_grid,
+)
 
 __version__ = "0.4.1"
 __all__ = [
+    # Core grid systems
     "BaseGrid",
     "GeohashGrid",
     "MGRSGrid",
@@ -45,15 +77,48 @@ __all__ = [
     "QuadkeyGrid",
     "S2Grid",
     "SlippyGrid",
+    "What3WordsGrid",
+    
+    # Parallel processing
     "ParallelConfig",
     "ParallelGridEngine",
     "parallel_intersect",
     "stream_grid_processing",
     "create_data_stream",
     "create_file_stream",
+    
+    # Memory management
     "MemoryMonitor",
     "LazyGeodataFrame",
     "StreamingGridProcessor",
     "optimize_geodataframe_memory",
     "estimate_memory_usage",
+    
+    # Grid conversion utilities
+    "GridConverter",
+    "convert_cell",
+    "convert_cells",
+    "get_equivalent_precision",
+    "create_conversion_table",
+    "list_grid_systems",
+    
+    # Relationship analysis
+    "GridRelationshipAnalyzer",
+    "RelationshipType",
+    "analyze_relationship",
+    "is_adjacent",
+    "find_contained_cells",
+    "find_overlapping_cells",
+    "find_adjacent_cells",
+    "create_relationship_matrix",
+    "create_adjacency_matrix",
+    "find_cell_clusters",
+    "analyze_coverage",
+    
+    # Multi-resolution operations
+    "MultiResolutionGrid",
+    "ResolutionLevel",
+    "create_multiresolution_grid",
+    "get_hierarchical_cells",
+    "create_adaptive_grid",
 ]
