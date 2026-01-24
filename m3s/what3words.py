@@ -7,12 +7,12 @@ For full What3Words functionality including word-to-coordinate conversion,
 use the official What3Words API.
 """
 
-from typing import List
 import hashlib
 import math
+from typing import List
 
 import geopandas as gpd
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Polygon
 
 from .base import BaseGrid, GridCell
 from .cache import cached_method, cell_cache_key, geo_cache_key
@@ -353,7 +353,7 @@ class What3WordsGrid(BaseGrid):
 
         results = []
 
-        for idx, row in gdf.iterrows():
+        for _idx, row in gdf.iterrows():
             geom = row.geometry
             bounds = geom.bounds
 

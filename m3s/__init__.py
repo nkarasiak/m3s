@@ -6,6 +6,16 @@ including grid conversion utilities, relationship analysis, and multi-resolution
 """
 
 from .base import BaseGrid
+
+# New grid system enhancements
+from .conversion import (
+    GridConverter,
+    convert_cell,
+    convert_cells,
+    create_conversion_table,
+    get_equivalent_precision,
+    list_grid_systems,
+)
 from .csquares import CSquaresGrid
 from .gars import GARSGrid
 from .geohash import GeohashGrid
@@ -19,6 +29,13 @@ from .memory import (
     optimize_geodataframe_memory,
 )
 from .mgrs import MGRSGrid
+from .multiresolution import (
+    MultiResolutionGrid,
+    ResolutionLevel,
+    create_adaptive_grid,
+    create_multiresolution_grid,
+    get_hierarchical_cells,
+)
 from .parallel import (
     ParallelConfig,
     ParallelGridEngine,
@@ -29,38 +46,39 @@ from .parallel import (
 )
 from .pluscode import PlusCodeGrid
 from .quadkey import QuadkeyGrid
-from .s2 import S2Grid
-from .slippy import SlippyGrid
-from .what3words import What3WordsGrid
-
-# New grid system enhancements
-from .conversion import (
-    GridConverter,
-    convert_cell,
-    convert_cells,
-    get_equivalent_precision,
-    create_conversion_table,
-    list_grid_systems,
-)
 from .relationships import (
     GridRelationshipAnalyzer,
     RelationshipType,
+    analyze_coverage,
     analyze_relationship,
-    is_adjacent,
+    create_adjacency_matrix,
+    create_relationship_matrix,
+    find_adjacent_cells,
+    find_cell_clusters,
     find_contained_cells,
     find_overlapping_cells,
-    find_adjacent_cells,
-    create_relationship_matrix,
-    create_adjacency_matrix,
-    find_cell_clusters,
-    analyze_coverage,
+    is_adjacent,
 )
-from .multiresolution import (
-    MultiResolutionGrid,
-    ResolutionLevel,
-    create_multiresolution_grid,
-    get_hierarchical_cells,
-    create_adaptive_grid,
+from .s2 import S2Grid
+from .slippy import SlippyGrid
+from .what3words import What3WordsGrid
+# A5 Grid System (Phase 1-2: Resolution 0-1)
+from .a5 import (
+    A5Cell,
+    A5Grid,
+    cell_area,
+    cell_to_boundary,
+    cell_to_children,
+    cell_to_lonlat,
+    cell_to_parent,
+    get_children,
+    get_num_cells,
+    get_parent,
+    get_res0_cells,
+    get_resolution,
+    hex_to_u64,
+    lonlat_to_cell,
+    u64_to_hex,
 )
 
 __version__ = "0.5.0"
@@ -78,7 +96,24 @@ __all__ = [
     "S2Grid",
     "SlippyGrid",
     "What3WordsGrid",
-    
+    "A5Grid",
+
+    # A5 API functions (Phase 1-2: Resolution 0-1)
+    "A5Cell",
+    "lonlat_to_cell",
+    "cell_to_lonlat",
+    "cell_to_boundary",
+    "cell_to_parent",
+    "cell_to_children",
+    "get_parent",
+    "get_children",
+    "get_resolution",
+    "get_res0_cells",
+    "get_num_cells",
+    "cell_area",
+    "hex_to_u64",
+    "u64_to_hex",
+
     # Parallel processing
     "ParallelConfig",
     "ParallelGridEngine",
@@ -86,14 +121,14 @@ __all__ = [
     "stream_grid_processing",
     "create_data_stream",
     "create_file_stream",
-    
+
     # Memory management
     "MemoryMonitor",
     "LazyGeodataFrame",
     "StreamingGridProcessor",
     "optimize_geodataframe_memory",
     "estimate_memory_usage",
-    
+
     # Grid conversion utilities
     "GridConverter",
     "convert_cell",
@@ -101,7 +136,7 @@ __all__ = [
     "get_equivalent_precision",
     "create_conversion_table",
     "list_grid_systems",
-    
+
     # Relationship analysis
     "GridRelationshipAnalyzer",
     "RelationshipType",
@@ -114,7 +149,7 @@ __all__ = [
     "create_adjacency_matrix",
     "find_cell_clusters",
     "analyze_coverage",
-    
+
     # Multi-resolution operations
     "MultiResolutionGrid",
     "ResolutionLevel",

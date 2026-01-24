@@ -78,6 +78,9 @@ class GridCell:
             area_m2 = projected_polygon.area
             area_km2 = area_m2 / 1_000_000  # Convert to km²
 
+            if not (area_km2 > 0) or area_km2 != area_km2:
+                raise ValueError("Invalid projected area")
+
             # Cache the result
             cache.put_area(self.identifier, area_km2)
             return area_km2

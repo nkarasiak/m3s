@@ -398,7 +398,7 @@ class StreamingGridProcessor:
                             yield result
                         except MemoryError:
                             warnings.warn(
-                                f"Skipping problematic chunk of size {len(sub_chunk)}", 
+                                f"Skipping problematic chunk of size {len(sub_chunk)}",
                                 stacklevel=2
                             )
                         finally:
