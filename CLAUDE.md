@@ -4,13 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-M3S (Multi Spatial Subdivision System) is a Python package that provides a unified interface for working with hierarchical spatial grid systems. It supports 10 different grid systems: Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, C-squares, GARS, Maidenhead, Plus Codes, and What3Words.
+M3S (Multi Spatial Subdivision System) is a Python package that provides a unified interface for working with hierarchical spatial grid systems. It supports 11 different grid systems: Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, C-squares, GARS, Maidenhead, Plus Codes, What3Words, and A5 (pentagonal DGGS).
 
-**New Grid System Enhancements (Latest):**
+**Grid System Enhancements:**
 - **Grid Conversion Utilities**: Convert between different grid systems with multiple methods (centroid, overlap, containment)
 - **Relationship Analysis**: Analyze spatial relationships between grid cells (adjacency, containment, overlap)
 - **Multi-Resolution Operations**: Work with multiple precision levels simultaneously for hierarchical analysis
-- **What3Words Integration**: 3-meter precision grid system integration
+- **What3Words Grid**: 3-meter precision grid system
+- **A5 Grid System** (In Development): Pentagonal DGGS based on dodecahedral projection (compatible with felixpalmer/a5-py API)
 
 ## Development Commands
 
@@ -69,6 +70,7 @@ Each grid system is implemented in its own module:
 - `maidenhead.py` - Amateur radio grid locator system
 - `pluscode.py` - Open Location Codes (Plus Codes)
 - `what3words.py` - What3Words-style 3-meter precision squares
+- `a5.py` - A5 pentagonal DGGS (dodecahedral projection) with multiple implementation variants in development
 
 ### Grid System Enhancement Modules
 New modules for enhanced functionality:
@@ -84,17 +86,33 @@ New modules for enhanced functionality:
 ### UTM Integration
 The system automatically calculates and includes UTM zone information for optimal spatial analysis. UTM zones are determined from cell centroids and cached for performance.
 
+### A5 Grid System (In Development)
+The A5 grid system is a pentagonal DGGS implementation with multiple variants being tested:
+- `a5.py` - Main module exposing public API compatible with felixpalmer/a5-py
+- `a5_proper_tessellation.py` - Current implementation using proper dodecahedral tessellation
+- Several experimental implementations (`a5_fixed.py`, `a5_hierarchical.py`, `a5_palmer.py`, etc.) exploring different approaches
+- Test files: `test_a5.py` validates all implementations
+- Debug files in root directory (`debug_a5.py`, `debug_overlap.py`, `debug_pole_contain.py`, etc.) for investigating edge cases
+
+**Important**: When working with A5, note that there are multiple implementation files. The main entry point is `a5.py` which delegates to the current best implementation.
+
 ## Testing Structure
 
 Tests are organized by grid system and functionality in `tests/` directory:
-- Each grid system has its own test file (e.g., `test_geohash.py`, `test_h3.py`)
+- Each grid system has its own test file (e.g., `test_geohash.py`, `test_h3.py`, `test_a5.py`)
 - `test_geodataframe.py` - GeoPandas integration tests
 - `test_parallel.py` - Parallel processing tests
 - `test_cache.py` - Caching system tests
-- `test_what3words.py` - What3Words grid system tests
 - `test_conversion.py` - Grid conversion utility tests
 - `test_relationships.py` - Spatial relationship analysis tests
 - `test_multiresolution.py` - Multi-resolution operation tests
+
+Run specific tests:
+```bash
+pytest tests/test_geohash.py          # Test single grid system
+pytest tests/test_a5.py -v            # Test A5 with verbose output
+pytest tests/test_conversion.py::test_convert_cell  # Test specific function
+```
 
 ## Development Guidelines
 
@@ -122,11 +140,23 @@ When implementing new grid systems:
 
 ### Documentation
 - Examples are auto-generated from `examples/` directory using Sphinx Gallery
-- Documentation built with PyData Sphinx Theme
-- API documentation auto-generated from docstrings
-- New example `grid_enhancements_example.py` demonstrates all grid system enhancements
+- Documentation built with PyData Sphinx Theme (switched from sphinx-material)
+- API documentation auto-generated from docstrings with NumPy-style conventions
+- Key examples:
+  - `grid_enhancements_example.py` - Grid conversion, relationships, multi-resolution
+  - `new_grids_example.py` - C-squares, GARS, Maidenhead, Plus Codes
+  - `a5_example.py` - A5 pentagonal grid system
+  - `quadkey_s2_example.py` - Web mapping grids
+  - `utm_reprojection_example.py` - UTM zone integration
 
-## New Features Usage
+Build documentation:
+```bash
+cd docs
+make html       # Output in docs/_build/html
+make clean      # Clean build artifacts
+```
+
+## Key Features Usage
 
 ### Grid Conversion
 ```python
@@ -160,12 +190,34 @@ hierarchical = get_hierarchical_cells(multi_grid, point)
 adaptive_grid = create_adaptive_grid(base_grid, bounds, levels)
 ```
 
-### What3Words Grid
+### A5 Pentagonal Grid
 ```python
-from m3s import What3WordsGrid
+from m3s import A5Grid, lonlat_to_cell, cell_to_boundary
 
-# Use What3Words-style 3-meter grid
-w3w_grid = What3WordsGrid()
-cell = w3w_grid.get_cell_from_point(40.7128, -74.0060)
-neighbors = w3w_grid.get_neighbors(cell)  # 8 neighbors
+# Use A5 grid (compatible with felixpalmer/a5-py API)
+a5_grid = A5Grid(resolution=5)
+cell = a5_grid.get_cell_from_point(40.7128, -74.0060)
+
+# Direct API functions
+cell_id = lonlat_to_cell(-74.0060, 40.7128, 5)
+boundary = cell_to_boundary(cell_id)
 ```
+
+## Development Workflow
+
+### Before Committing
+Always run code quality checks:
+```bash
+black m3s tests examples              # Format code
+isort m3s tests examples               # Sort imports
+ruff check --fix m3s tests examples    # Fix linting issues
+mypy m3s                               # Type checking
+pytest                                 # Run all tests
+```
+
+### Working with A5 Grid System
+The A5 implementation has multiple experimental files. When debugging A5 issues:
+1. Check `debug_*.py` files in root for relevant edge case tests
+2. Run specific A5 tests: `pytest tests/test_a5.py -v -k "test_name"`
+3. Current implementation is in `a5_proper_tessellation.py`
+4. API exposed through `a5.py` matches felixpalmer/a5-py for compatibility
