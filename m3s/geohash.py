@@ -88,6 +88,7 @@ class GeohashGrid(BaseGrid):
         geohash_str = geohash.encode(lat, lon, precision=self.precision)
         return self.get_cell_from_identifier(geohash_str)
 
+    @cached_method(cache_key_func=cell_cache_key)
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """
         Get a geohash cell from its identifier.
@@ -142,49 +143,37 @@ class GeohashGrid(BaseGrid):
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
     ) -> List[GridCell]:
         """Get all geohash cells within the given bounding box."""
-        cells = set()  # Use set to avoid duplicates
+        cells = set()
 
         lat_step = self._get_lat_step()
         lon_step = self._get_lon_step()
 
-        # Extend the sampling area to catch cells that intersect the boundary
-        # but whose centers might be outside the bbox
-        lat_margin = lat_step * 1.5
-        lon_margin = lon_step * 1.5
-
-        extended_min_lat = min_lat - lat_margin
-        extended_max_lat = max_lat + lat_margin
-        extended_min_lon = min_lon - lon_margin
-        extended_max_lon = max_lon + lon_margin
-
-        # Use denser sampling to ensure we don't miss cells
-        dense_lat_step = lat_step / 3
-        dense_lon_step = lon_step / 3
+        # Extend sampling by one cell to catch edge intersections.
+        extended_min_lat = min_lat - lat_step
+        extended_max_lat = max_lat + lat_step
+        extended_min_lon = min_lon - lon_step
+        extended_max_lon = max_lon + lon_step
 
         lat = extended_min_lat
         while lat <= extended_max_lat:
             lon = extended_min_lon
             while lon <= extended_max_lon:
-                try:
-                    cell = self.get_cell_from_point(lat, lon)
-                    # Check if cell actually intersects with the original bbox
-                    bbox_polygon = Polygon(
-                        [
-                            (min_lon, min_lat),
-                            (max_lon, min_lat),
-                            (max_lon, max_lat),
-                            (min_lon, max_lat),
-                            (min_lon, min_lat),
-                        ]
-                    )
-                    if cell.polygon.intersects(bbox_polygon):
-                        cells.add(cell)
-                except:
-                    pass
-                lon += dense_lon_step
-            lat += dense_lat_step
+                cell = self.get_cell_from_point(lat, lon)
+                cell_min_lon, cell_min_lat, cell_max_lon, cell_max_lat = (
+                    cell.polygon.bounds
+                )
+                # Fast bbox intersection check (cells are rectangles).
+                if not (
+                    cell_max_lon < min_lon
+                    or cell_min_lon > max_lon
+                    or cell_max_lat < min_lat
+                    or cell_min_lat > max_lat
+                ):
+                    cells.add(cell)
+                lon += lon_step
+            lat += lat_step
 
-        return list(set(cells))
+        return list(cells)
 
     def _get_lat_step(self) -> float:
         """Get approximate latitude step for the current precision."""

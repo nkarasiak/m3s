@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Parallel processing engine for M3S spatial grid operations.
 
@@ -7,11 +9,12 @@ and streaming data processing for large-scale spatial operations.
 
 import warnings
 from abc import ABC, abstractmethod
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Callable, Dict, Iterator, List, Optional
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
+from typing import Any, Callable, Dict, Iterator, List, Optional, TYPE_CHECKING
 
-import geopandas as gpd
-import pandas as pd
+if TYPE_CHECKING:
+    import geopandas as gpd
+    import pandas as pd
 
 from .memory import MemoryMonitor, optimize_geodataframe_memory
 
@@ -56,6 +59,7 @@ class ParallelConfig:
         self,
         use_dask: bool = True,
         use_gpu: bool = True,
+        use_processes: bool = False,
         n_workers: Optional[int] = None,
         chunk_size: int = 10000,
         memory_limit: str = "2GB",
@@ -66,6 +70,7 @@ class ParallelConfig:
     ):
         self.use_dask = use_dask and DASK_AVAILABLE
         self.use_gpu = use_gpu and GPU_AVAILABLE
+        self.use_processes = use_processes
         self.n_workers = n_workers
         self.chunk_size = chunk_size
         self.memory_limit = memory_limit
@@ -82,6 +87,11 @@ class ParallelConfig:
         if use_gpu and not GPU_AVAILABLE:
             warnings.warn(
                 "GPU requested but RAPIDS/CuPy not available. Using CPU fallback.",
+                stacklevel=2,
+            )
+        if self.use_processes and self.use_dask:
+            warnings.warn(
+                "use_processes is ignored when Dask is enabled.",
                 stacklevel=2,
             )
 
@@ -112,6 +122,9 @@ class GridStreamProcessor(StreamProcessor):
 
     def combine_results(self, results: List[gpd.GeoDataFrame]) -> gpd.GeoDataFrame:
         """Combine intersection results."""
+        import geopandas as gpd
+        import pandas as pd
+
         if not results:
             return gpd.GeoDataFrame()
 
@@ -180,6 +193,8 @@ class ParallelGridEngine:
         gpd.GeoDataFrame
             Results of grid intersection
         """
+        import geopandas as gpd
+
         if len(gdf) == 0:
             return gpd.GeoDataFrame()
 
@@ -204,6 +219,9 @@ class ParallelGridEngine:
         self, grid: BaseGrid, gdf: gpd.GeoDataFrame, chunk_size: int
     ) -> gpd.GeoDataFrame:
         """Dask-based parallel intersection."""
+        import geopandas as gpd
+        import pandas as pd
+
         if not DASK_AVAILABLE:
             return self._intersect_threaded(grid, gdf, chunk_size)
 
@@ -227,6 +245,9 @@ class ParallelGridEngine:
         self, grid: BaseGrid, gdf: gpd.GeoDataFrame, chunk_size: int
     ) -> gpd.GeoDataFrame:
         """GPU-accelerated intersection using RAPIDS."""
+        import geopandas as gpd
+        import pandas as pd
+
         if not GPU_AVAILABLE:
             return self._intersect_threaded(grid, gdf, chunk_size)
 
@@ -260,6 +281,9 @@ class ParallelGridEngine:
         self, grid: BaseGrid, gdf: gpd.GeoDataFrame, chunk_size: int
     ) -> gpd.GeoDataFrame:
         """Thread-based parallel intersection."""
+        import geopandas as gpd
+        import pandas as pd
+
         if len(gdf) <= chunk_size:
             return grid.intersects(gdf)
 
@@ -269,7 +293,11 @@ class ParallelGridEngine:
         # Use ThreadPoolExecutor for CPU-bound operations
         max_workers = self.config.n_workers or min(4, len(chunks))
 
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        executor_class = (
+            ProcessPoolExecutor if self.config.use_processes else ThreadPoolExecutor
+        )
+
+        with executor_class(max_workers=max_workers) as executor:
             future_to_chunk = {
                 executor.submit(grid.intersects, chunk): chunk for chunk in chunks
             }
@@ -324,6 +352,8 @@ class ParallelGridEngine:
         output_callback: Optional[Callable[[gpd.GeoDataFrame], None]],
     ) -> gpd.GeoDataFrame:
         """Dask-based stream processing."""
+        import geopandas as gpd
+
         futures = []
 
         for chunk in data_stream:
@@ -350,10 +380,16 @@ class ParallelGridEngine:
         output_callback: Optional[Callable[[gpd.GeoDataFrame], None]],
     ) -> gpd.GeoDataFrame:
         """Thread-based stream processing."""
+        import geopandas as gpd
+
         results = []
         max_workers = self.config.n_workers or 4
 
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        executor_class = (
+            ProcessPoolExecutor if self.config.use_processes else ThreadPoolExecutor
+        )
+
+        with executor_class(max_workers=max_workers) as executor:
             futures = []
 
             for chunk in data_stream:
@@ -395,6 +431,8 @@ class ParallelGridEngine:
         Dict[str, gpd.GeoDataFrame]
             Results keyed by grid name
         """
+        import geopandas as gpd
+
         if not grid_names:
             grid_names = [f"grid_{i}" for i in range(len(grids))]
 
@@ -419,7 +457,11 @@ class ParallelGridEngine:
             results = {}
             max_workers = min(len(grids), self.config.n_workers or 4)
 
-            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            executor_class = (
+                ProcessPoolExecutor if self.config.use_processes else ThreadPoolExecutor
+            )
+
+            with executor_class(max_workers=max_workers) as executor:
                 future_to_name = {
                     executor.submit(self.intersect_parallel, grid, gdf): name
                     for name, grid in zip(grid_names, grids)
@@ -499,6 +541,8 @@ def create_file_stream(
     gpd.GeoDataFrame
         GeoDataFrames loaded from files
     """
+    import geopandas as gpd
+
     for file_path in file_paths:
         try:
             gdf = gpd.read_file(file_path)

@@ -3,12 +3,16 @@ Base classes and interfaces for spatial grids.
 """
 
 from abc import ABC, abstractmethod
-from typing import List
+from dataclasses import dataclass
+from functools import lru_cache
+from typing import List, TYPE_CHECKING
 
-import geopandas as gpd
-import pyproj
 from shapely.geometry import Point, Polygon
 from shapely.ops import transform
+from shapely.strtree import STRtree
+
+if TYPE_CHECKING:
+    import geopandas as gpd
 
 from .cache import (
     cached_property,
@@ -16,6 +20,14 @@ from .cache import (
 )
 
 
+@lru_cache(maxsize=256)
+def _utm_transformer(utm_crs: str):
+    import pyproj
+
+    return pyproj.Transformer.from_crs("EPSG:4326", utm_crs, always_xy=True)
+
+
+@dataclass(slots=True)
 class GridCell:
     """
     Represents a single grid cell.
@@ -23,11 +35,9 @@ class GridCell:
     A GridCell contains an identifier, geometric polygon representation,
     and precision level for spatial indexing systems.
     """
-
-    def __init__(self, identifier: str, polygon: Polygon, precision: int):
-        self.identifier = identifier
-        self.polygon = polygon
-        self.precision = precision
+    identifier: str
+    polygon: Polygon
+    precision: int
 
     @cached_property
     def area_km2(self) -> float:
@@ -69,9 +79,7 @@ class GridCell:
                 cache.put_utm_zone(lat, lon, utm_crs)
 
             # Transform from WGS84 to UTM
-            transformer = pyproj.Transformer.from_crs(
-                "EPSG:4326", utm_crs, always_xy=True
-            )
+            transformer = _utm_transformer(utm_crs)
             projected_polygon = transform(transformer.transform, self.polygon)
 
             # Calculate area in square meters, convert to square kilometers
@@ -112,7 +120,7 @@ class GridCell:
             return area_km2
 
     def __repr__(self):
-        return f"GridCell(id={self.identifier}, precision={self.precision}, area={self.area_km2:.2f}km²)"
+        return f"GridCell(id={self.identifier}, precision={self.precision})"
 
     def __eq__(self, other):
         if not isinstance(other, GridCell):
@@ -234,8 +242,8 @@ class BaseGrid(ABC):
         return polygon.contains(point)
 
     def intersects(
-        self, gdf: gpd.GeoDataFrame, target_crs: str = "EPSG:4326"
-    ) -> gpd.GeoDataFrame:
+        self, gdf: "gpd.GeoDataFrame", target_crs: str = "EPSG:4326"
+    ) -> "gpd.GeoDataFrame":
         """
         Get all grid cells that intersect with geometries in a GeoDataFrame.
 
@@ -254,8 +262,9 @@ class BaseGrid(ABC):
         gpd.GeoDataFrame
             GeoDataFrame with grid cell identifiers, geometries, and original data
         """
+        import geopandas as gpd
+
         if gdf.empty:
-            # Create columns without duplicating 'geometry'
             result_columns = ["cell_id", "precision", "geometry"]
             result_columns.extend([col for col in gdf.columns if col != "geometry"])
             return gpd.GeoDataFrame(columns=result_columns, crs=gdf.crs)
@@ -271,31 +280,48 @@ class BaseGrid(ABC):
         else:
             gdf_transformed = gdf.copy()
 
-        # Collect all intersecting cells with source geometry indices
+        # Filter valid geometries and keep source indices
+        valid_indices = []
+        valid_geometries = []
+        for idx, geometry in enumerate(gdf_transformed.geometry):
+            if geometry is not None and not geometry.is_empty:
+                valid_indices.append(idx)
+                valid_geometries.append(geometry)
+
+        if not valid_geometries:
+            result_columns = ["cell_id", "precision", "geometry"]
+            result_columns.extend([col for col in gdf.columns if col != "geometry"])
+            return gpd.GeoDataFrame(columns=result_columns, crs=target_crs)
+
+        # Build a single candidate cell set from the overall bounds
+        min_lon, min_lat, max_lon, max_lat = (
+            gdf_transformed.geometry.iloc[valid_indices].total_bounds
+        )
+        candidate_cells = self.get_cells_in_bbox(min_lat, min_lon, max_lat, max_lon)
+
+        if not candidate_cells:
+            result_columns = ["cell_id", "precision", "geometry"]
+            result_columns.extend([col for col in gdf.columns if col != "geometry"])
+            return gpd.GeoDataFrame(columns=result_columns, crs=target_crs)
+
+        cell_polygons = [cell.polygon for cell in candidate_cells]
+        tree = STRtree(cell_polygons)
+
         all_cells = []
         source_indices = []
 
-        for idx, geometry in enumerate(gdf_transformed.geometry):
-            if geometry is not None and not geometry.is_empty:
-                bounds = geometry.bounds
-                min_lon, min_lat, max_lon, max_lat = bounds
-                candidate_cells = self.get_cells_in_bbox(
-                    min_lat, min_lon, max_lat, max_lon
+        for src_idx, geometry in zip(valid_indices, valid_geometries):
+            matches = tree.query(geometry, predicate="intersects")
+            for match_idx in matches:
+                cell = candidate_cells[int(match_idx)]
+                all_cells.append(
+                    {
+                        "cell_id": cell.identifier,
+                        "precision": cell.precision,
+                        "geometry": cell.polygon,
+                    }
                 )
-                intersecting_cells = [
-                    cell
-                    for cell in candidate_cells
-                    if cell.polygon.intersects(geometry)
-                ]
-                for cell in intersecting_cells:
-                    all_cells.append(
-                        {
-                            "cell_id": cell.identifier,
-                            "precision": cell.precision,
-                            "geometry": cell.polygon,
-                        }
-                    )
-                    source_indices.append(idx)
+                source_indices.append(src_idx)
 
         if not all_cells:
             # Create columns without duplicating 'geometry'
@@ -303,13 +329,14 @@ class BaseGrid(ABC):
             result_columns.extend([col for col in gdf.columns if col != "geometry"])
             return gpd.GeoDataFrame(columns=result_columns, crs=target_crs)
 
-        # Create result GeoDataFrame
         result_gdf = gpd.GeoDataFrame(all_cells, crs=target_crs)
 
         # Add original data for each intersecting cell
-        for col in gdf.columns:
-            if col != "geometry":
-                result_gdf[col] = [gdf.iloc[idx][col] for idx in source_indices]
+        non_geom_cols = [col for col in gdf.columns if col != "geometry"]
+        if non_geom_cols:
+            result_gdf[non_geom_cols] = gdf.iloc[source_indices][
+                non_geom_cols
+            ].reset_index(drop=True)
 
         # Transform back to original CRS if different
         if original_crs != target_crs:

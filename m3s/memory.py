@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Memory optimization utilities for M3S spatial operations.
 
@@ -8,10 +10,11 @@ including lazy evaluation, chunked processing, and memory monitoring.
 import gc
 import warnings
 from contextlib import contextmanager
-from typing import Callable, Iterator, Optional
+from typing import Callable, Iterator, Optional, TYPE_CHECKING
 
-import geopandas as gpd
-import pandas as pd
+if TYPE_CHECKING:
+    import geopandas as gpd
+    import pandas as pd
 
 try:
     import psutil
@@ -248,6 +251,8 @@ class LazyGeodataFrame:
         """
         chunk_size = chunk_size or self.chunk_size
 
+        import geopandas as gpd
+
         if self.file_path:
             # Read file in chunks
             for i in range(0, len(self), chunk_size):
@@ -276,6 +281,8 @@ class LazyGeodataFrame:
         gpd.GeoDataFrame
             Random sample of features
         """
+        import geopandas as gpd
+
         total_features = len(self)
         if n >= total_features:
             if self.file_path:
@@ -452,6 +459,8 @@ def optimize_geodataframe_memory(
     gpd.GeoDataFrame
         Memory-optimized GeoDataFrame
     """
+    import pandas as pd
+
     gdf_optimized = gdf.copy()
 
     # Batch process column optimizations to reduce overhead

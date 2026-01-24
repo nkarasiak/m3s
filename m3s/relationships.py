@@ -469,55 +469,67 @@ class GridRelationshipAnalyzer:
         }
 
 
-# Global analyzer instance
-analyzer = GridRelationshipAnalyzer()
+# Global analyzer instance (lazy)
+_analyzer: Optional[GridRelationshipAnalyzer] = None
+
+
+def get_analyzer() -> GridRelationshipAnalyzer:
+    """Get or create the global analyzer instance."""
+    global _analyzer
+    if _analyzer is None:
+        _analyzer = GridRelationshipAnalyzer()
+    return _analyzer
 
 
 # Convenience functions
 def analyze_relationship(cell1: GridCell, cell2: GridCell) -> RelationshipType:
     """Analyze the primary spatial relationship between two cells."""
-    return analyzer.analyze_relationship(cell1, cell2)
+    return get_analyzer().analyze_relationship(cell1, cell2)
 
 
 def is_adjacent(cell1: GridCell, cell2: GridCell) -> bool:
     """Check if two cells are adjacent."""
-    return analyzer.is_adjacent(cell1, cell2)
+    return get_analyzer().is_adjacent(cell1, cell2)
 
 
 def find_contained_cells(container: GridCell, cells: List[GridCell]) -> List[GridCell]:
     """Find cells contained within a container cell."""
-    return analyzer.find_contained_cells(container, cells)
+    return get_analyzer().find_contained_cells(container, cells)
 
 
 def find_overlapping_cells(target: GridCell, cells: List[GridCell]) -> List[GridCell]:
     """Find cells that overlap with a target cell."""
-    return analyzer.find_overlapping_cells(target, cells)
+    return get_analyzer().find_overlapping_cells(target, cells)
 
 
 def find_adjacent_cells(target: GridCell, cells: List[GridCell]) -> List[GridCell]:
     """Find cells adjacent to a target cell."""
-    return analyzer.find_adjacent_cells(target, cells)
+    return get_analyzer().find_adjacent_cells(target, cells)
 
 
 def create_relationship_matrix(cells: List[GridCell]) -> pd.DataFrame:
     """Create a relationship matrix for a collection of cells."""
-    return analyzer.create_relationship_matrix(cells)
+    return get_analyzer().create_relationship_matrix(cells)
 
 
 def create_adjacency_matrix(cells: List[GridCell]) -> pd.DataFrame:
     """Create an adjacency matrix for a collection of cells."""
-    return analyzer.create_adjacency_matrix(cells)
+    return get_analyzer().create_adjacency_matrix(cells)
 
 
 def find_cell_clusters(
     cells: List[GridCell], min_cluster_size: int = 2
 ) -> List[List[GridCell]]:
     """Find clusters of connected cells."""
-    return analyzer.find_clusters(cells, min_cluster_size)
+    return get_analyzer().find_clusters(cells, min_cluster_size)
 
 
 def analyze_coverage(
     cells: List[GridCell], bounds: Optional[Tuple[float, float, float, float]] = None
 ) -> Dict[str, float]:
     """Analyze how well cells cover a given area."""
-    return analyzer.analyze_grid_coverage(cells, bounds)
+    return get_analyzer().analyze_grid_coverage(cells, bounds)
+
+
+# Backwards-compatible eager instance
+analyzer = get_analyzer()

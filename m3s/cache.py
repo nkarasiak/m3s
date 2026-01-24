@@ -7,8 +7,10 @@ including area calculations, coordinate transformations, and grid operations.
 
 import functools
 import hashlib
+import threading
 import weakref
-from typing import Any, Callable, Dict, Optional
+from collections import OrderedDict
+from typing import Any, Callable, Optional
 
 
 class LRUCache:
@@ -29,43 +31,40 @@ class LRUCache:
             Maximum number of items to store in cache, by default 256
         """
         self.maxsize = maxsize
-        self.cache: Dict[str, Any] = {}
-        self.access_order: list = []
+        self.cache: OrderedDict[str, Any] = OrderedDict()
+        self._lock = threading.Lock()
 
     def get(self, key: str) -> Optional[Any]:
         """Get item from cache and update access order."""
-        if key in self.cache:
-            # Move to end (most recently used)
-            self.access_order.remove(key)
-            self.access_order.append(key)
-            return self.cache[key]
-        return None
+        with self._lock:
+            try:
+                value = self.cache[key]
+            except KeyError:
+                return None
+            self.cache.move_to_end(key)
+            return value
 
     def put(self, key: str, value: Any) -> None:
         """Put item in cache, evicting LRU item if necessary."""
-        if key in self.cache:
-            # Update existing item
-            self.access_order.remove(key)
-            self.access_order.append(key)
-            self.cache[key] = value
-        else:
-            # Add new item
-            if len(self.cache) >= self.maxsize:
-                # Evict least recently used item
-                lru_key = self.access_order.pop(0)
-                del self.cache[lru_key]
+        with self._lock:
+            if key in self.cache:
+                self.cache.move_to_end(key)
+                self.cache[key] = value
+                return
 
+            if len(self.cache) >= self.maxsize:
+                self.cache.popitem(last=False)
             self.cache[key] = value
-            self.access_order.append(key)
 
     def clear(self) -> None:
         """Clear all cached items."""
-        self.cache.clear()
-        self.access_order.clear()
+        with self._lock:
+            self.cache.clear()
 
     def size(self) -> int:
         """Get current cache size."""
-        return len(self.cache)
+        with self._lock:
+            return len(self.cache)
 
 
 class SpatialCache:
@@ -219,17 +218,16 @@ def cached_method(
             cache._cache.put(cache_key, result)
             return result
 
-        # Add cache management methods
-        wrapper.clear_cache = lambda: (
-            get_spatial_cache().clear()
-            if use_global_cache
-            else get_grid_cache(wrapper.__self__).clear()
-        )
-        wrapper.cache_size = lambda: (
-            get_spatial_cache().size()
-            if use_global_cache
-            else get_grid_cache(wrapper.__self__).size()
-        )
+        def clear_cache(instance):
+            cache = get_spatial_cache() if use_global_cache else get_grid_cache(instance)
+            cache.clear()
+
+        def cache_size(instance):
+            cache = get_spatial_cache() if use_global_cache else get_grid_cache(instance)
+            return cache.size()
+
+        wrapper.clear_cache = clear_cache
+        wrapper.cache_size = cache_size
 
         return wrapper
 

@@ -50,6 +50,21 @@ class GridConverter:
         "a5": A5Grid,
     }
 
+    GRID_FACTORIES = {
+        "geohash": lambda precision: GeohashGrid(precision=precision),
+        "mgrs": lambda precision: MGRSGrid(precision=precision),
+        "h3": lambda precision: H3Grid(resolution=precision),
+        "quadkey": lambda precision: QuadkeyGrid(level=precision),
+        "s2": lambda precision: S2Grid(level=precision),
+        "slippy": lambda precision: SlippyGrid(zoom=precision),
+        "csquares": lambda precision: CSquaresGrid(precision=precision),
+        "gars": lambda precision: GARSGrid(precision=precision),
+        "maidenhead": lambda precision: MaidenheadGrid(precision=precision),
+        "pluscode": lambda precision: PlusCodeGrid(precision=precision),
+        "what3words": lambda precision: What3WordsGrid(precision=precision),
+        "a5": lambda precision: A5Grid(precision=precision),
+    }
+
     # Default precision/resolution mappings for equivalent area coverage
     DEFAULT_PRECISIONS = {
         "geohash": 5,  # ~4,892 km²
@@ -96,17 +111,10 @@ class GridConverter:
 
         cache_key = (system_name, precision)
         if cache_key not in self._grid_cache:
-            grid_class = self.GRID_SYSTEMS[system_name]
-            # Handle different parameter names for grid systems
-            if system_name == "h3":
-                self._grid_cache[cache_key] = grid_class(resolution=precision)
-            elif system_name in ["quadkey", "slippy", "s2"]:
-                if system_name == "slippy":
-                    self._grid_cache[cache_key] = grid_class(zoom=precision)
-                else:
-                    self._grid_cache[cache_key] = grid_class(level=precision)
-            else:
-                self._grid_cache[cache_key] = grid_class(precision=precision)
+            factory = self.GRID_FACTORIES.get(system_name)
+            if factory is None:
+                raise ValueError(f"No factory registered for '{system_name}'")
+            self._grid_cache[cache_key] = factory(precision)
 
         return self._grid_cache[cache_key]
 
@@ -361,8 +369,16 @@ class GridConverter:
         return pd.DataFrame(info_data)
 
 
-# Global converter instance
-converter = GridConverter()
+# Global converter instance (lazy)
+_converter: Optional[GridConverter] = None
+
+
+def get_converter() -> GridConverter:
+    """Get or create the global converter instance."""
+    global _converter
+    if _converter is None:
+        _converter = GridConverter()
+    return _converter
 
 
 # Convenience functions
@@ -370,21 +386,21 @@ def convert_cell(
     cell: GridCell, target_system: str, **kwargs
 ) -> Union[GridCell, List[GridCell]]:
     """Convert a single grid cell to another system."""
-    return converter.convert_cell(cell, target_system, **kwargs)
+    return get_converter().convert_cell(cell, target_system, **kwargs)
 
 
 def convert_cells(
     cells: List[GridCell], target_system: str, **kwargs
 ) -> List[Union[GridCell, List[GridCell]]]:
     """Convert multiple grid cells to another system."""
-    return converter.convert_cells_batch(cells, target_system, **kwargs)
+    return get_converter().convert_cells_batch(cells, target_system, **kwargs)
 
 
 def get_equivalent_precision(
     source_system: str, source_precision: int, target_system: str
 ) -> int:
     """Find equivalent precision between grid systems."""
-    return converter.get_equivalent_precision(
+    return get_converter().get_equivalent_precision(
         source_system, source_precision, target_system
     )
 
@@ -393,11 +409,15 @@ def create_conversion_table(
     source_system: str, target_system: str, bounds: tuple, **kwargs
 ) -> pd.DataFrame:
     """Create a conversion table between two grid systems."""
-    return converter.create_conversion_table(
+    return get_converter().create_conversion_table(
         source_system, target_system, bounds, **kwargs
     )
 
 
 def list_grid_systems() -> pd.DataFrame:
     """List all available grid systems with information."""
-    return converter.get_system_info()
+    return get_converter().get_system_info()
+
+
+# Backwards-compatible eager instance
+converter = get_converter()
