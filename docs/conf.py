@@ -93,39 +93,39 @@ html_theme_options = {
         "image_light": None,
         "image_dark": None,
     },
-    
+
     # Header and navigation
     "header_links_before_dropdown": 4,
     "show_nav_level": 2,
     "show_toc_level": 2,
-    
+
     # Footer
     "footer_start": ["copyright"],
     "footer_end": ["sphinx-version", "theme-version"],
-    
+
     # GitHub integration
     "github_url": "https://github.com/nkarasiak/m3s",
     "use_edit_page_button": True,
-    
+
     # Navigation bar
     "navbar_start": ["navbar-logo"],
     "navbar_center": ["navbar-nav"],
     "navbar_end": ["theme-switcher", "navbar-icon-links"],
-    
+
     # Sidebar
     "primary_sidebar_end": ["sidebar-ethical-ads"],
     "secondary_sidebar_items": ["page-toc", "sourcelink"],
-    
+
     # Search
     "search_bar_text": "Search documentation...",
-    
+
     # Analytics (uncomment if needed)
     # "analytics": {"google_analytics_id": "your-analytics-id"},
-    
+
     # Color scheme
     "pygments_light_style": "default",
     "pygments_dark_style": "monokai",
-    
+
     # External links
     "external_links": [
         {
@@ -137,7 +137,7 @@ html_theme_options = {
             "name": "PyPI",
         },
     ],
-    
+
     # Icon links in navbar
     "icon_links": [
         {

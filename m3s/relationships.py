@@ -6,16 +6,14 @@ including containment, overlap, adjacency, and topological operations.
 """
 
 from enum import Enum
-from typing import Dict, List, Set, Tuple, Union, Optional
-import warnings
+from typing import Dict, List, Optional, Tuple, Union
 
-import geopandas as gpd
-import pandas as pd
 import numpy as np
-from shapely.geometry import Point, Polygon, MultiPolygon
+import pandas as pd
+from shapely.geometry import MultiPolygon, Polygon
 from shapely.ops import unary_union
 
-from .base import BaseGrid, GridCell
+from .base import GridCell
 
 
 class RelationshipType(Enum):
@@ -227,7 +225,7 @@ class GridRelationshipAnalyzer:
         pd.DataFrame
             Matrix showing relationships between all cell pairs
         """
-        n_cells = len(cells)
+        len(cells)
         cell_ids = [cell.identifier for cell in cells]
 
         # Initialize matrix with relationship types
@@ -372,7 +370,7 @@ class GridRelationshipAnalyzer:
         cell_lookup = {cell.identifier: cell for cell in cells}
 
         for i, cell1 in enumerate(cells):
-            for j, cell2 in enumerate(cells[i + 1 :], i + 1):
+            for _j, cell2 in enumerate(cells[i + 1 :], i + 1):
                 if self.is_adjacent(cell1, cell2):
                     adjacency_dict[cell1.identifier].add(cell2.identifier)
                     adjacency_dict[cell2.identifier].add(cell1.identifier)

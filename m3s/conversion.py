@@ -6,25 +6,24 @@ enabling seamless translation of grid cells and spatial analysis across
 multiple indexing systems.
 """
 
-from typing import Dict, List, Optional, Type, Union
 import warnings
+from typing import List, Optional, Union
 
-import geopandas as gpd
 import pandas as pd
-from shapely.geometry import Point
 
 from .base import BaseGrid, GridCell
+from .csquares import CSquaresGrid
+from .gars import GARSGrid
 from .geohash import GeohashGrid
-from .mgrs import MGRSGrid
 from .h3 import H3Grid
+from .maidenhead import MaidenheadGrid
+from .mgrs import MGRSGrid
+from .pluscode import PlusCodeGrid
 from .quadkey import QuadkeyGrid
 from .s2 import S2Grid
 from .slippy import SlippyGrid
-from .csquares import CSquaresGrid
-from .gars import GARSGrid
-from .maidenhead import MaidenheadGrid
-from .pluscode import PlusCodeGrid
 from .what3words import What3WordsGrid
+from .a5_proper import A5ProperGrid as A5Grid
 
 
 class GridConverter:
@@ -48,6 +47,7 @@ class GridConverter:
         "maidenhead": MaidenheadGrid,
         "pluscode": PlusCodeGrid,
         "what3words": What3WordsGrid,
+        "a5": A5Grid,
     }
 
     # Default precision/resolution mappings for equivalent area coverage
@@ -63,6 +63,7 @@ class GridConverter:
         "maidenhead": 4,  # ~232 km²
         "pluscode": 8,  # ~14 m²
         "what3words": 1,  # ~9 m²
+        "a5": 8,  # ~1,247 km²
     }
 
     def __init__(self):
@@ -100,7 +101,6 @@ class GridConverter:
             if system_name == "h3":
                 self._grid_cache[cache_key] = grid_class(resolution=precision)
             elif system_name in ["quadkey", "slippy", "s2"]:
-                param_name = "level" if system_name != "slippy" else "zoom"
                 if system_name == "slippy":
                     self._grid_cache[cache_key] = grid_class(zoom=precision)
                 else:
@@ -355,7 +355,7 @@ class GridConverter:
                 )
 
             except Exception as e:
-                warnings.warn(f"Could not load info for {system_name}: {e}")
+                warnings.warn(f"Could not load info for {system_name}: {e}", stacklevel=2)
                 continue
 
         return pd.DataFrame(info_data)

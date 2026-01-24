@@ -5,19 +5,16 @@ Provides functionality for working with multiple resolution levels simultaneousl
 including hierarchical operations, level-of-detail analysis, and adaptive gridding.
 """
 
-from typing import Dict, List, Tuple, Optional, Union, Any
 from dataclasses import dataclass
-from abc import ABC, abstractmethod
-import warnings
+from typing import Any, Dict, List, Optional, Tuple
 
 import geopandas as gpd
-import pandas as pd
 import numpy as np
-from shapely.geometry import Point, Polygon
-from shapely.ops import unary_union
+import pandas as pd
+from shapely.geometry import Point
 
 from .base import BaseGrid, GridCell
-from .relationships import GridRelationshipAnalyzer, RelationshipType
+from .relationships import GridRelationshipAnalyzer
 
 
 @dataclass
@@ -398,7 +395,7 @@ class MultiResolutionGrid:
         )
 
         aggregated_data = []
-        analyzer = GridRelationshipAnalyzer()
+        GridRelationshipAnalyzer()
 
         for target_cell in target_cells:
             # Find data cells that intersect with this target cell
