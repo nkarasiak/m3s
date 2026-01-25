@@ -3,9 +3,9 @@ Base classes and interfaces for spatial grids.
 """
 
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from functools import lru_cache
-from typing import List, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING
 
 from shapely.geometry import Point, Polygon
 from shapely.ops import transform
@@ -14,10 +14,7 @@ from shapely.strtree import STRtree
 if TYPE_CHECKING:
     import geopandas as gpd
 
-from .cache import (
-    cached_property,
-    get_spatial_cache,
-)
+from .cache import get_spatial_cache
 
 
 @lru_cache(maxsize=256)
@@ -38,8 +35,9 @@ class GridCell:
     identifier: str
     polygon: Polygon
     precision: int
+    _cached_area_km2: Optional[float] = field(default=None, init=False, repr=False)
 
-    @cached_property
+    @property
     def area_km2(self) -> float:
         """
         Calculate the area of the grid cell in square kilometers.
@@ -49,7 +47,9 @@ class GridCell:
         float
             Area of the cell in square kilometers
         """
-        return self._calculate_area_km2()
+        if self._cached_area_km2 is None:
+            self._cached_area_km2 = self._calculate_area_km2()
+        return self._cached_area_km2
 
     def _calculate_area_km2(self) -> float:
         """

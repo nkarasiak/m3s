@@ -45,3 +45,4 @@ Package Initialization
    :members:
    :undoc-members:
    :show-inheritance:
+   :exclude-members: ResolutionLevel

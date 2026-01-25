@@ -1,5 +1,6 @@
 """
 A5 Pentagonal Grid System Example.
+==================================
 
 This example demonstrates the A5 pentagonal grid system, a Discrete Global Grid System (DGGS)
 that divides the Earth's surface into pentagonal cells derived from a dodecahedral projection.

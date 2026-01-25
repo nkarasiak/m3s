@@ -175,6 +175,6 @@ M3S provides clear error messages for common issues:
 Next Steps
 ----------
 
-* Check out the :doc:`examples` for more detailed use cases
+* Check out the :doc:`auto_examples/index` for more detailed use cases
 * Explore the :doc:`api` for complete method documentation
 * See the example scripts in the repository for visualization examples

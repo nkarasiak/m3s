@@ -359,6 +359,7 @@ class A5Grid(BaseGrid):
             lon_b, lat_b = boundary[i + 1]
             mid_lon = (lon_a + lon_b) / 2
             mid_lat = (lat_a + lat_b) / 2
+            mid_lon = self._normalize_longitude(mid_lon)
             neighbor_id = self.cell_ops.lonlat_to_cell(mid_lon, mid_lat, self.precision)
             if neighbor_id != cell_id and neighbor_id not in neighbor_ids:
                 neighbor_ids.append(neighbor_id)
@@ -373,6 +374,7 @@ class A5Grid(BaseGrid):
                     angle = 2 * math.pi * k / 5
                     sample_lon = center_lon + delta * math.cos(angle)
                     sample_lat = center_lat + delta * math.sin(angle)
+                    sample_lon = self._normalize_longitude(sample_lon)
                     neighbor_id = self.cell_ops.lonlat_to_cell(
                         sample_lon, sample_lat, self.precision
                     )
@@ -511,3 +513,12 @@ class A5Grid(BaseGrid):
                 lon += 360
             shifted.append((lon, lat))
         return shifted
+
+    @staticmethod
+    def _normalize_longitude(lon: float) -> float:
+        """Normalize longitude to the [-180, 180] range."""
+        while lon > 180:
+            lon -= 360
+        while lon < -180:
+            lon += 360
+        return lon

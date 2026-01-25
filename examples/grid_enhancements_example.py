@@ -1,5 +1,6 @@
 """
 Grid System Enhancements Example.
+=================================
 
 This example demonstrates the new grid system enhancements in M3S:
 1. What3Words integration

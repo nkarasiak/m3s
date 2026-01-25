@@ -77,6 +77,9 @@ autodoc_default_options = {
 # Autosummary settings
 autosummary_generate = True
 
+# Suppress warnings for unpickleable config values (e.g., sphinx_gallery_conf contains functions)
+suppress_warnings = ["config.cache"]
+
 # Intersphinx configuration
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3/", None),
