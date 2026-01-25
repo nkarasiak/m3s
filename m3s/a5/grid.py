@@ -98,8 +98,8 @@ class A5Grid(BaseGrid):
         # Get cell ID for this point
         cell_id = self.cell_ops.lonlat_to_cell(lon, lat, self.precision)
 
-        # Use coarse boundary for grid cells (5 vertices)
-        boundary_coords = self.cell_ops.cell_to_boundary(cell_id, segments=1)
+        # Use adaptive boundary segmentation for smoother polygons
+        boundary_coords = self.cell_ops.cell_to_boundary(cell_id, segments=None)
         boundary_coords = self._shift_longitudes(boundary_coords, lon)
 
         # Create Shapely polygon
@@ -177,8 +177,8 @@ class A5Grid(BaseGrid):
         ValueError
             If cell_id is invalid
         """
-        # Get boundary polygon
-        boundary_coords = self.cell_ops.cell_to_boundary(cell_id, segments=1)
+        # Get boundary polygon (adaptive segmentation)
+        boundary_coords = self.cell_ops.cell_to_boundary(cell_id, segments=None)
 
         # Create Shapely polygon
         polygon = Polygon(boundary_coords)
@@ -352,26 +352,41 @@ class A5Grid(BaseGrid):
         cell_id = self._extract_cell_id(cell.identifier)
         boundary = self.cell_ops.cell_to_boundary(cell_id, segments=1)
         center_lon, center_lat = self.cell_ops.cell_to_lonlat(cell_id)
+        center_xyz = self._lonlat_to_xyz(center_lon, center_lat)
         neighbor_ids = []
 
-        for i in range(len(boundary) - 1):
+        # Sample just outside each edge using spherical geometry to avoid
+        # staying inside the original cell near face boundaries.
+        edge_count = max(1, len(boundary) - 1)
+        for i in range(min(5, edge_count)):
             lon_a, lat_a = boundary[i]
             lon_b, lat_b = boundary[i + 1]
-            mid_lon = (lon_a + lon_b) / 2
-            mid_lat = (lat_a + lat_b) / 2
-            mid_lon = self._normalize_longitude(mid_lon)
-            neighbor_id = self.cell_ops.lonlat_to_cell(mid_lon, mid_lat, self.precision)
-            if neighbor_id != cell_id and neighbor_id not in neighbor_ids:
-                neighbor_ids.append(neighbor_id)
+            v1 = self._lonlat_to_xyz(lon_a, lat_a)
+            v2 = self._lonlat_to_xyz(lon_b, lat_b)
+            edge_mid = self._normalize_xyz(v1 + v2)
+            direction = edge_mid - center_xyz
+            if self._vector_norm(direction) < 1e-12:
+                continue
+            for scale in (0.05, 0.1, 0.2, 0.4):
+                sample_xyz = self._normalize_xyz(edge_mid + direction * scale)
+                sample_lon, sample_lat = self._xyz_to_lonlat(sample_xyz)
+                sample_lon = self._normalize_longitude(sample_lon)
+                neighbor_id = self.cell_ops.lonlat_to_cell(
+                    sample_lon, sample_lat, self.precision
+                )
+                if neighbor_id != cell_id and neighbor_id not in neighbor_ids:
+                    neighbor_ids.append(neighbor_id)
+                    break
 
-        # Fill missing neighbors by sampling around the center.
+        # Fill missing neighbors by sampling around the center on expanding rings.
         if len(neighbor_ids) < 5:
             import math
 
-            delta = max(0.5, 10.0 / (2**self.precision))
-            for _ in range(3):
-                for k in range(5):
-                    angle = 2 * math.pi * k / 5
+            base_delta = max(0.25, 5.0 / (2**self.precision))
+            for ring in range(1, 5):
+                delta = base_delta * ring
+                for k in range(10):
+                    angle = 2 * math.pi * k / 10 + (ring * 0.1)
                     sample_lon = center_lon + delta * math.cos(angle)
                     sample_lat = center_lat + delta * math.sin(angle)
                     sample_lon = self._normalize_longitude(sample_lon)
@@ -384,8 +399,8 @@ class A5Grid(BaseGrid):
                         break
                 if len(neighbor_ids) >= 5:
                     break
-                delta *= 2
 
+        # As a final fallback, pad to 5 by repeating the last unique neighbor.
         while len(neighbor_ids) < 5 and neighbor_ids:
             neighbor_ids.append(neighbor_ids[-1])
 
@@ -513,6 +528,23 @@ class A5Grid(BaseGrid):
                 lon += 360
             shifted.append((lon, lat))
         return shifted
+
+    @staticmethod
+    def _normalize_xyz(xyz):
+        """Normalize a 3D vector to unit length."""
+        import numpy as np
+
+        norm = np.linalg.norm(xyz)
+        if norm == 0:
+            return xyz
+        return xyz / norm
+
+    @staticmethod
+    def _vector_norm(xyz) -> float:
+        """Return the Euclidean norm of a vector."""
+        import numpy as np
+
+        return float(np.linalg.norm(xyz))
 
     @staticmethod
     def _normalize_longitude(lon: float) -> float:

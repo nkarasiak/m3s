@@ -11,6 +11,7 @@ Resolutions 0+ are supported, including Hilbert curves for res >= 2.
 """
 
 import math
+from functools import lru_cache
 from typing import Dict, List, Tuple
 
 from m3s.a5.constants import (
@@ -103,15 +104,7 @@ class A5CellOperations:
         Convert A5 cell ID to center coordinates.
         """
         origin_id, segment, s, resolution = self.serializer.decode(cell_id)
-        origin = origins[origin_id]
-
-        cell = {
-            "origin": origin,
-            "segment": segment,
-            "S": s,
-            "resolution": resolution,
-        }
-        pentagon = self._get_pentagon(cell)
+        pentagon = self._pentagon_for(origin_id, segment, s, resolution)
         face_center = pentagon.get_center()
         theta, phi = self.projection.inverse(face_center, origin_id)
         return self.transformer.spherical_to_lonlat(theta, phi)
@@ -123,17 +116,9 @@ class A5CellOperations:
         Get pentagon boundary vertices for a cell.
         """
         origin_id, segment, s, resolution = self.serializer.decode(cell_id)
-        origin = origins[origin_id]
-        cell = {
-            "origin": origin,
-            "segment": segment,
-            "S": s,
-            "resolution": resolution,
-        }
-
         if segments is None:
             segments = max(1, 2 ** (6 - resolution))
-        pentagon = self._get_pentagon(cell)
+        pentagon = self._pentagon_for(origin_id, segment, s, resolution)
         split_pentagon = pentagon.split_edges(segments)
         vertices = split_pentagon.get_vertices()
 
@@ -144,8 +129,14 @@ class A5CellOperations:
             self.transformer.spherical_to_lonlat(theta, phi)
             for theta, phi in unprojected_vertices
         ]
+        face_center = pentagon.get_center()
+        theta_c, phi_c = self.projection.inverse(face_center, origin_id)
+        center_lon, center_lat = self.transformer.spherical_to_lonlat(theta_c, phi_c)
 
         normalized = self.transformer.normalize_longitudes(boundary)
+        if abs(center_lat) > 89.5 and normalized:
+            center_lon = normalized[0][0]
+        normalized = self._shift_longitudes(normalized, center_lon)
         if normalized and normalized[0] != normalized[-1]:
             normalized.append(normalized[0])
         normalized.reverse()
@@ -266,10 +257,42 @@ class A5CellOperations:
         return get_pentagon_vertices(hilbert_resolution, quintant, anchor)
 
     def _cell_contains_point(self, cell: Dict, point: Tuple[float, float]) -> float:
-        pentagon = self._get_pentagon(cell)
+        pentagon = self._pentagon_for(
+            cell["origin"].id,
+            cell["segment"],
+            cell["S"],
+            cell["resolution"],
+        )
         spherical = self.transformer.lonlat_to_spherical(point[0], point[1])
         projected_point = self.projection.forward(spherical, cell["origin"].id)
         return pentagon.contains_point(projected_point)
+
+    @lru_cache(maxsize=4096)
+    def _pentagon_for(
+        self, origin_id: int, segment: int, s: int, resolution: int
+    ) -> PentagonShape:
+        origin = origins[origin_id]
+        cell = {
+            "origin": origin,
+            "segment": segment,
+            "S": s,
+            "resolution": resolution,
+        }
+        return self._get_pentagon(cell)
+
+    @staticmethod
+    def _shift_longitudes(
+        coords: List[Tuple[float, float]], center_lon: float
+    ) -> List[Tuple[float, float]]:
+        shifted = []
+        for lon, lat in coords:
+            while lon - center_lon > 180:
+                lon -= 360
+            while lon - center_lon < -180:
+                lon += 360
+            lon = ((lon + 180) % 360) - 180
+            shifted.append((lon, lat))
+        return shifted
 
 
 # Module-level convenience functions (public API)
