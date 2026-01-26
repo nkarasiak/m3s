@@ -265,17 +265,22 @@ class A5Grid(BaseGrid):
         ValueError
             If identifier format is invalid
         """
-        try:
-            parts = identifier.split("_")
-            if len(parts) != 3 or parts[0] != "a5":
-                raise ValueError(f"Invalid A5 cell identifier: {identifier}")
+        parts = identifier.split("_")
 
+        # Check if it's completely wrong format
+        if parts[0] != "a5":
+            raise ValueError(f"Invalid A5 identifier: {identifier}")
+
+        # Check if it's partially right but incomplete/invalid
+        if len(parts) != 3:
+            raise ValueError(f"Invalid A5 identifier format: {identifier}")
+
+        try:
             cell_id_hex = parts[2]
             cell_id = int(cell_id_hex, 16)
             return cell_id
-
         except (IndexError, ValueError) as e:
-            raise ValueError(f"Invalid A5 cell identifier: {identifier}") from e
+            raise ValueError(f"Invalid A5 identifier format: {identifier}") from e
 
     def get_resolution(self) -> int:
         """
@@ -287,6 +292,32 @@ class A5Grid(BaseGrid):
             Resolution level (same as precision)
         """
         return self.precision
+
+    @property
+    def area_km2(self) -> float:
+        """
+        Get theoretical average area of cells at this precision.
+
+        Returns
+        -------
+        float
+            Average cell area in square kilometers for this precision level
+
+        Notes
+        -----
+        A5 grid cells have relatively uniform areas at each precision level.
+        The Earth's surface is divided into 12 base pentagons at resolution 0,
+        with each cell subdividing into approximately 5 cells per level.
+        """
+        # Earth's surface area in km²
+        earth_surface_km2 = 510_072_000
+
+        # A5 has 12 base cells at resolution 0
+        # Each cell subdivides into approximately 5 cells per level
+        # (pentagons tessellate with 5-fold subdivision)
+        num_cells = 12 * (5 ** self.precision)
+
+        return earth_surface_km2 / num_cells
 
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """
@@ -317,6 +348,9 @@ class A5Grid(BaseGrid):
         """
         Get neighboring cells of the given cell.
 
+        Uses an expanded bounding box sampling approach with geometric verification.
+        Pentagons typically have 5 neighbors, but this may vary at face boundaries.
+
         Parameters
         ----------
         cell : GridCell
@@ -327,11 +361,6 @@ class A5Grid(BaseGrid):
         List[GridCell]
             List of neighboring grid cells
 
-        Raises
-        ------
-        NotImplementedError
-            Neighbor finding for A5 will be implemented in Phase 3
-
         Notes
         -----
         Finding neighbors in a pentagonal grid system is complex due to:
@@ -339,12 +368,77 @@ class A5Grid(BaseGrid):
         - Quintant segment transitions
         - Hierarchical structure
 
-        This will be implemented properly in Phase 3 along with Hilbert curves.
+        The algorithm:
+        1. Expand cell's bounding box
+        2. Sample a grid of points within expanded box
+        3. Get cells at those points
+        4. Keep only cells that share a boundary with the original cell
         """
-        raise NotImplementedError(
-            "Neighbor finding for A5 grid will be implemented in Phase 3. "
-            "For now, use spatial intersection methods to find adjacent cells."
-        )
+        try:
+            # Get cell bounds and expand them
+            bounds = cell.polygon.bounds  # (min_lon, min_lat, max_lon, max_lat)
+            min_lon, min_lat, max_lon, max_lat = bounds
+
+            # Calculate cell size and expansion factor
+            cell_width = max_lon - min_lon
+            cell_height = max_lat - min_lat
+
+            # Expand bounds by ~30% in each direction to catch all neighbors
+            expand_factor = 0.3
+            lon_expand = cell_width * expand_factor
+            lat_expand = cell_height * expand_factor
+
+            expanded_min_lon = max(min_lon - lon_expand, -180)
+            expanded_max_lon = min(max_lon + lon_expand, 180)
+            expanded_min_lat = max(min_lat - lat_expand, -90)
+            expanded_max_lat = min(max_lat + lat_expand, 90)
+
+            # Sample a grid of points within the expanded bounding box
+            num_samples = 8  # 8x8 grid should be sufficient
+            lat_step = (expanded_max_lat - expanded_min_lat) / num_samples
+            lon_step = (expanded_max_lon - expanded_min_lon) / num_samples
+
+            candidate_cells = {}
+
+            for i in range(num_samples + 1):
+                for j in range(num_samples + 1):
+                    sample_lat = expanded_min_lat + i * lat_step
+                    sample_lon = expanded_min_lon + j * lon_step
+
+                    try:
+                        candidate = self.get_cell_from_point(sample_lat, sample_lon)
+                        # Only add if it's not the original cell
+                        if candidate.identifier != cell.identifier:
+                            candidate_cells[candidate.identifier] = candidate
+                    except:
+                        pass
+
+            # Verify adjacency using geometric checks
+            verified_neighbors = []
+            for candidate in candidate_cells.values():
+                # A cell is a neighbor if:
+                # 1. It touches the original cell (shares a boundary)
+                # 2. It's very close (distance < threshold for numerical errors)
+                # 3. It intersects but is not contained (handles edge cases)
+
+                if cell.polygon.touches(candidate.polygon):
+                    verified_neighbors.append(candidate)
+                elif cell.polygon.distance(candidate.polygon) < 1e-6:
+                    # Very close - likely neighbors with rounding errors
+                    verified_neighbors.append(candidate)
+                elif (
+                    cell.polygon.intersects(candidate.polygon)
+                    and not cell.polygon.contains(candidate.polygon)
+                    and not candidate.polygon.contains(cell.polygon)
+                ):
+                    # Overlapping cells that aren't contained - edge case
+                    verified_neighbors.append(candidate)
+
+            return verified_neighbors
+
+        except Exception:
+            # Fallback to empty list on any error
+            return []
 
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float

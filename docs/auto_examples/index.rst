@@ -46,30 +46,13 @@ Run any example by downloading the Python file and executing it in your environm
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Reproject grid using UTM zone information and visualize</div>
+      <div class="sphx-glr-thumbnail-title">Reproject grid using UTM zone information and visualize.</div>
     </div>
 
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates the new grid systems added to M3S: Plus codes (Open Location Code), Maidenhead locator system, and GARS (Global Area Reference System).">
-
-.. only:: html
-
-  .. image:: /auto_examples/images/thumb/sphx_glr_new_grids_example_thumb.png
-    :alt:
-
-  :ref:`sphx_glr_auto_examples_new_grids_example.py`
-
-.. raw:: html
-
-      <div class="sphx-glr-thumbnail-title">New grid systems: Plus codes, Maidenhead, and GARS</div>
-    </div>
-
-
-.. raw:: html
-
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to generate different grid types (MGRS, H3, Geohash, Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visualize them clearly.">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to generate different grid types (MGRS, H3, Geohash, Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS, A5) from a GeoDataFrame and visualize them clearly.">
 
 .. only:: html
 
@@ -80,7 +63,7 @@ Run any example by downloading the Python file and executing it in your environm
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Generate and visualize grids from GeoDataFrame geometry</div>
+      <div class="sphx-glr-thumbnail-title">Generate and visualize grids from GeoDataFrame geometry.</div>
     </div>
 
 
@@ -97,7 +80,58 @@ Run any example by downloading the Python file and executing it in your environm
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Quadkey and S2 Grid Systems Demonstration</div>
+      <div class="sphx-glr-thumbnail-title">Quadkey and S2 Grid Systems Demonstration.</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates the A5 pentagonal grid system, a Discrete Global Grid System (DGGS) that divides the Earth&#x27;s surface into pentagonal cells derived from a dodecahedral projection.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_a5_example_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_a5_example.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">A5 Pentagonal Grid System Example.</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates the new grid system enhancements in M3S: 1. What3Words integration 2. Grid conversion utilities 3. Grid cell relationship analysis 4. Multi-resolution grid operations">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_grid_enhancements_example_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_grid_enhancements_example.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Grid System Enhancements Example.</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates the new grid systems added to M3S: Plus codes (Open Location Code), Maidenhead locator system, and GARS (Global Area Reference System).">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_new_grids_example_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_new_grids_example.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">New grid systems: Plus codes, Maidenhead, and GARS.</div>
     </div>
 
 
@@ -112,9 +146,11 @@ Run any example by downloading the Python file and executing it in your environm
    :hidden:
 
    /auto_examples/utm_reprojection_example
-   /auto_examples/new_grids_example
    /auto_examples/grid_generation_example
    /auto_examples/quadkey_s2_example
+   /auto_examples/a5_example
+   /auto_examples/grid_enhancements_example
+   /auto_examples/new_grids_example
 
 
 

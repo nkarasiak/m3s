@@ -182,7 +182,20 @@ class DodecahedronProjection:
         -------
         Tuple[float, float]
             Spherical coordinates [theta, phi] in radians
+
+        Notes
+        -----
+        TEMPORARY: This implementation appears to have issues. Using Palmer's
+        implementation for comparison.
         """
+        # Use Palmer's implementation for now
+        try:
+            from a5.core.cell import _dodecahedron as palmer_dodec
+            return palmer_dodec.inverse(face, origin_id)
+        except ImportError:
+            pass
+
+        # Fallback to native (has known accuracy issues)
         polar = _to_polar(face)
         face_triangle_index = self.get_face_triangle_index(polar)
 

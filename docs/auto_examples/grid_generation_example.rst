@@ -18,18 +18,18 @@
 .. _sphx_glr_auto_examples_grid_generation_example.py:
 
 
-Generate and visualize grids from GeoDataFrame geometry
+Generate and visualize grids from GeoDataFrame geometry.
 ========================================================
 
 This example shows how to generate different grid types (MGRS, H3, Geohash,
-Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visualize them clearly.
+Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS, A5) from a GeoDataFrame and visualize them clearly.
 
-.. GENERATED FROM PYTHON SOURCE LINES 8-188
+.. GENERATED FROM PYTHON SOURCE LINES 8-202
 
 
 
 .. image-sg:: /auto_examples/images/sphx_glr_grid_generation_example_001.png
-   :alt: Grid Systems Comparison - Paris Area, MGRS Grid 10km precision (5 cells), H3 Hexagonal Grid Resolution 6 (9 cells), Geohash Grid Precision 5 (15 cells), Quadkey Grid Level 12 (6 cells), S2 Grid Level 9 (4 cells), Slippy Map Tiles Zoom 12 (6 cells), Plus Codes Precision 3 (8 cells), Maidenhead Locator Precision 3 (9 cells), GARS Grid Precision 3 (6 cells)
+   :alt: Grid Systems Comparison - Paris Area, MGRS Grid 10km precision (5 cells), H3 Hexagonal Grid Resolution 6 (9 cells), Geohash Grid Precision 5 (15 cells), Quadkey Grid Level 12 (6 cells), S2 Grid Level 9 (4 cells), Slippy Map Tiles Zoom 12 (6 cells), Plus Codes Precision 3 (8 cells), Maidenhead Locator Precision 3 (9 cells), GARS Grid Precision 3 (6 cells), A5 Pentagon Grid Precision 7 (1 cells)
    :srcset: /auto_examples/images/sphx_glr_grid_generation_example_001.png
    :class: sphx-glr-single-img
 
@@ -51,6 +51,7 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
       Processing Plus codes...
       Processing Maidenhead...
       Processing GARS...
+      Processing A5...
     Generated:
       MGRS (10km):        5 cells
       H3 (res 6):         9 cells
@@ -61,13 +62,14 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
       Plus codes (p3):    8 cells
       Maidenhead (p3):    9 cells
       GARS (p3):          6 cells
+      A5 (p7):            1 cells
 
     Detailed Grid Information:
     ======================================================================
 
     1. MGRS Grid (10km precision):
        Cells generated: 5
-       Sample cell IDs: ['31UDQ41', '31UDQ62', '31UDQ52']
+       Sample cell IDs: ['31UDQ62', '31UDQ52', '31UDQ41']
        UTM zones: [np.int64(32631)]
 
     2. H3 Grid (resolution 6):
@@ -77,7 +79,7 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
 
     3. Geohash Grid (precision 5):
        Cells generated: 15
-       Sample cell IDs: ['u09te', 'u09wj', 'u09ts']
+       Sample cell IDs: ['u09tt', 'u09tw', 'u09wj']
        UTM zones: [np.int64(32631)]
 
     4. Quadkey Grid (level 12):
@@ -100,14 +102,19 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
        Sample cell IDs: ['F84W+7R', 'F84W+CR', 'F84W+8R']
        UTM zones: Not available for this grid system
 
-    8. Maidenhead Locator (precision 2):
+    8. Maidenhead Locator (precision 3):
        Cells generated: 9
        Sample cell IDs: ['JN18DT', 'JN18ET', 'JN18FT']
        UTM zones: Not available for this grid system
 
-    9. GARS Grid (precision 2):
+    9. GARS Grid (precision 3):
        Cells generated: 6
        Sample cell IDs: ['365KR47', '365KR48', '365KR49']
+       UTM zones: Not available for this grid system
+
+    10. A5 Pentagon Grid (precision 7):
+       Cells generated: 1
+       Sample cell IDs: ['a5_3_6360000000000000']
        UTM zones: Not available for this grid system
 
     Note: The red outline shows our test area (Paris bounding box)
@@ -121,6 +128,7 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
     - Plus Codes: Google's open-source alternative to addresses
     - Maidenhead: Ham radio grid system with alternating letter/number pairs
     - GARS: Military/aviation Global Area Reference System
+    - A5: Discrete Global Grid System (DGGS) using pentagonal cells
 
     Grid System Characteristics:
     - MGRS:       Military standard, UTM-based, square cells
@@ -132,6 +140,7 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
     - Plus Codes: Google's address alternative, base-20 encoding
     - Maidenhead: Ham radio standard, hierarchical letter/number system
     - GARS:       Aviation/military standard, longitude bands + latitude zones
+    - A5:         Pentagonal DGGS, dodecahedral projection, minimal distortion
 
     Performance Notes:
     - MGRS and Geohash: Fast, simple algorithms
@@ -139,6 +148,7 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
     - Quadkey and Slippy: Fast, optimized for web mapping
     - S2: More complex but excellent for large-scale applications
     - Plus Codes, Maidenhead, GARS: Fast encoding/decoding, specialized use cases
+    - A5: Complex geometric algorithms, excellent spatial properties for analysis
 
 
 
@@ -157,6 +167,7 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
     from shapely.geometry import box
 
     from m3s import (
+        A5Grid,
         GARSGrid,
         GeohashGrid,
         H3Grid,
@@ -188,6 +199,7 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
     pluscode_grid = PlusCodeGrid(precision=3)  # ~250m x 250m cells
     maidenhead_grid = MaidenheadGrid(precision=3)  # ~2° x 1° cells
     gars_grid = GARSGrid(precision=3)  # 15' × 15' cells
+    a5_grid = A5Grid(precision=3)  # Pentagonal cells, ~1.2km edge length
 
     # Generate grid cells that intersect our test area
     print("  Processing MGRS...")
@@ -219,6 +231,9 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
     print("  Processing GARS...")
     gars_result = gars_grid.intersects(test_gdf)
 
+    print("  Processing A5...")
+    a5_result = a5_grid.intersects(test_gdf)
+
     print("Generated:")
     print(f"  MGRS (10km):        {len(mgrs_result)} cells")
     print(f"  H3 (res 6):         {len(h3_result)} cells")
@@ -229,9 +244,10 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
     print(f"  Plus codes (p3):    {len(pluscode_result)} cells")
     print(f"  Maidenhead (p3):    {len(maidenhead_result)} cells")
     print(f"  GARS (p3):          {len(gars_result)} cells")
+    print(f"  A5 (p7):            {len(a5_result)} cells")
 
     # Create comprehensive visualization with all grid systems
-    fig, axes = plt.subplots(3, 3, figsize=(20, 18))
+    fig, axes = plt.subplots(4, 3, figsize=(20, 24))
     fig.suptitle("Grid Systems Comparison - Paris Area", fontsize=20)
 
     # Define grid results and properties
@@ -251,6 +267,7 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
             axes[2, 1],
         ),
         (gars_result, "GARS Grid\nPrecision 3", "lavender", "mediumorchid", axes[2, 2]),
+        (a5_result, "A5 Pentagon Grid\nPrecision 7", "lightsalmon", "darkorange", axes[3, 0]),
     ]
 
     # Plot each grid system
@@ -265,6 +282,9 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
         ax.set_ylabel("Latitude")
         ax.grid(True, alpha=0.3)
 
+    # Hide the empty subplot cells
+    axes[3, 1].set_visible(False)
+    axes[3, 2].set_visible(False)
 
     plt.tight_layout()
     plt.show()
@@ -281,8 +301,9 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
         ("S2 Grid (level 9)", s2_result),
         ("Slippy Map Tiles (zoom 12)", slippy_result),
         ("Plus Codes (precision 3)", pluscode_result),
-        ("Maidenhead Locator (precision 2)", maidenhead_result),
-        ("GARS Grid (precision 2)", gars_result),
+        ("Maidenhead Locator (precision 3)", maidenhead_result),
+        ("GARS Grid (precision 3)", gars_result),
+        ("A5 Pentagon Grid (precision 7)", a5_result),
     ]
 
     for i, (name, result) in enumerate(grid_info, 1):
@@ -311,6 +332,7 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
     print("- Plus Codes: Google's open-source alternative to addresses")
     print("- Maidenhead: Ham radio grid system with alternating letter/number pairs")
     print("- GARS: Military/aviation Global Area Reference System")
+    print("- A5: Discrete Global Grid System (DGGS) using pentagonal cells")
 
     print("\nGrid System Characteristics:")
     print("- MGRS:       Military standard, UTM-based, square cells")
@@ -322,6 +344,7 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
     print("- Plus Codes: Google's address alternative, base-20 encoding")
     print("- Maidenhead: Ham radio standard, hierarchical letter/number system")
     print("- GARS:       Aviation/military standard, longitude bands + latitude zones")
+    print("- A5:         Pentagonal DGGS, dodecahedral projection, minimal distortion")
 
     print("\nPerformance Notes:")
     print("- MGRS and Geohash: Fast, simple algorithms")
@@ -329,11 +352,12 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visua
     print("- Quadkey and Slippy: Fast, optimized for web mapping")
     print("- S2: More complex but excellent for large-scale applications")
     print("- Plus Codes, Maidenhead, GARS: Fast encoding/decoding, specialized use cases")
+    print("- A5: Complex geometric algorithms, excellent spatial properties for analysis")
 
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 2.654 seconds)
+   **Total running time of the script:** (0 minutes 11.635 seconds)
 
 
 .. _sphx_glr_download_auto_examples_grid_generation_example.py:

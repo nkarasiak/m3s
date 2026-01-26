@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:05.149** total execution time for 4 files **from auto_examples**:
+**01:05.709** total execution time for 6 files **from auto_examples**:
 
 .. container::
 
@@ -32,15 +32,21 @@ Computation times
    * - Example
      - Time
      - Mem (MB)
-   * - :ref:`sphx_glr_auto_examples_grid_generation_example.py` (``grid_generation_example.py``)
-     - 00:02.654
+   * - :ref:`sphx_glr_auto_examples_a5_example.py` (``a5_example.py``)
+     - 00:24.001
      - 0.0
    * - :ref:`sphx_glr_auto_examples_new_grids_example.py` (``new_grids_example.py``)
-     - 00:01.602
+     - 00:16.664
      - 0.0
-   * - :ref:`sphx_glr_auto_examples_quadkey_s2_example.py` (``quadkey_s2_example.py``)
-     - 00:00.453
+   * - :ref:`sphx_glr_auto_examples_grid_generation_example.py` (``grid_generation_example.py``)
+     - 00:11.635
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_grid_enhancements_example.py` (``grid_enhancements_example.py``)
+     - 00:10.607
      - 0.0
    * - :ref:`sphx_glr_auto_examples_utm_reprojection_example.py` (``utm_reprojection_example.py``)
-     - 00:00.439
+     - 00:01.407
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_quadkey_s2_example.py` (``quadkey_s2_example.py``)
+     - 00:01.396
      - 0.0

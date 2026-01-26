@@ -1,0 +1,3029 @@
+{
+ "A5Grid": [
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s",
+   "name": "BaseGrid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  }
+ ],
+ "GeohashGrid": [
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.geohash",
+   "module_short": "m3s",
+   "name": "GeohashGrid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GeohashGrid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s",
+   "name": "BaseGrid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GeohashGrid"
+  }
+ ],
+ "H3Grid": [
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.h3",
+   "module_short": "m3s",
+   "name": "H3Grid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "H3Grid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s",
+   "name": "BaseGrid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "H3Grid"
+  }
+ ],
+ "HAS_MATPLOTLIB": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "bool"
+  }
+ ],
+ "Point": [
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely.geometry.point",
+   "module_short": "shapely",
+   "name": "Point"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Point"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Point"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely.geometry.base",
+   "module_short": "shapely.geometry.base",
+   "name": "BaseGeometry"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely.geometry",
+   "name": "BaseGeometry"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "BaseGeometry"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely.lib",
+   "module_short": "shapely",
+   "name": "Geometry"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Geometry"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Point"
+  }
+ ],
+ "analyze_relationship": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "function"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "analyze_relationship"
+  }
+ ],
+ "ax": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Axes"
+  }
+ ],
+ "ax.add_patch": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.add_patch"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.add_patch"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Axes.add_patch"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._base",
+   "module_short": "matplotlib.axes._base",
+   "name": "_AxesBase.add_patch"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "_AxesBase.add_patch"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "_AxesBase.add_patch"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.artist",
+   "module_short": "matplotlib.artist",
+   "name": "Artist.add_patch"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Artist.add_patch"
+  }
+ ],
+ "ax.grid": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Axes.grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._base",
+   "module_short": "matplotlib.axes._base",
+   "name": "_AxesBase.grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "_AxesBase.grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "_AxesBase.grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.artist",
+   "module_short": "matplotlib.artist",
+   "name": "Artist.grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Artist.grid"
+  }
+ ],
+ "ax.legend": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.legend"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.legend"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Axes.legend"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._base",
+   "module_short": "matplotlib.axes._base",
+   "name": "_AxesBase.legend"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "_AxesBase.legend"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "_AxesBase.legend"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.artist",
+   "module_short": "matplotlib.artist",
+   "name": "Artist.legend"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Artist.legend"
+  }
+ ],
+ "ax.plot": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.plot"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.plot"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Axes.plot"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._base",
+   "module_short": "matplotlib.axes._base",
+   "name": "_AxesBase.plot"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "_AxesBase.plot"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "_AxesBase.plot"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.artist",
+   "module_short": "matplotlib.artist",
+   "name": "Artist.plot"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Artist.plot"
+  }
+ ],
+ "ax.set_aspect": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.set_aspect"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.set_aspect"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Axes.set_aspect"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._base",
+   "module_short": "matplotlib.axes._base",
+   "name": "_AxesBase.set_aspect"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "_AxesBase.set_aspect"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "_AxesBase.set_aspect"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.artist",
+   "module_short": "matplotlib.artist",
+   "name": "Artist.set_aspect"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Artist.set_aspect"
+  }
+ ],
+ "ax.set_title": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.set_title"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.set_title"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Axes.set_title"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._base",
+   "module_short": "matplotlib.axes._base",
+   "name": "_AxesBase.set_title"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "_AxesBase.set_title"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "_AxesBase.set_title"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.artist",
+   "module_short": "matplotlib.artist",
+   "name": "Artist.set_title"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Artist.set_title"
+  }
+ ],
+ "ax.set_xlabel": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.set_xlabel"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.set_xlabel"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Axes.set_xlabel"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._base",
+   "module_short": "matplotlib.axes._base",
+   "name": "_AxesBase.set_xlabel"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "_AxesBase.set_xlabel"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "_AxesBase.set_xlabel"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.artist",
+   "module_short": "matplotlib.artist",
+   "name": "Artist.set_xlabel"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Artist.set_xlabel"
+  }
+ ],
+ "ax.set_xlim": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.set_xlim"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.set_xlim"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Axes.set_xlim"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._base",
+   "module_short": "matplotlib.axes._base",
+   "name": "_AxesBase.set_xlim"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "_AxesBase.set_xlim"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "_AxesBase.set_xlim"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.artist",
+   "module_short": "matplotlib.artist",
+   "name": "Artist.set_xlim"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Artist.set_xlim"
+  }
+ ],
+ "ax.set_ylabel": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.set_ylabel"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.set_ylabel"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Axes.set_ylabel"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._base",
+   "module_short": "matplotlib.axes._base",
+   "name": "_AxesBase.set_ylabel"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "_AxesBase.set_ylabel"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "_AxesBase.set_ylabel"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.artist",
+   "module_short": "matplotlib.artist",
+   "name": "Artist.set_ylabel"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Artist.set_ylabel"
+  }
+ ],
+ "ax.set_ylim": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.set_ylim"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.set_ylim"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Axes.set_ylim"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._base",
+   "module_short": "matplotlib.axes._base",
+   "name": "_AxesBase.set_ylim"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "_AxesBase.set_ylim"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "_AxesBase.set_ylim"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.artist",
+   "module_short": "matplotlib.artist",
+   "name": "Artist.set_ylim"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Artist.set_ylim"
+  }
+ ],
+ "ax.text": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.text"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "Axes.text"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Axes.text"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes._base",
+   "module_short": "matplotlib.axes._base",
+   "name": "_AxesBase.text"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.axes",
+   "module_short": "matplotlib.axes",
+   "name": "_AxesBase.text"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "_AxesBase.text"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.artist",
+   "module_short": "matplotlib.artist",
+   "name": "Artist.text"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Artist.text"
+  }
+ ],
+ "axes": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "numpy",
+   "module_short": "numpy",
+   "name": "ndarray"
+  }
+ ],
+ "bbox_cells": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "bbox_size": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "berlin_cell": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell"
+  }
+ ],
+ "berlin_cell.area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell.area_km2"
+  }
+ ],
+ "berlin_cell.identifier": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "str"
+  }
+ ],
+ "berlin_grid": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  }
+ ],
+ "berlin_grid.get_cell_from_point": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC.get_cell_from_point"
+  }
+ ],
+ "berlin_lat": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "berlin_lon": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "cell": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell"
+  }
+ ],
+ "cell.area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell.area_km2"
+  }
+ ],
+ "cell.identifier": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "str"
+  }
+ ],
+ "cell.polygon.bounds": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.polygon",
+   "module_short": "shapely",
+   "name": "Polygon.bounds"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Polygon.bounds"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Polygon.bounds"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.base",
+   "module_short": "shapely.geometry.base",
+   "name": "BaseGeometry.bounds"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely.geometry",
+   "name": "BaseGeometry.bounds"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "BaseGeometry.bounds"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.lib",
+   "module_short": "shapely.lib",
+   "name": "Geometry.bounds"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Geometry.bounds"
+  }
+ ],
+ "cell.polygon.centroid": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.polygon",
+   "module_short": "shapely",
+   "name": "Polygon.centroid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Polygon.centroid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Polygon.centroid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.base",
+   "module_short": "shapely.geometry.base",
+   "name": "BaseGeometry.centroid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely.geometry",
+   "name": "BaseGeometry.centroid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "BaseGeometry.centroid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.lib",
+   "module_short": "shapely.lib",
+   "name": "Geometry.centroid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Geometry.centroid"
+  }
+ ],
+ "cell.polygon.exterior.coords": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.polygon",
+   "module_short": "shapely",
+   "name": "Polygon.exterior"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Polygon.exterior"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Polygon.exterior"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.base",
+   "module_short": "shapely.geometry.base",
+   "name": "BaseGeometry.exterior"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely.geometry",
+   "name": "BaseGeometry.exterior"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "BaseGeometry.exterior"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.lib",
+   "module_short": "shapely.lib",
+   "name": "Geometry.exterior"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Geometry.exterior"
+  }
+ ],
+ "cell.precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "cells": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "center_lat": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "center_lon": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "central_park_cell": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell"
+  }
+ ],
+ "central_park_cell.polygon.bounds": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.polygon",
+   "module_short": "shapely",
+   "name": "Polygon.bounds"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Polygon.bounds"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Polygon.bounds"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.base",
+   "module_short": "shapely.geometry.base",
+   "name": "BaseGeometry.bounds"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely.geometry",
+   "name": "BaseGeometry.bounds"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "BaseGeometry.bounds"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.lib",
+   "module_short": "shapely.lib",
+   "name": "Geometry.bounds"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Geometry.bounds"
+  }
+ ],
+ "central_park_cell.polygon.centroid": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.polygon",
+   "module_short": "shapely",
+   "name": "Polygon.centroid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Polygon.centroid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Polygon.centroid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.base",
+   "module_short": "shapely.geometry.base",
+   "name": "BaseGeometry.centroid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely.geometry",
+   "name": "BaseGeometry.centroid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "BaseGeometry.centroid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.lib",
+   "module_short": "shapely.lib",
+   "name": "Geometry.centroid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Geometry.centroid"
+  }
+ ],
+ "central_park_cell.polygon.exterior.coords": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.polygon",
+   "module_short": "shapely",
+   "name": "Polygon.exterior"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Polygon.exterior"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Polygon.exterior"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.base",
+   "module_short": "shapely.geometry.base",
+   "name": "BaseGeometry.exterior"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely.geometry",
+   "name": "BaseGeometry.exterior"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "BaseGeometry.exterior"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.lib",
+   "module_short": "shapely.lib",
+   "name": "Geometry.exterior"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Geometry.exterior"
+  }
+ ],
+ "centroid": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.point",
+   "module_short": "shapely",
+   "name": "Point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Point"
+  }
+ ],
+ "centroid.x": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.point",
+   "module_short": "shapely",
+   "name": "Point.x"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Point.x"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Point.x"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.base",
+   "module_short": "shapely.geometry.base",
+   "name": "BaseGeometry.x"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely.geometry",
+   "name": "BaseGeometry.x"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "BaseGeometry.x"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.lib",
+   "module_short": "shapely.lib",
+   "name": "Geometry.x"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Geometry.x"
+  }
+ ],
+ "centroid.y": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.point",
+   "module_short": "shapely",
+   "name": "Point.y"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Point.y"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Point.y"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.base",
+   "module_short": "shapely.geometry.base",
+   "name": "BaseGeometry.y"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely.geometry",
+   "name": "BaseGeometry.y"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "BaseGeometry.y"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.lib",
+   "module_short": "shapely.lib",
+   "name": "Geometry.y"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Geometry.y"
+  }
+ ],
+ "col": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "color": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "str"
+  }
+ ],
+ "colors": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "convert_cell": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "function"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "convert_cell"
+  }
+ ],
+ "coords": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "edge_lengths": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "edge_lengths.append": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "builtin_function_or_method"
+  }
+ ],
+ "exterior_coords": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "fig": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.figure",
+   "module_short": "matplotlib.figure",
+   "name": "Figure"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Figure"
+  }
+ ],
+ "fig2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.figure",
+   "module_short": "matplotlib.figure",
+   "name": "Figure"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Figure"
+  }
+ ],
+ "fig2.suptitle": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.figure",
+   "module_short": "matplotlib.figure",
+   "name": "Figure.suptitle"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Figure.suptitle"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.figure",
+   "module_short": "matplotlib.figure",
+   "name": "FigureBase.suptitle"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "FigureBase.suptitle"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.artist",
+   "module_short": "matplotlib.artist",
+   "name": "Artist.suptitle"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Artist.suptitle"
+  }
+ ],
+ "geohash_grid": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.geohash",
+   "module_short": "m3s",
+   "name": "GeohashGrid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GeohashGrid"
+  }
+ ],
+ "geohash_grid.get_cell_from_point": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.geohash",
+   "module_short": "m3s",
+   "name": "GeohashGrid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GeohashGrid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC.get_cell_from_point"
+  }
+ ],
+ "grid": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  }
+ ],
+ "grid.get_cell_from_point": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC.get_cell_from_point"
+  }
+ ],
+ "grid.get_cells_in_bbox": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cells_in_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cells_in_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cells_in_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cells_in_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cells_in_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC.get_cells_in_bbox"
+  }
+ ],
+ "h3_grid": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.h3",
+   "module_short": "m3s",
+   "name": "H3Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "H3Grid"
+  }
+ ],
+ "high_precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  }
+ ],
+ "high_precision.area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "BaseGrid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC.area_km2"
+  }
+ ],
+ "i": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "idx": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "lat": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "legend_patch": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.patches",
+   "module_short": "matplotlib.patches",
+   "name": "Patch"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Patch"
+  }
+ ],
+ "level": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "lon": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "london_a5": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell"
+  }
+ ],
+ "london_a5.area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell.area_km2"
+  }
+ ],
+ "london_a5.identifier": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "str"
+  }
+ ],
+ "london_bbox_cells": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "london_geohash": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell"
+  }
+ ],
+ "london_geohash.area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell.area_km2"
+  }
+ ],
+ "london_geohash.identifier": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "str"
+  }
+ ],
+ "london_h3": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell"
+  }
+ ],
+ "london_h3.area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell.area_km2"
+  }
+ ],
+ "london_h3.identifier": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "str"
+  }
+ ],
+ "low_precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  }
+ ],
+ "low_precision.area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "BaseGrid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC.area_km2"
+  }
+ ],
+ "max_lat": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "max_lon": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "medium_precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  }
+ ],
+ "medium_precision.area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "BaseGrid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC.area_km2"
+  }
+ ],
+ "medium_precision.get_cells_in_bbox": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cells_in_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cells_in_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cells_in_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cells_in_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cells_in_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC.get_cells_in_bbox"
+  }
+ ],
+ "milan_cell": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell"
+  }
+ ],
+ "min_lat": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "min_lon": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "name": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "str"
+  }
+ ],
+ "p1": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.point",
+   "module_short": "shapely",
+   "name": "Point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Point"
+  }
+ ],
+ "p1.distance": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.point",
+   "module_short": "shapely",
+   "name": "Point.distance"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Point.distance"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Point.distance"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.base",
+   "module_short": "shapely.geometry.base",
+   "name": "BaseGeometry.distance"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely.geometry",
+   "name": "BaseGeometry.distance"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "BaseGeometry.distance"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.lib",
+   "module_short": "shapely.lib",
+   "name": "Geometry.distance"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Geometry.distance"
+  }
+ ],
+ "p2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.point",
+   "module_short": "shapely",
+   "name": "Point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Point"
+  }
+ ],
+ "paris_cell": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell"
+  }
+ ],
+ "paris_cell.area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell.area_km2"
+  }
+ ],
+ "paris_cell.identifier": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "str"
+  }
+ ],
+ "paris_grid": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  }
+ ],
+ "paris_grid.get_cell_from_point": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC.get_cell_from_point"
+  }
+ ],
+ "paris_lat": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "paris_lon": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "patches.Patch": [
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "matplotlib.patches",
+   "module_short": "matplotlib.patches",
+   "name": "Patch"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Patch"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "matplotlib.artist",
+   "module_short": "matplotlib.artist",
+   "name": "Artist"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Artist"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.patches",
+   "module_short": "matplotlib.patches",
+   "name": "Patch"
+  }
+ ],
+ "patches.Polygon": [
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "matplotlib.patches",
+   "module_short": "matplotlib.patches",
+   "name": "Polygon"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Polygon"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "matplotlib.patches",
+   "module_short": "matplotlib.patches",
+   "name": "Patch"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Patch"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "matplotlib.artist",
+   "module_short": "matplotlib.artist",
+   "name": "Artist"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Artist"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.patches",
+   "module_short": "matplotlib.patches",
+   "name": "Polygon"
+  }
+ ],
+ "plt.show": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "function"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.pyplot",
+   "module_short": "matplotlib.pyplot",
+   "name": "show"
+  }
+ ],
+ "plt.subplots": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "function"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.pyplot",
+   "module_short": "matplotlib.pyplot",
+   "name": "subplots"
+  }
+ ],
+ "plt.tight_layout": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "function"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.pyplot",
+   "module_short": "matplotlib.pyplot",
+   "name": "tight_layout"
+  }
+ ],
+ "polygon": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib.patches",
+   "module_short": "matplotlib.patches",
+   "name": "Polygon"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "matplotlib",
+   "module_short": "matplotlib",
+   "name": "Polygon"
+  }
+ ],
+ "precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "precision_grid": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  }
+ ],
+ "precision_grid.area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "BaseGrid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid.area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC.area_km2"
+  }
+ ],
+ "precision_grid.get_cells_in_bbox": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cells_in_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cells_in_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid.get_cells_in_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cells_in_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cells_in_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC.get_cells_in_bbox"
+  }
+ ],
+ "precisions": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "relationship": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.relationships",
+   "module_short": "m3s",
+   "name": "RelationshipType"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "RelationshipType"
+  }
+ ],
+ "rome_cell": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell"
+  }
+ ],
+ "row": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "test_locations": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "total_area": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ]
+}

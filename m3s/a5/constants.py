@@ -319,11 +319,11 @@ def validate_resolution(resolution: int) -> None:
         If resolution is outside valid range [0, MAX_RESOLUTION]
     """
     if not isinstance(resolution, int):
-        raise TypeError(f"Resolution must be an integer, got {type(resolution)}")
+        raise TypeError(f"A5 precision must be an integer, got {type(resolution)}")
 
     if resolution < 0 or resolution > MAX_RESOLUTION:
         raise ValueError(
-            f"Resolution must be between 0 and {MAX_RESOLUTION}, got {resolution}"
+            f"A5 precision must be between 0 and {MAX_RESOLUTION}, got {resolution}"
         )
 
 

@@ -1,9 +1,9 @@
 """
-Generate and visualize grids from GeoDataFrame geometry
+Generate and visualize grids from GeoDataFrame geometry.
 ========================================================
 
 This example shows how to generate different grid types (MGRS, H3, Geohash,
-Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visualize them clearly.
+Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS, A5) from a GeoDataFrame and visualize them clearly.
 """
 
 import warnings
@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from shapely.geometry import box
 
 from m3s import (
+    A5Grid,
     GARSGrid,
     GeohashGrid,
     H3Grid,
@@ -44,6 +45,7 @@ slippy_grid = SlippyGrid(zoom=12)  # ~4.9km x 4.9km (similar to quadkey)
 pluscode_grid = PlusCodeGrid(precision=3)  # ~250m x 250m cells
 maidenhead_grid = MaidenheadGrid(precision=3)  # ~2° x 1° cells
 gars_grid = GARSGrid(precision=3)  # 15' × 15' cells
+a5_grid = A5Grid(precision=3)  # Pentagonal cells, ~1.2km edge length
 
 # Generate grid cells that intersect our test area
 print("  Processing MGRS...")
@@ -75,6 +77,9 @@ maidenhead_result = maidenhead_grid.intersects(test_gdf)
 print("  Processing GARS...")
 gars_result = gars_grid.intersects(test_gdf)
 
+print("  Processing A5...")
+a5_result = a5_grid.intersects(test_gdf)
+
 print("Generated:")
 print(f"  MGRS (10km):        {len(mgrs_result)} cells")
 print(f"  H3 (res 6):         {len(h3_result)} cells")
@@ -85,9 +90,10 @@ print(f"  Slippy (z12):       {len(slippy_result)} cells")
 print(f"  Plus codes (p3):    {len(pluscode_result)} cells")
 print(f"  Maidenhead (p3):    {len(maidenhead_result)} cells")
 print(f"  GARS (p3):          {len(gars_result)} cells")
+print(f"  A5 (p7):            {len(a5_result)} cells")
 
 # Create comprehensive visualization with all grid systems
-fig, axes = plt.subplots(3, 3, figsize=(20, 18))
+fig, axes = plt.subplots(4, 3, figsize=(20, 24))
 fig.suptitle("Grid Systems Comparison - Paris Area", fontsize=20)
 
 # Define grid results and properties
@@ -107,6 +113,7 @@ grid_configs = [
         axes[2, 1],
     ),
     (gars_result, "GARS Grid\nPrecision 3", "lavender", "mediumorchid", axes[2, 2]),
+    (a5_result, "A5 Pentagon Grid\nPrecision 7", "lightsalmon", "darkorange", axes[3, 0]),
 ]
 
 # Plot each grid system
@@ -121,6 +128,9 @@ for result, title, facecolor, edgecolor, ax in grid_configs:
     ax.set_ylabel("Latitude")
     ax.grid(True, alpha=0.3)
 
+# Hide the empty subplot cells
+axes[3, 1].set_visible(False)
+axes[3, 2].set_visible(False)
 
 plt.tight_layout()
 plt.show()
@@ -137,8 +147,9 @@ grid_info = [
     ("S2 Grid (level 9)", s2_result),
     ("Slippy Map Tiles (zoom 12)", slippy_result),
     ("Plus Codes (precision 3)", pluscode_result),
-    ("Maidenhead Locator (precision 2)", maidenhead_result),
-    ("GARS Grid (precision 2)", gars_result),
+    ("Maidenhead Locator (precision 3)", maidenhead_result),
+    ("GARS Grid (precision 3)", gars_result),
+    ("A5 Pentagon Grid (precision 7)", a5_result),
 ]
 
 for i, (name, result) in enumerate(grid_info, 1):
@@ -167,6 +178,7 @@ print("- Slippy: Standard web map tiles used by OpenStreetMap and others")
 print("- Plus Codes: Google's open-source alternative to addresses")
 print("- Maidenhead: Ham radio grid system with alternating letter/number pairs")
 print("- GARS: Military/aviation Global Area Reference System")
+print("- A5: Discrete Global Grid System (DGGS) using pentagonal cells")
 
 print("\nGrid System Characteristics:")
 print("- MGRS:       Military standard, UTM-based, square cells")
@@ -178,6 +190,7 @@ print("- Slippy:     Web standard, z/x/y tiles, excellent for web mapping")
 print("- Plus Codes: Google's address alternative, base-20 encoding")
 print("- Maidenhead: Ham radio standard, hierarchical letter/number system")
 print("- GARS:       Aviation/military standard, longitude bands + latitude zones")
+print("- A5:         Pentagonal DGGS, dodecahedral projection, minimal distortion")
 
 print("\nPerformance Notes:")
 print("- MGRS and Geohash: Fast, simple algorithms")
@@ -185,3 +198,4 @@ print("- H3: Fast with good spatial properties")
 print("- Quadkey and Slippy: Fast, optimized for web mapping")
 print("- S2: More complex but excellent for large-scale applications")
 print("- Plus Codes, Maidenhead, GARS: Fast encoding/decoding, specialized use cases")
+print("- A5: Complex geometric algorithms, excellent spatial properties for analysis")

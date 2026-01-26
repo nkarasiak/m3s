@@ -18,7 +18,13 @@
       "Bash(wc:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(sphinx-build:*)",
+      "Bash(find:*)",
+      "Bash(git mv:*)",
+      "Bash(pip install:*)",
+      "Bash(grep:*)",
+      "Bash(expr:*)"
     ],
     "deny": [],
     "ask": []
