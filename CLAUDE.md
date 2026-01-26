@@ -42,9 +42,9 @@ sphinx-build . _build  # Alternative build command
 
 ### Development Installation
 ```bash
-pip install -e ".[dev]"      # Install with development dependencies
-pip install -e ".[parallel]" # Install with parallel processing support
-pip install -e ".[gpu]"      # Install with GPU acceleration support
+uv pip install -e ".[dev]"      # Install with development dependencies
+uv pip install -e ".[parallel]" # Install with parallel processing support
+uv pip install -e ".[gpu]"      # Install with GPU acceleration support
 ```
 
 ## Architecture Overview

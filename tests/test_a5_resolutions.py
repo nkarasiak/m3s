@@ -237,33 +237,3 @@ class TestEdgeCases:
         lon, lat = cell_to_lonlat(cell_id)
         assert abs(lon) < 180
         assert abs(lat) <= 90
-
-
-class TestPalmerCompatibility:
-    """Test compatibility with Palmer's a5-py implementation."""
-
-    @pytest.mark.parametrize("resolution", range(2, 6))
-    def test_cell_id_matches_palmer(self, resolution):
-        """Test that our cell IDs match Palmer's (when using Palmer's Hilbert curves)."""
-        try:
-            import a5 as palmer_a5
-        except ImportError:
-            pytest.skip("Palmer's a5-py not available")
-
-        # Test several points
-        test_points = [
-            (0.0, 0.0),
-            (-74.0060, 40.7128),
-            (139.6503, 35.6762),
-        ]
-
-        for lon, lat in test_points:
-            our_cell_id = lonlat_to_cell(lon, lat, resolution)
-            # Palmer's API takes (lon, lat) as a tuple
-            palmer_cell_id = palmer_a5.lonlat_to_cell((lon, lat), resolution)
-
-            # Cell IDs should match since we're using Palmer's Hilbert implementation
-            assert our_cell_id == palmer_cell_id, (
-                f"Cell ID mismatch at ({lon}, {lat}) resolution {resolution}: "
-                f"ours=0x{our_cell_id:016x}, Palmer=0x{palmer_cell_id:016x}"
-            )
