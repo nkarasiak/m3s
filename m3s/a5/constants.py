@@ -186,6 +186,45 @@ TWO_PI_OVER_5 = 2 * math.pi / 5
 DISTANCE_TO_EDGE = (math.sqrt(5) - 1) / 2  # PHI - 1
 
 # ============================================================================
+# Pentagon Basis Transformation Matrices
+# ============================================================================
+
+# Basis vectors for pentagon tiling (from Palmer's a5-py/a5/core/pentagon.py)
+# These transform between face coordinates and IJ coordinates
+# L = DISTANCE_TO_EDGE / cos(PI_OVER_5)
+# bisector_angle = basis_rotation_actual
+# V = bisector_angle + PI_OVER_5
+# W = bisector_angle - PI_OVER_5
+# v = (L * cos(V), L * sin(V))
+# w = (L * cos(W), L * sin(W))
+# BASIS = [[v[0], w[0]], [v[1], w[1]]]
+
+# Pre-computed basis vectors (matching Palmer's values exactly)
+_L = DISTANCE_TO_EDGE / math.cos(PI_OVER_5)
+_bisector_angle = BASIS_ROTATION
+_V = _bisector_angle + PI_OVER_5
+_W = _bisector_angle - PI_OVER_5
+_v_x = _L * math.cos(_V)
+_v_y = _L * math.sin(_V)
+_w_x = _L * math.cos(_W)
+_w_y = _L * math.sin(_W)
+
+# BASIS matrix as nested tuples (column vectors)
+# Used to transform IJ coordinates to face coordinates
+BASIS = (
+    (_v_x, _w_x),  # First row: [v.x, w.x]
+    (_v_y, _w_y)   # Second row: [v.y, w.y]
+)
+
+# Inverse of BASIS matrix (for transforming face coordinates to IJ)
+# For 2x2 matrix [[a,b],[c,d]], inverse is [[d,-b],[-c,a]] / (ad - bc)
+_det = BASIS[0][0] * BASIS[1][1] - BASIS[0][1] * BASIS[1][0]
+BASIS_INVERSE = (
+    (BASIS[1][1] / _det, -BASIS[0][1] / _det),
+    (-BASIS[1][0] / _det, BASIS[0][0] / _det)
+)
+
+# ============================================================================
 # Dodecahedron Quaternions
 # ============================================================================
 

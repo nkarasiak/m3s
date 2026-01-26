@@ -499,6 +499,97 @@ class A5Grid(BaseGrid):
 
         return list(cells_dict.values())
 
+    def _lonlat_to_xyz(self, lon: float, lat: float) -> tuple:
+        """
+        Convert geographic coordinates to Cartesian (x, y, z).
+
+        This is a utility method for tests and internal use.
+
+        Parameters
+        ----------
+        lon : float
+            Longitude in degrees
+        lat : float
+            Latitude in degrees
+
+        Returns
+        -------
+        tuple
+            (x, y, z) Cartesian coordinates on unit sphere
+        """
+        # Convert to spherical coordinates
+        theta, phi = self.cell_ops.transformer.lonlat_to_spherical(lon, lat)
+
+        # Convert spherical to Cartesian
+        xyz = self.cell_ops.transformer.spherical_to_cartesian(theta, phi)
+
+        return xyz
+
+    def _xyz_to_lonlat(self, xyz: tuple) -> tuple:
+        """
+        Convert Cartesian (x, y, z) to geographic coordinates.
+
+        This is a utility method for tests and internal use.
+
+        Parameters
+        ----------
+        xyz : tuple
+            (x, y, z) Cartesian coordinates
+
+        Returns
+        -------
+        tuple
+            (lon, lat) in degrees
+        """
+        # Convert Cartesian to lonlat
+        lon, lat = self.cell_ops.transformer.cartesian_to_lonlat(xyz)
+
+        return (lon, lat)
+
+    def _encode_cell_id(self, lat: float, lon: float) -> int:
+        """
+        Encode geographic coordinates to cell ID.
+
+        This is a utility method for tests and internal use.
+
+        Parameters
+        ----------
+        lat : float
+            Latitude in degrees
+        lon : float
+            Longitude in degrees
+
+        Returns
+        -------
+        int
+            64-bit cell ID
+        """
+        return self.cell_ops.lonlat_to_cell(lon, lat, self.precision)
+
+    def _create_pentagon_boundary(self, lat: float, lon: float) -> list:
+        """
+        Create pentagon boundary for a point.
+
+        This is a utility method for tests.
+
+        Parameters
+        ----------
+        lat : float
+            Latitude in degrees
+        lon : float
+            Longitude in degrees
+
+        Returns
+        -------
+        list
+            List of (lon, lat) tuples forming closed pentagon boundary
+        """
+        # Get cell ID for this point
+        cell_id = self.cell_ops.lonlat_to_cell(lon, lat, self.precision)
+
+        # Get boundary
+        return self.cell_ops.cell_to_boundary(cell_id)
+
     def __repr__(self) -> str:
         """String representation of A5Grid."""
         return f"A5Grid(precision={self.precision})"
