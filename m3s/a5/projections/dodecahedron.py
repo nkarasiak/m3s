@@ -8,9 +8,8 @@ Original source: https://github.com/felixpalmer/a5-py/blob/main/a5/projections/d
 import math
 from typing import List, Literal, Tuple
 
-import numpy as np
-
 from m3s.a5.constants import DISTANCE_TO_EDGE, INTERHEDRAL_ANGLE, PI_OVER_5, TWO_PI_OVER_5
+from m3s.a5.projections.crs import CRS
 from m3s.a5.projections.gnomonic import GnomonicProjection
 from m3s.a5.projections.polyhedral import (
     Cartesian,
@@ -29,6 +28,9 @@ FaceTriangleIndex = Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 OriginId = Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 
+crs = CRS()
+
+
 def _to_cartesian(spherical: Tuple[float, float]) -> Cartesian:
     """Convert spherical coordinates to Cartesian."""
     theta, phi = spherical
@@ -42,7 +44,8 @@ def _to_spherical(cartesian: Cartesian) -> Tuple[float, float]:
     """Convert Cartesian coordinates to spherical."""
     x, y, z = cartesian
     theta = math.atan2(y, x)
-    phi = math.acos(z)
+    r = vec3.length(cartesian)
+    phi = math.acos(z / r) if r > 0 else 0.0
     return (theta, phi)
 
 
@@ -373,9 +376,7 @@ class DodecahedronProjection:
             # Transform using vec3.transformQuat
             transformed = vec3.create()
             vec3.transformQuat(transformed, rotated, origin.quat)
-            # Normalize to ensure unit vector
-            vec3.normalize(transformed, transformed)
-            vertex = (transformed[0], transformed[1], transformed[2])
+            vertex = crs.get_vertex((transformed[0], transformed[1], transformed[2]))
             spherical_triangle.append(vertex)
 
         return tuple(spherical_triangle)

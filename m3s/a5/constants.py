@@ -103,6 +103,9 @@ DODEC_ORIGINS: List[Tuple[float, float]] = [
     _DODEC_ORIGINS_NATURAL[old_id] for old_id in _ORIGIN_ORDER
 ]
 
+# Expose natural origin order for geometry tests/utilities.
+DODEC_ORIGINS_NATURAL: List[Tuple[float, float]] = list(_DODEC_ORIGINS_NATURAL)
+
 # Within each dodecahedron face, this is the index of the first quintant
 # This normalization is critical for proper cell ID encoding
 # Maps origin_id -> first_quintant_index (in Palmer's natural interleaved order)
@@ -136,7 +139,8 @@ QUINTANT_FIRST: List[int] = [
 
 # Longitude offset applied during coordinate transformations
 # This rotates the grid to align with specific geographic features
-LONGITUDE_OFFSET = math.radians(93.0)
+LONGITUDE_OFFSET_DEGREES = 93.0
+LONGITUDE_OFFSET = math.radians(LONGITUDE_OFFSET_DEGREES)
 
 # ============================================================================
 # Serialization Constants
@@ -184,6 +188,8 @@ TWO_PI_OVER_5 = 2 * math.pi / 5
 
 # Distance from pentagon center to edge (golden ratio - 1)
 DISTANCE_TO_EDGE = (math.sqrt(5) - 1) / 2  # PHI - 1
+# Distance from pentagon center to vertex on the unit sphere
+DISTANCE_TO_VERTEX = 3 - math.sqrt(5)  # 2 * (2 - PHI)
 
 # ============================================================================
 # Dodecahedron Quaternions
@@ -265,15 +271,19 @@ DODEC_INVERSE_QUATERNIONS: List[Tuple[float, float, float, float]] = [
 ]
 
 # Rotation angles for each origin (used in dodecahedron projection)
-# From Palmer's origin.py: angle parameter is PI_OVER_5 for ring origins, 0 for poles
-DODEC_ROTATION_ANGLES: List[float] = []
+# From Palmer's origin.py: angle parameter is PI_OVER_5 for ring origins, 0 for poles.
+# These are defined in natural (interleaved) order and then reordered to match
+# the Hilbert curve placement.
+_ROTATION_ANGLES_NATURAL: List[float] = []
 for i in range(12):
     if i == 0 or i == 11:
-        # North and south poles have no rotation
-        DODEC_ROTATION_ANGLES.append(0.0)
+        _ROTATION_ANGLES_NATURAL.append(0.0)
     else:
-        # For all ring origins (both ring 1 and ring 2), angle is PI_OVER_5
-        DODEC_ROTATION_ANGLES.append(PI_OVER_5)
+        _ROTATION_ANGLES_NATURAL.append(PI_OVER_5)
+
+DODEC_ROTATION_ANGLES: List[float] = [
+    _ROTATION_ANGLES_NATURAL[old_id] for old_id in _ORIGIN_ORDER
+]
 
 # ============================================================================
 # Helper Functions

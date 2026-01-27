@@ -12,8 +12,6 @@ Copyright (c) 2024, A5 Project Contributors
 import math
 from typing import Dict, Tuple
 
-import numpy as np
-
 from m3s.a5.projections import vec3_utils as vec3
 
 
@@ -27,43 +25,27 @@ SphericalTriangle = Tuple[Cartesian, Cartesian, Cartesian]  # Triangle on sphere
 
 def _spherical_triangle_area(triangle: SphericalTriangle) -> float:
     """
-    Calculate the area of a spherical triangle using L'Huilier's theorem.
-
-    Parameters
-    ----------
-    triangle : SphericalTriangle
-        Three vertices on the unit sphere
-
-    Returns
-    -------
-    float
-        Area of the spherical triangle
+    Calculate the area of a spherical triangle using the A5 midpoint algorithm.
     """
     A, B, C = triangle
 
-    # Calculate side lengths (great circle distances)
-    a = vec3.angle(B, C)
-    b = vec3.angle(A, C)
-    c = vec3.angle(A, B)
+    mid_a = vec3.create()
+    mid_b = vec3.create()
+    mid_c = vec3.create()
 
-    # Semi-perimeter
-    s = (a + b + c) / 2
+    vec3.lerp(mid_a, B, C, 0.5)
+    vec3.lerp(mid_b, C, A, 0.5)
+    vec3.lerp(mid_c, A, B, 0.5)
+    vec3.normalize(mid_a, mid_a)
+    vec3.normalize(mid_b, mid_b)
+    vec3.normalize(mid_c, mid_c)
 
-    # L'Huilier's theorem for spherical excess
-    # tan(E/4)² = tan(s/2) * tan((s-a)/2) * tan((s-b)/2) * tan((s-c)/2)
-    tan_quarter_excess_sq = (
-        math.tan(s / 2)
-        * math.tan((s - a) / 2)
-        * math.tan((s - b) / 2)
-        * math.tan((s - c) / 2)
-    )
+    S = vec3.tripleProduct(mid_a, mid_b, mid_c)
+    clamped = max(-1.0, min(1.0, S))
 
-    if tan_quarter_excess_sq < 0:
-        tan_quarter_excess_sq = 0
-
-    # Area = spherical excess
-    excess = 4 * math.atan(math.sqrt(tan_quarter_excess_sq))
-    return excess
+    if abs(clamped) < 1e-8:
+        return 2 * clamped
+    return 2 * math.asin(clamped)
 
 
 def _face_to_barycentric(point: Face, triangle: FaceTriangle) -> Barycentric:
@@ -82,30 +64,16 @@ def _face_to_barycentric(point: Face, triangle: FaceTriangle) -> Barycentric:
     Barycentric
         Barycentric coordinates (u, v, w) where u + v + w = 1
     """
-    p = np.array([point[0], point[1]])
-    A = np.array([triangle[0][0], triangle[0][1]])
-    B = np.array([triangle[1][0], triangle[1][1]])
-    C = np.array([triangle[2][0], triangle[2][1]])
+    p1, p2, p3 = triangle
+    d31 = [p1[0] - p3[0], p1[1] - p3[1]]
+    d23 = [p3[0] - p2[0], p3[1] - p2[1]]
+    d3p = [point[0] - p3[0], point[1] - p3[1]]
 
-    # Vectors from A to B and A to C
-    v0 = C - A
-    v1 = B - A
-    v2 = p - A
-
-    # Compute dot products
-    dot00 = np.dot(v0, v0)
-    dot01 = np.dot(v0, v1)
-    dot02 = np.dot(v0, v2)
-    dot11 = np.dot(v1, v1)
-    dot12 = np.dot(v1, v2)
-
-    # Compute barycentric coordinates
-    inv_denom = 1 / (dot00 * dot11 - dot01 * dot01)
-    v = (dot11 * dot02 - dot01 * dot12) * inv_denom
-    w = (dot00 * dot12 - dot01 * dot02) * inv_denom
-    u = 1 - v - w
-
-    return (u, v, w)
+    det = d23[0] * d31[1] - d23[1] * d31[0]
+    b0 = (d23[0] * d3p[1] - d23[1] * d3p[0]) / det
+    b1 = (d31[0] * d3p[1] - d31[1] * d3p[0]) / det
+    b2 = 1 - (b0 + b1)
+    return (b0, b1, b2)
 
 
 def _barycentric_to_face(barycentric: Barycentric, triangle: FaceTriangle) -> Face:

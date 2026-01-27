@@ -29,7 +29,7 @@ def demonstrate_quadkey():
     print("\nQuadkey properties at different levels:")
 
     for level in levels:
-        grid = QuadkeyGrid(level=level)
+        grid = QuadkeyGrid(precision=level)
         cell = grid.get_cell_from_point(test_point[0], test_point[1])
 
         # Calculate approximate cell size
@@ -45,7 +45,7 @@ def demonstrate_quadkey():
 
     # Demonstrate hierarchical properties
     print("\nQuadkey Hierarchical Properties:")
-    grid = QuadkeyGrid(level=12)
+    grid = QuadkeyGrid(precision=12)
     cell = grid.get_cell_from_point(test_point[0], test_point[1])
 
     print(f"Parent cell: {cell.identifier}")
@@ -86,7 +86,7 @@ def demonstrate_s2():
 
         cells_by_level = {}
         for level in levels:
-            grid = S2Grid(level=level)
+            grid = S2Grid(precision=level)
             cell = grid.get_cell_from_point(test_point[0], test_point[1])
             cells_by_level[level] = cell
 
@@ -101,7 +101,7 @@ def demonstrate_s2():
 
         # Demonstrate hierarchical properties
         print("\nS2 Hierarchical Properties:")
-        grid = S2Grid(level=12)
+        grid = S2Grid(precision=12)
         cell = grid.get_cell_from_point(test_point[0], test_point[1])
 
         print(f"Cell token: {cell.identifier}")
@@ -138,8 +138,8 @@ def compare_grid_systems():
     )
 
     # Create grids with similar resolutions
-    quadkey_grid = QuadkeyGrid(level=14)  # ~600m tiles
-    s2_grid = S2Grid(level=12)  # ~300m cells
+    quadkey_grid = QuadkeyGrid(precision=14)  # ~600m tiles
+    s2_grid = S2Grid(precision=12)  # ~300m cells
 
     print("Processing intersections...")
 
@@ -233,8 +233,8 @@ def analyze_spatial_properties():
     print("Analyzing grid cell identifiers for global points:")
     print("-" * 60)
 
-    quadkey_grid = QuadkeyGrid(level=10)
-    s2_grid = S2Grid(level=10)
+    quadkey_grid = QuadkeyGrid(precision=10)
+    s2_grid = S2Grid(precision=10)
 
     results = []
     for lat, lon, city in test_points:
@@ -338,3 +338,4 @@ if __name__ == "__main__":
     warnings.filterwarnings("ignore", category=UserWarning, module="matplotlib")
 
     main()
+

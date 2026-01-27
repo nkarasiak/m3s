@@ -9,13 +9,14 @@ This module provides coordinate system transformations for the A5 grid:
 """
 
 import math
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 
 from m3s.a5.constants import (
     EPSILON,
     LONGITUDE_OFFSET,
+    LONGITUDE_OFFSET_DEGREES,
     MAX_LATITUDE,
     MAX_LONGITUDE,
     MIN_LATITUDE,
@@ -24,6 +25,7 @@ from m3s.a5.constants import (
     validate_latitude,
     validate_longitude,
 )
+from m3s.a5.geometry import BASIS, BASIS_INVERSE
 
 # Authalic projection coefficients (from Palmer's implementation)
 # These ensure equal-area properties when mapping the WGS84 ellipsoid to a sphere
@@ -166,10 +168,8 @@ class CoordinateTransformer:
         validate_longitude(lon)
         validate_latitude(lat)
 
-        # Apply longitude offset and convert to radians
-        # NOTE: Do NOT normalize theta to [0, 2π] - Palmer's dodecahedron projection
-        # is sensitive to the angle representation, and expects theta in [-π, π]
-        theta = math.radians(lon) + LONGITUDE_OFFSET
+        # Apply longitude offset and convert to radians (match Palmer's ordering)
+        theta = math.radians(lon + LONGITUDE_OFFSET_DEGREES)
 
         # Convert latitude to radians
         geodetic_lat_rad = math.radians(lat)
@@ -181,6 +181,20 @@ class CoordinateTransformer:
         # Convert from latitude to polar angle (phi = π/2 - lat)
         phi = math.pi / 2 - authalic_lat_rad
 
+        return theta, phi
+
+    @staticmethod
+    def lonlat_to_spherical_unchecked(lon: float, lat: float) -> Tuple[float, float]:
+        """
+        Convert longitude/latitude to spherical coordinates without range validation.
+
+        This mirrors lonlat_to_spherical but skips input checks so internal sampling
+        can match Palmer's behavior when temporary samples fall outside valid ranges.
+        """
+        theta = math.radians(lon + LONGITUDE_OFFSET_DEGREES)
+        geodetic_lat_rad = math.radians(lat)
+        authalic_lat_rad = CoordinateTransformer.geodetic_to_authalic(geodetic_lat_rad)
+        phi = math.pi / 2 - authalic_lat_rad
         return theta, phi
 
     @staticmethod
@@ -210,17 +224,7 @@ class CoordinateTransformer:
         lat = math.degrees(geodetic_lat_rad)
 
         # Convert theta to longitude (remove offset)
-        lon_rad = theta - LONGITUDE_OFFSET
-        lon = math.degrees(lon_rad)
-
-        # Normalize longitude to [-180, 180]
-        while lon > 180:
-            lon -= 360
-        while lon < -180:
-            lon += 360
-
-        # Clamp latitude to valid range
-        lat = max(MIN_LATITUDE, min(MAX_LATITUDE, lat))
+        lon = math.degrees(theta) - LONGITUDE_OFFSET_DEGREES
 
         return lon, lat
 
@@ -324,7 +328,7 @@ class CoordinateTransformer:
         xyz: np.ndarray, origin_xyz: np.ndarray, origin_id: int
     ) -> Tuple[float, float]:
         """
-        Project 3D Cartesian point to 2D face IJ coordinates.
+        Project 3D Cartesian point to 2D face coordinates.
 
         This uses the polyhedral projection (Slice & Dice algorithm) to map
         points from the sphere to the dodecahedron face plane with proper
@@ -342,31 +346,37 @@ class CoordinateTransformer:
         Returns
         -------
         Tuple[float, float]
-            (i, j) coordinates on the face's 2D plane
+            (x, y) coordinates on the face's 2D plane
 
         Notes
         -----
-        TEMPORARY: Using Palmer's dodecahedron projection directly for compatibility
-        TODO: Debug and fix our DodecahedronProjection implementation
+        This now uses Felix Palmer's polyhedral projection which ensures:
+        - Proper equal-area mapping
+        - Correct segment determination for resolution 1+
+        - Quaternion-based coordinate transformations
+        - Compatibility with Palmer's a5-py reference implementation
         """
-        # TEMPORARY: Use Palmer's projection for now
-        from a5.core.cell import _dodecahedron as palmer_dodec
+        from m3s.a5.projections.dodecahedron import DodecahedronProjection
 
         # Convert Cartesian to spherical coordinates
         theta, phi = CoordinateTransformer.cartesian_to_spherical(xyz)
         spherical = (theta, phi)
 
-        # Use Palmer's dodecahedron projection
-        i, j = palmer_dodec.forward(spherical, origin_id)
+        # Use polyhedral projection for proper equal-area mapping
+        proj = DodecahedronProjection()
+        i, j = proj.forward(spherical, origin_id)
 
         return i, j
 
     @staticmethod
     def face_ij_to_cartesian(
-        i: float, j: float, origin_xyz: np.ndarray
+        i: float,
+        j: float,
+        origin_xyz: Optional[np.ndarray] = None,
+        origin_id: Optional[int] = None,
     ) -> np.ndarray:
         """
-        Convert 2D face IJ coordinates back to 3D Cartesian.
+        Convert 2D face coordinates back to 3D Cartesian.
 
         Inverse of cartesian_to_face_ij.
 
@@ -376,18 +386,28 @@ class CoordinateTransformer:
             I coordinate on face
         j : float
             J coordinate on face
-        origin_xyz : np.ndarray
-            Face center in 3D [x, y, z]
+        origin_xyz : np.ndarray, optional
+            Face center in 3D [x, y, z] for fallback projection
+        origin_id : int, optional
+            Origin ID for polyhedral inverse projection
 
         Returns
         -------
         np.ndarray
             3D Cartesian coordinates [x, y, z] on sphere
         """
-        # Normalize face normal
+        if origin_id is not None:
+            from m3s.a5.projections.dodecahedron import DodecahedronProjection
+
+            proj = DodecahedronProjection()
+            theta, phi = proj.inverse((i, j), origin_id)
+            return CoordinateTransformer.spherical_to_cartesian(theta, phi)
+
+        if origin_xyz is None:
+            raise ValueError("origin_xyz or origin_id must be provided")
+
         face_normal = origin_xyz / np.linalg.norm(origin_xyz)
 
-        # Create basis vectors (same as in cartesian_to_face_ij)
         if abs(face_normal[2]) < 0.9:
             up = np.array([0, 0, 1])
         else:
@@ -399,13 +419,8 @@ class CoordinateTransformer:
         basis_j = np.cross(face_normal, basis_i)
         basis_j = basis_j / np.linalg.norm(basis_j)
 
-        # Reconstruct offset vector
         offset = i * basis_i + j * basis_j
-
-        # Add offset to face center
         point_on_plane = face_normal + offset
-
-        # Project back onto sphere (normalize)
         point_on_sphere = point_on_plane / np.linalg.norm(point_on_plane)
 
         return point_on_sphere * R_INSCRIBED
@@ -433,10 +448,6 @@ class CoordinateTransformer:
         """
         r = math.sqrt(i * i + j * j)
         theta = math.atan2(j, i)
-
-        # Normalize theta to [0, 2π]
-        if theta < 0:
-            theta += 2 * math.pi
 
         return r, theta
 
@@ -471,6 +482,85 @@ class CoordinateTransformer:
         return quintant
 
     @staticmethod
+    def face_to_ij(face: Tuple[float, float]) -> Tuple[float, float]:
+        """
+        Convert face coordinates to IJ lattice coordinates.
+        """
+        basis_flat = [
+            BASIS_INVERSE[0][0],
+            BASIS_INVERSE[1][0],
+            BASIS_INVERSE[0][1],
+            BASIS_INVERSE[1][1],
+        ]
+        out = [0.0, 0.0]
+        from m3s.a5.projections import vec2_utils as vec2
+
+        vec2.transformMat2(out, face, basis_flat)
+        return (out[0], out[1])
+
+    @staticmethod
+    def ij_to_face(ij: Tuple[float, float]) -> Tuple[float, float]:
+        """
+        Convert IJ lattice coordinates to face coordinates.
+        """
+        basis_flat = [
+            BASIS[0][0],
+            BASIS[1][0],
+            BASIS[0][1],
+            BASIS[1][1],
+        ]
+        out = [0.0, 0.0]
+        from m3s.a5.projections import vec2_utils as vec2
+
+        vec2.transformMat2(out, ij, basis_flat)
+        return (out[0], out[1])
+
+    @staticmethod
+    def normalize_longitudes(coords: list) -> list:
+        """
+        Normalize longitudes to handle antimeridian crossing.
+        """
+        if not coords:
+            return coords
+
+        points = [
+            CoordinateTransformer._lonlat_to_cartesian_unchecked(lon, lat)
+            for lon, lat in coords
+        ]
+        center = np.array([0.0, 0.0, 0.0])
+        for point in points:
+            center += point
+
+        norm = np.linalg.norm(center)
+        if norm > 0:
+            center /= norm
+
+        center_lon, center_lat = CoordinateTransformer.cartesian_to_lonlat(center)
+        if center_lat > 89.99 or center_lat < -89.99:
+            center_lon = coords[0][0]
+
+        center_lon = ((center_lon + 180) % 360 + 360) % 360 - 180
+
+        result = []
+        for lon, lat in coords:
+            while lon - center_lon > 180:
+                lon -= 360
+            while lon - center_lon < -180:
+                lon += 360
+            result.append((lon, lat))
+
+        return result
+
+    @staticmethod
+    def _lonlat_to_cartesian_unchecked(lon: float, lat: float) -> np.ndarray:
+        """Convert longitude/latitude to Cartesian without range validation."""
+        theta = math.radians(lon + LONGITUDE_OFFSET_DEGREES)
+        geodetic_lat_rad = math.radians(lat)
+        authalic_lat_rad = CoordinateTransformer.geodetic_to_authalic(geodetic_lat_rad)
+        phi = math.pi / 2 - authalic_lat_rad
+        return CoordinateTransformer.spherical_to_cartesian(theta, phi)
+
+    @staticmethod
     def normalize_antimeridian(coords: list) -> list:
         """
         Handle antimeridian crossing by normalizing longitudes.
@@ -493,31 +583,7 @@ class CoordinateTransformer:
         This function detects large longitude jumps (> 180°) and adjusts
         coordinates to use the 0-360° range instead of -180 to 180°.
         """
-        if not coords:
-            return coords
-
-        normalized = []
-        prev_lon = None
-
-        for lon, lat in coords:
-            if prev_lon is not None:
-                # Detect antimeridian crossing
-                lon_diff = abs(lon - prev_lon)
-                if lon_diff > 180:
-                    # Large jump detected - adjust to 0-360 range
-                    if lon < 0:
-                        lon += 360
-
-            normalized.append((lon, lat))
-            prev_lon = lon
-
-        # Check if we should convert entire polygon to 0-360 range
-        lons = [c[0] for c in normalized]
-        if any(lon > 180 for lon in lons):
-            # Convert all negative longitudes to positive
-            normalized = [(lon + 360 if lon < 0 else lon, lat) for lon, lat in normalized]
-
-        return normalized
+        return CoordinateTransformer.normalize_longitudes(coords)
 
     @staticmethod
     def wrap_longitude(lon: float) -> float:

@@ -63,7 +63,7 @@ To verify that M3S is installed correctly, run:
 
    # Test basic functionality
    from m3s import H3Grid
-   grid = H3Grid(resolution=7)
+   grid = H3Grid(precision=7)
    cell = grid.get_cell_from_point(40.7128, -74.0060)
    print(f"H3 cell: {cell.identifier}")
 

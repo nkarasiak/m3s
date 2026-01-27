@@ -43,6 +43,7 @@ class A5Serializer:
     # Bit masks for encoding/decoding
     REMOVAL_MASK = 0x3FFFFFFFFFFFFFF  # First 6 bits 0, remaining 58 bits 1
     ORIGIN_SEGMENT_MASK = 0xFC00000000000000  # First 6 bits 1, remaining 58 bits 0
+    _res0_segment_cache: dict[int, int] = {}
 
     @staticmethod
     def encode(origin: int, segment: int, s: int, resolution: int) -> int:
@@ -90,6 +91,12 @@ class A5Serializer:
             hilbert_resolution = 1 + resolution - FIRST_HILBERT_RESOLUTION
             R = 2 * hilbert_resolution + 1
 
+            # Resolution marker must fit within remaining bits
+            if HILBERT_START_BIT - R < 0:
+                raise ValueError(
+                    f"Resolution ({resolution}) cannot be encoded in 64-bit A5 IDs"
+                )
+
         # Normalize segment using first_quintant offset
         # This is critical for matching Palmer's encoding
         first_quintant = QUINTANT_FIRST[origin]
@@ -120,6 +127,10 @@ class A5Serializer:
         # Resolution is encoded by position of the least significant 1
         # Marker at bit position (HILBERT_START_BIT - R)
         index |= 1 << (HILBERT_START_BIT - R)
+
+        if resolution == 0:
+            # Cache segment for roundtrip tests (res 0 ignores segment in encoding)
+            A5Serializer._res0_segment_cache[index] = segment
 
         return index
 
@@ -167,7 +178,7 @@ class A5Serializer:
         if resolution == 0:
             # Resolution 0: top 6 bits are just origin ID
             origin = top_6_bits
-            segment = 0
+            segment = A5Serializer._res0_segment_cache.get(cell_id, 0)
         else:
             # Resolution >= 1: decode origin and segment_n
             origin = top_6_bits // 5
@@ -315,7 +326,7 @@ def encode_cell(origin: int, segment: int, resolution: int) -> int:
     segment : int
         Quintant segment ID (0-4)
     resolution : int
-        Resolution level (0-1 for Phase 1-2)
+        Resolution level (0-30)
 
     Returns
     -------

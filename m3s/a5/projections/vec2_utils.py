@@ -112,6 +112,29 @@ def lerp(out: Vec2, a: Vec2, b: Vec2, t: float) -> Vec2:
     return out
 
 
+def transformMat2(out: Vec2, a: Vec2, m: List[float]) -> Vec2:
+    """
+    Transform a vec2 with a 2x2 matrix in column-major order.
+
+    Parameters
+    ----------
+    out : Vec2
+        The receiving vector
+    a : Vec2
+        The vector to transform
+    m : List[float]
+        2x2 matrix in column-major order [a, c, b, d]
+
+    Returns
+    -------
+    Vec2
+        out
+    """
+    x, y = a[0], a[1]
+    out[0] = m[0] * x + m[2] * y
+    out[1] = m[1] * x + m[3] * y
+    return out
+
 def add(out: Vec2, a: Vec2, b: Vec2) -> Vec2:
     """
     Add two vec2's.

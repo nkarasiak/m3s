@@ -6,13 +6,14 @@ structure used in the A5 grid system.
 """
 
 import math
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 
 from m3s.a5.constants import (
     BASIS_ROTATION,
     DODEC_ORIGINS,
+    DODEC_ORIGINS_NATURAL,
     PENTAGON_ANGLE_A,
     PENTAGON_ANGLE_B,
     PENTAGON_ANGLE_C,
@@ -238,9 +239,9 @@ class Dodecahedron:
     structure for the A5 grid system.
     """
 
-    def __init__(self):
+    def __init__(self, use_hilbert_order: bool = False):
         """Initialize dodecahedron with 12 face origins."""
-        self.origins = DODEC_ORIGINS
+        self.origins = DODEC_ORIGINS if use_hilbert_order else DODEC_ORIGINS_NATURAL
         self._origin_vectors = self._compute_origin_vectors()
 
     def _compute_origin_vectors(self) -> np.ndarray:
@@ -266,7 +267,9 @@ class Dodecahedron:
 
         return vectors
 
-    def find_nearest_origin(self, theta_phi: Tuple[float, float]) -> int:
+    def find_nearest_origin(
+        self, theta_phi: Union[Tuple[float, float], Tuple[float, float, float]]
+    ) -> int:
         """
         Find the nearest dodecahedron face to a point on the sphere.
 
@@ -275,8 +278,8 @@ class Dodecahedron:
 
         Parameters
         ----------
-        theta_phi : Tuple[float, float]
-            Spherical coordinates (theta, phi) in radians
+        theta_phi : Tuple[float, float] or Tuple[float, float, float]
+            Spherical coordinates (theta, phi) in radians, or Cartesian (x, y, z)
 
         Returns
         -------
@@ -290,6 +293,16 @@ class Dodecahedron:
         """
         min_distance = float("inf")
         nearest_id = 0
+
+        if len(theta_phi) == 3:
+            x, y, z = theta_phi
+            r = math.sqrt(x * x + y * y + z * z)
+            if r > 0:
+                theta = math.atan2(y, x)
+                if theta < 0:
+                    theta += 2 * math.pi
+                phi = math.acos(max(-1.0, min(1.0, z / r)))
+                theta_phi = (theta, phi)
 
         for origin_id, origin_coords in enumerate(self.origins):
             distance = self._haversine(theta_phi, origin_coords)

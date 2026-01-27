@@ -1,5 +1,6 @@
 """
 A5 Pentagonal Grid System Example.
+==================================
 
 This example demonstrates the A5 pentagonal grid system, a Discrete Global Grid System (DGGS)
 that divides the Earth's surface into pentagonal cells derived from a dodecahedral projection.
@@ -50,14 +51,14 @@ print("=== Basic Cell Operations ===")
 grid = A5Grid(6)
 
 for name, lat, lon in test_locations[:3]:  # Show first 3 for brevity
-    cell = grid.get_cell_from_point(lat, lon)
+    cell = grid.cell(lat, lon)
     print(f"{name} ({lat}, {lon}):")
-    print(f"  Cell ID: {cell.identifier}")
+    print(f"  Cell ID: {cell.id}")
     print(f"  Area: {cell.area_km2:.6f} km²")
     print(f"  Precision: {cell.precision}")
     
     # Get neighbors
-    neighbors = grid.get_neighbors(cell)
+    neighbors = grid.neighbors(cell)
     print(f"  Neighbors: {len(neighbors)} pentagon neighbors")
     print()
 
@@ -69,14 +70,14 @@ geohash_grid = GeohashGrid(5)
 h3_grid = H3Grid(7)
 
 # Convert between grid systems using centroid method
-london_geohash = geohash_grid.get_cell_from_point(51.5074, -0.1278)
+london_geohash = geohash_grid.cell(51.5074, -0.1278)
 london_a5 = convert_cell(london_geohash, 'a5', method='centroid', target_precision=6)
 london_h3 = convert_cell(london_a5, 'h3', method='centroid', target_precision=7)
 
 print("Grid system conversions for London:")
-print(f"Geohash: {london_geohash.identifier} (area: {london_geohash.area_km2:.2f} km²)")
-print(f"A5: {london_a5.identifier} (area: {london_a5.area_km2:.6f} km²)")
-print(f"H3: {london_h3.identifier} (area: {london_h3.area_km2:.6f} km²)")
+print(f"Geohash: {london_geohash.id} (area: {london_geohash.area_km2:.2f} km²)")
+print(f"A5: {london_a5.id} (area: {london_a5.area_km2:.6f} km²)")
+print(f"H3: {london_h3.id} (area: {london_h3.area_km2:.6f} km²)")
 print()
 
 print("=== Spatial Analysis ===")
@@ -84,7 +85,7 @@ print("=== Spatial Analysis ===")
 min_lat, min_lon = 40.764, -73.982
 max_lat, max_lon = 40.800, -73.949
 
-bbox_cells = grid.get_cells_in_bbox(min_lat, min_lon, max_lat, max_lon)
+bbox_cells = grid.cells_in_bbox((min_lon, min_lat, max_lon, max_lat))
 print(f"Found {len(bbox_cells)} A5 cells around Central Park")
 
 # Calculate total area covered
@@ -93,7 +94,7 @@ print(f"Total area covered: {total_area:.6f} km²")
 print()
 
 print("=== Pentagon Geometry Properties ===")
-central_park_cell = grid.get_cell_from_point(40.785, -73.968)
+central_park_cell = grid.cell(40.785, -73.968)
 
 # Analyze the pentagon shape
 exterior_coords = list(central_park_cell.polygon.exterior.coords)
@@ -119,8 +120,8 @@ paris_lat, paris_lon = 48.8566, 2.3522
 print("Paris cells at different A5 precision levels:")
 for precision in range(3, 10, 2):
     paris_grid = A5Grid(precision)
-    paris_cell = paris_grid.get_cell_from_point(paris_lat, paris_lon)
-    print(f"Precision {precision}: {paris_cell.area_km2:.8f} km² (ID: {paris_cell.identifier})")
+    paris_cell = paris_grid.cell(paris_lat, paris_lon)
+    print(f"Precision {precision}: {paris_cell.area_km2:.8f} km² (ID: {paris_cell.id})")
 
 print()
 
@@ -128,14 +129,14 @@ print("=== Relationship Analysis ===")
 from m3s import analyze_relationship, find_adjacent_cells
 
 # Analyze relationships between A5 cells
-rome_cell = grid.get_cell_from_point(41.9028, 12.4964)
-milan_cell = grid.get_cell_from_point(45.4642, 9.1900)
+rome_cell = grid.cell(41.9028, 12.4964)
+milan_cell = grid.cell(45.4642, 9.1900)
 
 relationship = analyze_relationship(rome_cell, milan_cell)
 print(f"Relationship between Rome and Milan A5 cells: {relationship}")
 
 # Find adjacent cells
-neighbors = grid.get_neighbors(rome_cell)
+neighbors = grid.neighbors(rome_cell)
 adjacent = find_adjacent_cells(rome_cell, neighbors)
 print(f"Rome cell has {len(adjacent)} adjacent A5 cells")
 print()
@@ -147,8 +148,8 @@ berlin_lat, berlin_lon = 52.5200, 13.4050
 print("Hierarchical A5 cells for Berlin:")
 for level in [1,3]:
     berlin_grid = A5Grid(level)
-    berlin_cell = berlin_grid.get_cell_from_point(berlin_lat, berlin_lon)
-    print(f"  Level {level}: {berlin_cell.identifier} (area: {berlin_cell.area_km2:.8f} km²)")
+    berlin_cell = berlin_grid.cell(berlin_lat, berlin_lon)
+    print(f"  Level {level}: {berlin_cell.id} (area: {berlin_cell.area_km2:.8f} km²)")
 
 print()
 
@@ -162,8 +163,8 @@ if HAS_MATPLOTLIB:
         fig, ax = plt.subplots(1, 1, figsize=(12, 8))
         
         # Get A5 cells around London
-        london_bbox_cells = medium_precision.get_cells_in_bbox(
-            51.45, -0.25, 51.55, -0.05
+        london_bbox_cells = medium_precision.cells_in_bbox(
+            (-0.25, 51.45, -0.05, 51.55)
         )
         
         print(f"Plotting {len(london_bbox_cells)} A5 pentagonal cells around London...")
@@ -219,7 +220,7 @@ if HAS_MATPLOTLIB:
         # Show additional cell information
         print(f"\\nCell Details (first 5 cells):")
         for i, cell in enumerate(london_bbox_cells[:5]):
-            print(f"  Cell {i+1}: {cell.identifier}")
+            print(f"  Cell {i+1}: {cell.id}")
             print(f"    Area: {cell.area_km2:.4f} km²")
             print(f"    Bounds: {[f'{x:.4f}' for x in cell.polygon.bounds]}")
         
@@ -246,9 +247,13 @@ if HAS_MATPLOTLIB:
             precision_grid = A5Grid(precision)
             
             # Get cells around central London
-            cells = precision_grid.get_cells_in_bbox(
-                center_lat - bbox_size, center_lon - bbox_size,
-                center_lat + bbox_size, center_lon + bbox_size
+            cells = precision_grid.cells_in_bbox(
+                (
+                    center_lon - bbox_size,
+                    center_lat - bbox_size,
+                    center_lon + bbox_size,
+                    center_lat + bbox_size,
+                )
             )
             
             # Plot cells

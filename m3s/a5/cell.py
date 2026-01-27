@@ -7,397 +7,324 @@ This module provides core cell operations for the A5 grid:
 - cell_to_boundary: Get cell boundary polygon
 - Parent-child hierarchy operations
 
-Phase 2 implementation supports resolutions 0-30 with Hilbert curves.
+Resolutions 0+ are supported, including Hilbert curves for res >= 2.
 """
 
-from typing import List, Tuple
+import math
+from functools import lru_cache
+from typing import Dict, List, Tuple
 
-import numpy as np
-
-from m3s.a5.constants import validate_latitude, validate_longitude, validate_resolution
+from m3s.a5.constants import (
+    FIRST_HILBERT_RESOLUTION,
+    MAX_RESOLUTION,
+    validate_latitude,
+    validate_longitude,
+    validate_resolution,
+)
 from m3s.a5.coordinates import CoordinateTransformer
-from m3s.a5.geometry import Dodecahedron, Pentagon
+from m3s.a5.hilbert import ij_to_s, s_to_anchor
+from m3s.a5.geometry import Dodecahedron
+from m3s.a5.pentagon_shape import PentagonShape
+from m3s.a5.projections.dodecahedron import DodecahedronProjection
+from m3s.a5.projections.origin_data import origins, quintant_to_segment, segment_to_quintant
 from m3s.a5.serialization import A5Serializer
+from m3s.a5.tiling import (
+    get_face_vertices,
+    get_pentagon_vertices,
+    get_quintant_vertices,
+)
 
 
 class A5CellOperations:
     """
     A5 cell hierarchy and operations.
-
-    This class provides the core functionality for working with A5 cells,
-    including coordinate conversion, cell ID generation, and boundary calculation.
     """
 
     def __init__(self):
-        """Initialize cell operations with geometry and coordinate transformers."""
         self.transformer = CoordinateTransformer()
-        self.dodec = Dodecahedron()
+        self.dodec = Dodecahedron(use_hilbert_order=True)
         self.serializer = A5Serializer()
-        self.pentagon = Pentagon()
+        self.projection = DodecahedronProjection()
 
     def lonlat_to_cell(self, lon: float, lat: float, resolution: int) -> int:
         """
         Convert geographic coordinates to A5 cell ID.
-
-        Algorithm (Resolution 0-1)
-        --------------------------
-        1. Validate inputs
-        2. lonlat → spherical (with 93° offset, authalic projection)
-        3. spherical → Cartesian (x, y, z)
-        4. Find nearest dodecahedron face (0-11)
-        5. Project to face IJ coordinates
-        6. Determine quintant segment (0-4)
-        7. Serialize to 64-bit cell ID
-
-        For resolution >= 2, Hilbert S-value is calculated using Hilbert curves.
-
-        Parameters
-        ----------
-        lon : float
-            Longitude in degrees [-180, 180]
-        lat : float
-            Latitude in degrees [-90, 90]
-        resolution : int
-            Resolution level (0-30)
-
-        Returns
-        -------
-        int
-            64-bit cell ID
-
-        Raises
-        ------
-        ValueError
-            If inputs are invalid
-        ImportError
-            If Palmer's a5-py is not available (required for Hilbert curves)
         """
-        # Validate inputs
-        validate_longitude(lon)
-        validate_latitude(lat)
-        validate_resolution(resolution)
+        self._validate_inputs(lon, lat, resolution)
 
-        # Step 1: Convert lonlat to spherical coordinates
-        theta, phi = self.transformer.lonlat_to_spherical(lon, lat)
+        if resolution < FIRST_HILBERT_RESOLUTION:
+            estimate = self._lonlat_to_estimate((lon, lat), resolution)
+            return self.serializer.encode(
+                estimate["origin"].id, estimate["segment"], estimate["S"], resolution
+            )
 
-        # Step 2: Find nearest dodecahedron face (using spherical coordinates)
-        origin_id = self.dodec.find_nearest_origin((theta, phi))
+        hilbert_resolution = 1 + resolution - FIRST_HILBERT_RESOLUTION
+        samples = [(lon, lat)]
+        n_samples = 25
+        scale = 50 / (2**hilbert_resolution)
 
-        # Step 3: Convert spherical to Cartesian for face projection
-        xyz = self.transformer.spherical_to_cartesian(theta, phi)
+        for i in range(n_samples):
+            radius = (i / n_samples) * scale
+            coordinate = (
+                math.cos(i) * radius + lon,
+                math.sin(i) * radius + lat,
+            )
+            samples.append(coordinate)
 
-        # Step 4: Get origin coordinates
-        origin_xyz = self.dodec.get_origin_cartesian(origin_id)
+        estimate_set = set()
+        candidates: List[Dict[str, object]] = []
 
-        # Step 5: Project to face IJ coordinates using polyhedral projection
-        i, j = self.transformer.cartesian_to_face_ij(xyz, origin_xyz, origin_id)
+        for sample in samples:
+            estimate = self._lonlat_to_estimate(sample, resolution)
+            estimate_key = self.serializer.encode(
+                estimate["origin"].id,
+                estimate["segment"],
+                estimate["S"],
+                resolution,
+            )
+            if estimate_key in estimate_set:
+                continue
+            estimate_set.add(estimate_key)
+            distance = self._cell_contains_point(estimate, (lon, lat))
+            if distance > 0:
+                return estimate_key
+            candidates.append({"cell": estimate, "distance": distance})
 
-        # Step 6: Determine quintant based on polar angle
-        quintant = self.transformer.determine_quintant(i, j)
-
-        # Step 7: Convert quintant to segment using origin's layout
-        from m3s.a5.projections.origin_data import origins, quintant_to_segment
-        origin = origins[origin_id]
-        segment = quintant_to_segment(quintant, origin)
-
-        # Step 8: For resolution >= 2, delegate to Palmer for Hilbert calculation
-        if resolution >= 2:
-            # TEMPORARY: Use Palmer's lonlat_to_cell for Hilbert resolutions
-            # Palmer's implementation handles the complex IJ→Hilbert→S conversion
-            # TODO Phase 3: Implement native Hilbert S-value calculation
-            import a5 as palmer_a5
-
-            cell_id = palmer_a5.lonlat_to_cell((lon, lat), resolution)
-            return cell_id
-        else:
-            # For resolution 0-1, S-value is always 0
-            s = 0
-
-            # Step 9: Serialize to cell ID
-            cell_id = self.serializer.encode(origin_id, segment, s, resolution)
-
-            return cell_id
+        candidates.sort(key=lambda x: x["distance"], reverse=True)
+        best_cell = candidates[0]["cell"]
+        return self.serializer.encode(
+            best_cell["origin"].id,
+            best_cell["segment"],
+            best_cell["S"],
+            resolution,
+        )
 
     def cell_to_lonlat(self, cell_id: int) -> Tuple[float, float]:
         """
         Convert A5 cell ID to center coordinates.
-
-        TEMPORARY: Using Palmer's implementation for accuracy.
-        TODO: Implement proper pentagon center calculation.
-
-        Parameters
-        ----------
-        cell_id : int
-            64-bit cell ID
-
-        Returns
-        -------
-        Tuple[float, float]
-            (lon, lat) in degrees
-
-        Raises
-        ------
-        ValueError
-            If cell_id is invalid
         """
-        # TEMPORARY: Use Palmer's implementation directly
-        import a5
+        origin_id, segment, s, resolution = self.serializer.decode(cell_id)
+        pentagon = self._pentagon_for(origin_id, segment, s, resolution)
+        face_center = pentagon.get_center()
+        theta, phi = self.projection.inverse(face_center, origin_id)
+        return self.transformer.spherical_to_lonlat(theta, phi)
 
-        lon, lat = a5.cell_to_lonlat(cell_id)
-        return lon, lat
-
-    def cell_to_boundary(self, cell_id: int) -> List[Tuple[float, float]]:
+    def cell_to_boundary(
+        self, cell_id: int, segments: int | None = None
+    ) -> List[Tuple[float, float]]:
         """
         Get pentagon boundary vertices for a cell.
-
-        TEMPORARY: Using Palmer's implementation for accuracy.
-        TODO: Implement proper pentagon boundary generation.
-
-        Parameters
-        ----------
-        cell_id : int
-            64-bit cell ID
-
-        Returns
-        -------
-        List[Tuple[float, float]]
-            List of (lon, lat) tuples forming pentagon boundary
-
-        Raises
-        ------
-        ValueError
-            If cell_id is invalid
         """
-        # TEMPORARY: Use Palmer's implementation directly
-        import a5
+        origin_id, segment, s, resolution = self.serializer.decode(cell_id)
+        if segments is None:
+            segments = max(1, 2 ** (6 - resolution))
+        pentagon = self._pentagon_for(origin_id, segment, s, resolution)
+        split_pentagon = pentagon.split_edges(segments)
+        vertices = split_pentagon.get_vertices()
 
-        boundary = a5.cell_to_boundary(cell_id)
-        return boundary
+        unprojected_vertices = [
+            self.projection.inverse(vertex, origin_id) for vertex in vertices
+        ]
+        boundary = [
+            self.transformer.spherical_to_lonlat(theta, phi)
+            for theta, phi in unprojected_vertices
+        ]
+        face_center = pentagon.get_center()
+        theta_c, phi_c = self.projection.inverse(face_center, origin_id)
+        center_lon, center_lat = self.transformer.spherical_to_lonlat(theta_c, phi_c)
+
+        normalized = self.transformer.normalize_longitudes(boundary)
+        if abs(center_lat) > 89.5 and normalized:
+            center_lon = normalized[0][0]
+        normalized = self._shift_longitudes(normalized, center_lon)
+        if normalized and normalized[0] != normalized[-1]:
+            normalized.append(normalized[0])
+        normalized.reverse()
+        return normalized
 
     def get_parent(self, cell_id: int) -> int:
         """
         Get parent cell at resolution-1.
-
-        Parameters
-        ----------
-        cell_id : int
-            Child cell ID
-
-        Returns
-        -------
-        int
-            Parent cell ID
-
-        Raises
-        ------
-        ValueError
-            If cell is already at resolution 0
         """
         origin_id, segment, s, resolution = self.serializer.decode(cell_id)
 
         if resolution == 0:
             raise ValueError("Cell at resolution 0 has no parent")
 
-        # Parent is at resolution - 1
         parent_resolution = resolution - 1
+        parent_segment = segment
+        parent_s = s
 
         if parent_resolution == 0:
-            # Parent at resolution 0 covers entire face
             parent_segment = 0
             parent_s = 0
-        elif parent_resolution == 1:
-            # Resolution 1 has no Hilbert subdivision
-            parent_segment = segment
+        elif parent_resolution < FIRST_HILBERT_RESOLUTION:
             parent_s = 0
         else:
-            # For resolution >= 2, calculate parent S-value from Hilbert hierarchy
-            # Each parent cell has 4 children in Hilbert space
-            # Parent S = child S divided by 4 (bitwise right shift by 2)
-            parent_segment = segment
-            parent_s = s >> 2
+            resolution_diff = resolution - parent_resolution
+            parent_s = s >> (2 * resolution_diff)
 
-        parent_cell_id = self.serializer.encode(
+        return self.serializer.encode(
             origin_id, parent_segment, parent_s, parent_resolution
         )
 
-        return parent_cell_id
-
     def get_children(self, cell_id: int) -> List[int]:
         """
-        Get 5 child cells at resolution+1.
-
-        Each pentagonal cell subdivides into 5 children, one for each quintant.
-
-        Parameters
-        ----------
-        cell_id : int
-            Parent cell ID
-
-        Returns
-        -------
-        List[int]
-            List of 5 child cell IDs
-
-        Raises
-        ------
-        ValueError
-            If cell is at maximum resolution
-        ImportError
-            If Palmer's a5-py is not available (required for Hilbert children)
+        Get child cells at resolution+1.
         """
         origin_id, segment, s, resolution = self.serializer.decode(cell_id)
 
-        if resolution >= 30:
+        if resolution >= MAX_RESOLUTION:
             raise ValueError("Cell at maximum resolution has no children")
 
-        # Children are at resolution + 1
         child_resolution = resolution + 1
+        new_segments = [segment]
 
-        if child_resolution >= 2:
-            # For resolution >= 2, use Palmer's Hilbert children calculation
-            # Palmer handles the complex Hilbert curve subdivision
-            import a5 as palmer_a5
+        if resolution == 0:
+            new_segments = list(range(5))
 
-            children = palmer_a5.cell_to_children(cell_id)
-            return children
-        else:
-            # For resolution 0 → 1, create 5 children (one per quintant)
-            children = []
-            for child_segment in range(5):
-                child_cell_id = self.serializer.encode(
-                    origin_id, child_segment, 0, child_resolution
+        resolution_diff = child_resolution - max(resolution, FIRST_HILBERT_RESOLUTION - 1)
+        children_count = 4 ** max(0, resolution_diff)
+        shifted_s = s << (2 * max(0, resolution_diff))
+
+        children = []
+        for new_segment in new_segments:
+            for i in range(children_count):
+                new_s = shifted_s + i
+                children.append(
+                    self.serializer.encode(origin_id, new_segment, new_s, child_resolution)
                 )
-                children.append(child_cell_id)
-
-            return children
+        return children
 
     def get_resolution(self, cell_id: int) -> int:
-        """
-        Get resolution level of a cell.
-
-        Parameters
-        ----------
-        cell_id : int
-            Cell ID
-
-        Returns
-        -------
-        int
-            Resolution level
-        """
+        """Get resolution level of a cell."""
         return self.serializer.get_resolution(cell_id)
+
+    def _validate_inputs(self, lon: float, lat: float, resolution: int) -> None:
+        validate_longitude(lon)
+        validate_latitude(lat)
+        validate_resolution(resolution)
+
+    def _lonlat_to_estimate(self, lon_lat: Tuple[float, float], resolution: int) -> Dict:
+        spherical = self.transformer.lonlat_to_spherical_unchecked(
+            lon_lat[0], lon_lat[1]
+        )
+        origin_id = self.dodec.find_nearest_origin(spherical)
+        origin = origins[origin_id]
+
+        dodec_point = self.projection.forward(spherical, origin_id)
+        quintant = self.transformer.determine_quintant(dodec_point[0], dodec_point[1])
+        segment, orientation = quintant_to_segment(quintant, origin)
+
+        if resolution < FIRST_HILBERT_RESOLUTION:
+            return {
+                "origin": origin,
+                "segment": segment,
+                "S": 0,
+                "resolution": resolution,
+            }
+
+        if quintant != 0:
+            extra_angle = 2 * math.pi / 5 * quintant
+            c = math.cos(-extra_angle)
+            s = math.sin(-extra_angle)
+            new_x = c * dodec_point[0] - s * dodec_point[1]
+            new_y = s * dodec_point[0] + c * dodec_point[1]
+            dodec_point = (new_x, new_y)
+
+        hilbert_resolution = 1 + resolution - FIRST_HILBERT_RESOLUTION
+        scale_factor = 2**hilbert_resolution
+        dodec_point = (dodec_point[0] * scale_factor, dodec_point[1] * scale_factor)
+
+        ij = self.transformer.face_to_ij(dodec_point)
+        s_val = ij_to_s(ij, hilbert_resolution, orientation)
+        return {
+            "origin": origin,
+            "segment": segment,
+            "S": s_val,
+            "resolution": resolution,
+        }
+
+    def _get_pentagon(self, cell: Dict) -> PentagonShape:
+        quintant, orientation = segment_to_quintant(cell["segment"], cell["origin"])
+        if cell["resolution"] == (FIRST_HILBERT_RESOLUTION - 1):
+            return get_quintant_vertices(quintant)
+        if cell["resolution"] == (FIRST_HILBERT_RESOLUTION - 2):
+            return get_face_vertices()
+
+        hilbert_resolution = cell["resolution"] - FIRST_HILBERT_RESOLUTION + 1
+        anchor = s_to_anchor(cell["S"], hilbert_resolution, orientation)
+        return get_pentagon_vertices(hilbert_resolution, quintant, anchor)
+
+    def _cell_contains_point(self, cell: Dict, point: Tuple[float, float]) -> float:
+        pentagon = self._pentagon_for(
+            cell["origin"].id,
+            cell["segment"],
+            cell["S"],
+            cell["resolution"],
+        )
+        spherical = self.transformer.lonlat_to_spherical(point[0], point[1])
+        projected_point = self.projection.forward(spherical, cell["origin"].id)
+        return pentagon.contains_point(projected_point)
+
+    @lru_cache(maxsize=4096)
+    def _pentagon_for(
+        self, origin_id: int, segment: int, s: int, resolution: int
+    ) -> PentagonShape:
+        origin = origins[origin_id]
+        cell = {
+            "origin": origin,
+            "segment": segment,
+            "S": s,
+            "resolution": resolution,
+        }
+        return self._get_pentagon(cell)
+
+    @staticmethod
+    def _shift_longitudes(
+        coords: List[Tuple[float, float]], center_lon: float
+    ) -> List[Tuple[float, float]]:
+        shifted = []
+        for lon, lat in coords:
+            while lon - center_lon > 180:
+                lon -= 360
+            while lon - center_lon < -180:
+                lon += 360
+            lon = ((lon + 180) % 360) - 180
+            shifted.append((lon, lat))
+        return shifted
 
 
 # Module-level convenience functions (public API)
 
 
 def lonlat_to_cell(lon: float, lat: float, resolution: int) -> int:
-    """
-    Convert geographic coordinates to A5 cell ID.
-
-    Parameters
-    ----------
-    lon : float
-        Longitude in degrees [-180, 180]
-    lat : float
-        Latitude in degrees [-90, 90]
-    resolution : int
-        Resolution level (0-30)
-
-    Returns
-    -------
-    int
-        64-bit cell ID
-    """
     ops = A5CellOperations()
     return ops.lonlat_to_cell(lon, lat, resolution)
 
 
 def cell_to_lonlat(cell_id: int) -> Tuple[float, float]:
-    """
-    Convert A5 cell ID to center coordinates.
-
-    Parameters
-    ----------
-    cell_id : int
-        64-bit cell ID
-
-    Returns
-    -------
-    Tuple[float, float]
-        (lon, lat) in degrees
-    """
     ops = A5CellOperations()
     return ops.cell_to_lonlat(cell_id)
 
 
-def cell_to_boundary(cell_id: int) -> List[Tuple[float, float]]:
-    """
-    Get pentagon boundary vertices for a cell.
-
-    Parameters
-    ----------
-    cell_id : int
-        64-bit cell ID
-
-    Returns
-    -------
-    List[Tuple[float, float]]
-        List of (lon, lat) tuples forming pentagon boundary
-    """
+def cell_to_boundary(
+    cell_id: int, segments: int | None = None
+) -> List[Tuple[float, float]]:
     ops = A5CellOperations()
-    return ops.cell_to_boundary(cell_id)
+    return ops.cell_to_boundary(cell_id, segments=segments)
 
 
 def get_parent(cell_id: int) -> int:
-    """
-    Get parent cell at resolution-1.
-
-    Parameters
-    ----------
-    cell_id : int
-        Child cell ID
-
-    Returns
-    -------
-    int
-        Parent cell ID
-    """
     ops = A5CellOperations()
     return ops.get_parent(cell_id)
 
 
 def get_children(cell_id: int) -> List[int]:
-    """
-    Get 5 child cells at resolution+1.
-
-    Parameters
-    ----------
-    cell_id : int
-        Parent cell ID
-
-    Returns
-    -------
-    List[int]
-        List of 5 child cell IDs
-    """
     ops = A5CellOperations()
     return ops.get_children(cell_id)
 
 
 def get_resolution(cell_id: int) -> int:
-    """
-    Get resolution level of a cell.
-
-    Parameters
-    ----------
-    cell_id : int
-        Cell ID
-
-    Returns
-    -------
-    int
-        Resolution level
-    """
     ops = A5CellOperations()
     return ops.get_resolution(cell_id)

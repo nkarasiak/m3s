@@ -12,13 +12,7 @@
       "Bash(git clone:*)",
       "Bash(pytest:*)",
       "Bash(test:*)",
-      "Bash(pip install -e .)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
-      "Bash(wc:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(python3:*)"
+      "Bash(pip install -e .)"
     ],
     "deny": [],
     "ask": []
