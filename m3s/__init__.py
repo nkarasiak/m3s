@@ -23,6 +23,7 @@ from .grids import (
     SlippyGrid,
     What3WordsGrid,
 )
+from .a5 import A5Cell
 from .conversion import (
     convert_cell,
     convert_cells,
@@ -48,6 +49,7 @@ __all__ = [
     "GridBase",
     "GridProtocol",
     "A5Grid",
+    "A5Cell",
     "GeohashGrid",
     "MGRSGrid",
     "H3Grid",
