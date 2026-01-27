@@ -17,6 +17,26 @@ Changed
 ~~~~~~~
 - ``precision`` is the preferred constructor argument across all grids; resolution/level/zoom aliases remain but are silent
 
+0.7.0 - 2026-01-27
+------------------
+
+Added
+~~~~~
+- New public API entrypoints (``m3s.grid``, ``m3s.precision``, ``m3s.systems``)
+- Precision selector with natural-language targets (e.g., ``"250m"``, ``"1km2"``)
+- ``cover()`` primitive on grids and registry metadata for systems
+- Tests for precision selection, units parsing, and API entrypoint
+
+Changed
+~~~~~~~
+- GARS bbox coverage now returns all intersecting cells at precision 3
+- Parallel processing simplified to thread/process backends (removed Dask)
+- Documentation updated for the new API and precision terminology
+
+Removed
+~~~~~~~
+- Legacy A5 experiment/debug artifacts and root debug scripts
+
 0.4.1 - 2025-08-21
 ------------------
 
