@@ -17,6 +17,13 @@ Changed
 ~~~~~~~
 - ``precision`` is the preferred constructor argument across all grids; resolution/level/zoom aliases remain but are silent
 
+0.7.1 - 2026-01-27
+------------------
+
+Changed
+~~~~~~~
+- CI: gate PyPI publish on successful tests and docs builds
+
 0.7.0 - 2026-01-27
 ------------------
 
