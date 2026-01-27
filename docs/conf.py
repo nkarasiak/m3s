@@ -185,7 +185,7 @@ sphinx_gallery_conf = {
     'examples_dirs': '../examples',   # path to your example scripts
     'gallery_dirs': 'auto_examples',  # path to where to save gallery generated output
     'filename_pattern': r'.*\.py',     # pattern to identify example files
-    'ignore_pattern': r'__init__\.py|parallel_processing_example\.py',
+    'ignore_pattern': r'__init__\.py|parallel_processing_example\.py|utm_reprojection_example\.py',
     'plot_gallery': True,             # whether to execute examples and create plots
     'download_all_examples': False,   # whether to create download links
     'first_notebook_cell': '%matplotlib inline',

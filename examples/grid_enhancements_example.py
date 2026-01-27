@@ -171,7 +171,7 @@ def create_visualization_example():
 
     # Create different grid systems
     geohash_grid = GeohashGrid(precision=6)
-    h3_grid = H3Grid(resolution=9)
+    h3_grid = H3Grid(precision=9)
 
     # Get cells from each system
     geohash_cells = geohash_grid.get_cells_in_bbox(*bounds)
@@ -220,8 +220,8 @@ def plot_grid_comparison():
     # Create different grid systems with similar cell sizes
     grids = {
         'Geohash': GeohashGrid(precision=7),
-        'H3': H3Grid(resolution=9),
-        'Quadkey': QuadkeyGrid(level=15)
+        'H3': H3Grid(precision=9),
+        'Quadkey': QuadkeyGrid(precision=15)
     }
 
     # Create subplot figure
@@ -408,3 +408,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

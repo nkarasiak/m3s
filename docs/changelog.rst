@@ -9,6 +9,14 @@ and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0
 Unreleased
 ----------
 
+Added
+~~~~~
+- Reintroduced A5 pentagonal grid system in the unified grid API
+
+Changed
+~~~~~~~
+- ``precision`` is the preferred constructor argument across all grids; resolution/level/zoom aliases remain but are silent
+
 0.4.1 - 2025-08-21
 ------------------
 
@@ -82,11 +90,11 @@ Enhanced
 
 Fixed
 ~~~~~
-- **Parallel Processing Bugs**: Fixed critical issues in Dask integration
+- **Parallel Processing Bugs**: Fixed critical issues in parallel integration
 
-  - Resolved ``NameError: name 'delayed' is not defined`` in Dask processing
-  - Fixed GPU fallback test failures with proper mock handling
-  - Added proper import fallbacks for missing Dask/GPU dependencies
+  - Resolved ``NameError: name 'delayed' is not defined`` in parallel processing
+  - Fixed fallback test failures with proper mock handling
+  - Added proper import fallbacks for missing optional dependencies
 
 - **Memory Management**: Graceful handling of optional dependencies
 
@@ -145,7 +153,7 @@ Added
 
 - **Parallel Processing Engine**: Comprehensive distributed computing support
 
-  - ``ParallelGridEngine`` with Dask, GPU (RAPIDS), and threading backends
+  - ``ParallelGridEngine`` with threading and process backends
   - Stream processing capabilities for large datasets
   - Automatic fallbacks when specialized libraries are unavailable
 

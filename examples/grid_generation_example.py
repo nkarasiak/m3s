@@ -37,15 +37,15 @@ print("\nGenerating grids...")
 
 # Use coarser resolutions so we can actually see the grid structure
 mgrs_grid = MGRSGrid(precision=1)  # 10km cells - very coarse
-h3_grid = H3Grid(resolution=6)  # ~3.2km edge length
+h3_grid = H3Grid(precision=6)  # ~3.2km edge length
 geohash_grid = GeohashGrid(precision=5)  # ~4.9km x 4.9km
-quadkey_grid = QuadkeyGrid(level=12)  # ~4.9km x 4.9km (similar to geohash p5)
-s2_grid = S2Grid(level=9)  # ~18km edge length
-slippy_grid = SlippyGrid(zoom=12)  # ~4.9km x 4.9km (similar to quadkey)
+quadkey_grid = QuadkeyGrid(precision=12)  # ~4.9km x 4.9km (similar to geohash p5)
+s2_grid = S2Grid(precision=9)  # ~18km edge length
+slippy_grid = SlippyGrid(precision=12)  # ~4.9km x 4.9km (similar to quadkey)
 pluscode_grid = PlusCodeGrid(precision=3)  # ~250m x 250m cells
 maidenhead_grid = MaidenheadGrid(precision=3)  # ~2° x 1° cells
 gars_grid = GARSGrid(precision=3)  # 15' × 15' cells
-a5_grid = A5Grid(precision=3)  # Pentagonal cells, ~1.2km edge length
+a5_grid = A5Grid(precision=3)  # Pentagonal cells
 
 # Generate grid cells that intersect our test area
 print("  Processing MGRS...")
@@ -90,34 +90,36 @@ print(f"  Slippy (z12):       {len(slippy_result)} cells")
 print(f"  Plus codes (p3):    {len(pluscode_result)} cells")
 print(f"  Maidenhead (p3):    {len(maidenhead_result)} cells")
 print(f"  GARS (p3):          {len(gars_result)} cells")
-print(f"  A5 (p7):            {len(a5_result)} cells")
+print(f"  A5 (p3):            {len(a5_result)} cells")
 
 # Create comprehensive visualization with all grid systems
-fig, axes = plt.subplots(4, 3, figsize=(20, 24))
+fig, axes = plt.subplots(2, 5, figsize=(26, 12))
 fig.suptitle("Grid Systems Comparison - Paris Area", fontsize=20)
 
 # Define grid results and properties
 grid_configs = [
-    (mgrs_result, "MGRS Grid\n10km precision", "lightblue", "blue", axes[0, 0]),
-    (h3_result, "H3 Hexagonal Grid\nResolution 6", "lightgreen", "green", axes[0, 1]),
-    (geohash_result, "Geohash Grid\nPrecision 5", "lightcoral", "darkred", axes[0, 2]),
-    (quadkey_result, "Quadkey Grid\nLevel 12", "lightyellow", "orange", axes[1, 0]),
-    (s2_result, "S2 Grid\nLevel 9", "lightpink", "purple", axes[1, 1]),
-    (slippy_result, "Slippy Map Tiles\nZoom 12", "lightcyan", "teal", axes[1, 2]),
-    (pluscode_result, "Plus Codes\nPrecision 3", "lightsteelblue", "navy", axes[2, 0]),
+    (mgrs_result, "MGRS Grid\n10km precision", "lightblue", "blue"),
+    (h3_result, "H3 Hexagonal Grid\nResolution 6", "lightgreen", "green"),
+    (geohash_result, "Geohash Grid\nPrecision 5", "lightcoral", "darkred"),
+    (quadkey_result, "Quadkey Grid\nLevel 12", "lightyellow", "orange"),
+    (s2_result, "S2 Grid\nLevel 9", "lightpink", "purple"),
+    (slippy_result, "Slippy Map Tiles\nZoom 12", "lightcyan", "teal"),
+    (pluscode_result, "Plus Codes\nPrecision 3", "lightsteelblue", "navy"),
     (
         maidenhead_result,
         "Maidenhead Locator\nPrecision 3",
         "lightgoldenrodyellow",
         "goldenrod",
-        axes[2, 1],
     ),
-    (gars_result, "GARS Grid\nPrecision 3", "lavender", "mediumorchid", axes[2, 2]),
-    (a5_result, "A5 Pentagon Grid\nPrecision 7", "lightsalmon", "darkorange", axes[3, 0]),
+    (gars_result, "GARS Grid\nPrecision 3", "lavender", "mediumorchid"),
+    (a5_result, "A5 Pentagon Grid\nPrecision 3", "lightsalmon", "darkorange"),
 ]
 
 # Plot each grid system
-for result, title, facecolor, edgecolor, ax in grid_configs:
+for i, (result, title, facecolor, edgecolor) in enumerate(grid_configs):
+    row = i // 5
+    col = i % 5
+    ax = axes[row, col]
     ax.set_title(f"{title}\n({len(result)} cells)")
     if len(result) > 0:
         result.plot(
@@ -128,9 +130,11 @@ for result, title, facecolor, edgecolor, ax in grid_configs:
     ax.set_ylabel("Latitude")
     ax.grid(True, alpha=0.3)
 
-# Hide the empty subplot cells
-axes[3, 1].set_visible(False)
-axes[3, 2].set_visible(False)
+# Hide any remaining empty subplot (we have 10 grids in a 2x5 layout)
+for i in range(len(grid_configs), 10):
+    row = i // 5
+    col = i % 5
+    axes[row, col].set_visible(False)
 
 plt.tight_layout()
 plt.show()
@@ -149,7 +153,7 @@ grid_info = [
     ("Plus Codes (precision 3)", pluscode_result),
     ("Maidenhead Locator (precision 3)", maidenhead_result),
     ("GARS Grid (precision 3)", gars_result),
-    ("A5 Pentagon Grid (precision 7)", a5_result),
+    ("A5 Pentagon Grid (precision 3)", a5_result),
 ]
 
 for i, (name, result) in enumerate(grid_info, 1):
@@ -199,3 +203,4 @@ print("- Quadkey and Slippy: Fast, optimized for web mapping")
 print("- S2: More complex but excellent for large-scale applications")
 print("- Plus Codes, Maidenhead, GARS: Fast encoding/decoding, specialized use cases")
 print("- A5: Complex geometric algorithms, excellent spatial properties for analysis")
+

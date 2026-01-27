@@ -5,17 +5,19 @@ This module provides the A5Grid class that implements the M3S BaseGrid interface
 for the A5 pentagonal grid system.
 """
 
-from typing import List
+from typing import List, Sequence
 
-from shapely.geometry import Polygon
+from shapely.geometry import Point, Polygon
 
 from m3s.a5.cell import A5CellOperations
 from m3s.a5.constants import MAX_RESOLUTION, validate_resolution
-from m3s.base import BaseGrid, GridCell
-from m3s.cache import cached_method, geo_cache_key
+from m3s.core.cell import Cell
+from m3s.core.errors import InvalidPrecision
+from m3s.core.grid import GridBase
+from m3s.core.types import Bbox, CellId
 
 
-class A5Grid(BaseGrid):
+class A5Grid(GridBase):
     """
     A5 pentagonal grid system implementation.
 
@@ -51,30 +53,20 @@ class A5Grid(BaseGrid):
     Resolutions 0+ are supported, with Hilbert curves for 2+.
     """
 
+    name = "a5"
+
     def __init__(self, precision: int):
-        """
-        Initialize A5 grid with specified precision.
-
-        Parameters
-        ----------
-        precision : int
-            Resolution level (0-30)
-
-        Raises
-        ------
-        ValueError
-            If precision is out of valid range
-        """
-        try:
-            validate_resolution(precision)
-        except ValueError as exc:
-            raise ValueError("A5 precision must be between 0 and 30") from exc
-
+        """Initialize A5 grid with specified precision."""
         super().__init__(precision)
         self.cell_ops = A5CellOperations()
 
-    @cached_method(cache_key_func=geo_cache_key)
-    def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
+    def _validate_precision(self) -> None:
+        try:
+            validate_resolution(self.precision)
+        except ValueError as exc:
+            raise InvalidPrecision("A5 precision must be between 0 and 30") from exc
+
+    def cell(self, lat: float, lon: float) -> Cell:
         """
         Get the A5 cell containing the given point.
 
@@ -87,7 +79,7 @@ class A5Grid(BaseGrid):
 
         Returns
         -------
-        GridCell
+        Cell
             The A5 cell containing the point
 
         Raises
@@ -95,19 +87,14 @@ class A5Grid(BaseGrid):
         ValueError
             If coordinates are invalid
         """
-        # Get cell ID for this point
+        self.validate_lat_lon(lat, lon)
         cell_id = self.cell_ops.lonlat_to_cell(lon, lat, self.precision)
 
         # Use adaptive boundary segmentation for smoother polygons
         boundary_coords = self.cell_ops.cell_to_boundary(cell_id, segments=None)
         boundary_coords = self._shift_longitudes(boundary_coords, lon)
 
-        # Create Shapely polygon
         polygon = Polygon(boundary_coords)
-
-        # Fallback for polar cells and coarse resolutions
-        from shapely.geometry import Point
-
         point = Point(lon, lat)
         if (
             not polygon.contains(point)
@@ -116,15 +103,25 @@ class A5Grid(BaseGrid):
         ):
             radius = max(0.5, 20.0 / (2**self.precision))
             polygon = Point(lon, lat).buffer(radius)
+            boundary_coords = list(polygon.exterior.coords)
 
         # Create identifier string
         identifier = f"a5_{self.precision}_{cell_id:016x}"
+        bbox = polygon.bounds
+        return Cell(
+            identifier,
+            self.precision,
+            (bbox[0], bbox[1], bbox[2], bbox[3]),
+            _coords=boundary_coords,
+        )
 
-        return GridCell(identifier, polygon, self.precision)
+    def get_cell_from_point(self, lat: float, lon: float) -> Cell:
+        """Legacy alias for cell()."""
+        return self.cell(lat, lon)
 
     def get_cells_from_points(
         self, points: List[tuple[float, float]]
-    ) -> List[GridCell]:
+    ) -> List[Cell]:
         """
         Get A5 cells for multiple points.
 
@@ -135,7 +132,7 @@ class A5Grid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        List[:class:`m3s.core.cell.Cell`]
             List of cells containing each point
 
         Notes
@@ -152,13 +149,13 @@ class A5Grid(BaseGrid):
             if cell_id in seen_ids:
                 cells.append(seen_ids[cell_id])
             else:
-                cell = self.get_cell_from_point(lat, lon)
+                cell = self.cell(lat, lon)
                 seen_ids[cell_id] = cell
                 cells.append(cell)
 
         return cells
 
-    def get_cell_by_id(self, cell_id: int) -> GridCell:
+    def get_cell_by_id(self, cell_id: int) -> Cell:
         """
         Get A5 cell by its 64-bit cell ID.
 
@@ -169,7 +166,7 @@ class A5Grid(BaseGrid):
 
         Returns
         -------
-        GridCell
+        Cell
             The A5 cell
 
         Raises
@@ -180,15 +177,23 @@ class A5Grid(BaseGrid):
         # Get boundary polygon (adaptive segmentation)
         boundary_coords = self.cell_ops.cell_to_boundary(cell_id, segments=None)
 
-        # Create Shapely polygon
         polygon = Polygon(boundary_coords)
 
         # Create identifier string
         identifier = f"a5_{self.precision}_{cell_id:016x}"
+        bbox = polygon.bounds
+        return Cell(
+            identifier,
+            self.precision,
+            (bbox[0], bbox[1], bbox[2], bbox[3]),
+            _coords=boundary_coords,
+        )
 
-        return GridCell(identifier, polygon, self.precision)
+    def from_id(self, cell_id: CellId) -> Cell:
+        """Return a cell from its identifier."""
+        return self.get_cell_by_id(self._extract_cell_id(cell_id))
 
-    def get_parent_cell(self, cell: GridCell) -> GridCell:
+    def get_parent_cell(self, cell: Cell) -> Cell:
         """
         Get parent cell at precision-1.
 
@@ -199,7 +204,7 @@ class A5Grid(BaseGrid):
 
         Returns
         -------
-        GridCell
+        Cell
             Parent cell
 
         Raises
@@ -211,7 +216,7 @@ class A5Grid(BaseGrid):
             raise ValueError("Cell at precision 0 has no parent")
 
         # Extract cell ID from identifier
-        cell_id = self._extract_cell_id(cell.identifier)
+        cell_id = self._extract_cell_id(cell.id)
 
         # Get parent cell ID
         parent_id = self.cell_ops.get_parent(cell_id)
@@ -222,7 +227,7 @@ class A5Grid(BaseGrid):
         # Get parent cell
         return parent_grid.get_cell_by_id(parent_id)
 
-    def get_child_cells(self, cell: GridCell) -> List[GridCell]:
+    def get_child_cells(self, cell: Cell) -> List[Cell]:
         """
         Get child cells at precision+1.
 
@@ -236,7 +241,7 @@ class A5Grid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        List[Cell]
             List of child cells
 
         Raises
@@ -248,7 +253,7 @@ class A5Grid(BaseGrid):
             raise ValueError("Cell at maximum precision has no children")
 
         # Extract cell ID from identifier
-        cell_id = self._extract_cell_id(cell.identifier)
+        cell_id = self._extract_cell_id(cell.id)
 
         # Get child cell IDs
         child_ids = self.cell_ops.get_children(cell_id)
@@ -261,14 +266,14 @@ class A5Grid(BaseGrid):
 
         return children
 
-    def _extract_cell_id(self, identifier: str) -> int:
+    def _extract_cell_id(self, identifier: CellId) -> int:
         """
         Extract 64-bit cell ID from identifier string.
 
         Parameters
         ----------
-        identifier : str
-            Cell identifier (format: "a5_{precision}_{cell_id_hex}")
+        identifier : CellId
+            Cell identifier (format: "a5_{precision}_{cell_id_hex}") or int
 
         Returns
         -------
@@ -280,7 +285,10 @@ class A5Grid(BaseGrid):
         ValueError
             If identifier format is invalid
         """
-        parts = identifier.split("_")
+        if isinstance(identifier, int):
+            return identifier
+
+        parts = str(identifier).split("_")
         if parts[0] != "a5":
             raise ValueError(f"Invalid A5 identifier: {identifier}")
         if len(parts) != 3:
@@ -304,7 +312,7 @@ class A5Grid(BaseGrid):
         """
         return self.precision
 
-    def get_cell_from_identifier(self, identifier: str) -> GridCell:
+    def get_cell_from_identifier(self, identifier: CellId) -> Cell:
         """
         Get a grid cell from its identifier.
 
@@ -315,7 +323,7 @@ class A5Grid(BaseGrid):
 
         Returns
         -------
-        GridCell
+        Cell
             The grid cell corresponding to the identifier
 
         Raises
@@ -324,12 +332,9 @@ class A5Grid(BaseGrid):
             If identifier is invalid
         """
         # Extract cell ID from identifier
-        cell_id = self._extract_cell_id(identifier)
+        return self.get_cell_by_id(self._extract_cell_id(identifier))
 
-        # Get cell using cell ID
-        return self.get_cell_by_id(cell_id)
-
-    def get_neighbors(self, cell: GridCell) -> List[GridCell]:
+    def neighbors(self, cell: Cell) -> Sequence[Cell]:
         """
         Get neighboring cells of the given cell.
 
@@ -349,7 +354,7 @@ class A5Grid(BaseGrid):
         adjacent cells. It is robust for typical use, but not guaranteed to
         return a perfectly ordered neighbor list.
         """
-        cell_id = self._extract_cell_id(cell.identifier)
+        cell_id = self._extract_cell_id(cell.id)
         boundary = self.cell_ops.cell_to_boundary(cell_id, segments=1)
         center_lon, center_lat = self.cell_ops.cell_to_lonlat(cell_id)
         center_xyz = self._lonlat_to_xyz(center_lon, center_lat)
@@ -406,26 +411,22 @@ class A5Grid(BaseGrid):
 
         return [self.get_cell_by_id(cid) for cid in neighbor_ids[:5]]
 
-    def get_cells_in_bbox(
-        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> List[GridCell]:
+    def get_neighbors(self, cell: Cell) -> List[Cell]:
+        """Legacy alias for neighbors()."""
+        return list(self.neighbors(cell))
+
+    def cells_in_bbox(self, bbox: Bbox) -> Sequence[Cell]:
         """
         Get all grid cells within the given bounding box.
 
         Parameters
         ----------
-        min_lat : float
-            Minimum latitude of bounding box
-        min_lon : float
-            Minimum longitude of bounding box
-        max_lat : float
-            Maximum latitude of bounding box
-        max_lon : float
-            Maximum longitude of bounding box
+        bbox : Bbox
+            Bounding box (min_lon, min_lat, max_lon, max_lat)
 
         Returns
         -------
-        List[GridCell]
+        List[:class:`m3s.core.cell.Cell`]
             List of grid cells that intersect the bounding box
 
         Notes
@@ -438,6 +439,7 @@ class A5Grid(BaseGrid):
         # Sample points within bbox to find cells
         # Number of samples depends on precision
         # Higher precision = need more samples for good coverage
+        min_lon, min_lat, max_lon, max_lat = self.normalize_bbox(bbox)
         samples_per_degree = max(2, 2 ** (self.precision + 1))
 
         lat_steps = max(2, int((max_lat - min_lat) * samples_per_degree))
@@ -457,13 +459,19 @@ class A5Grid(BaseGrid):
         for lat in lats:
             for lon in lons:
                 try:
-                    cell = self.get_cell_from_point(lat, lon)
-                    cells_dict[cell.identifier] = cell
+                    cell = self.cell(lat, lon)
+                    cells_dict[cell.id] = cell
                 except (ValueError, Exception):
                     # Skip invalid points
                     continue
 
         return list(cells_dict.values())
+
+    def get_cells_in_bbox(
+        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
+    ) -> List[Cell]:
+        """Legacy alias for cells_in_bbox()."""
+        return list(self.cells_in_bbox((min_lon, min_lat, max_lon, max_lat)))
 
     def __repr__(self) -> str:
         """String representation of A5Grid."""

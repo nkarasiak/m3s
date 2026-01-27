@@ -15,8 +15,8 @@ Each grid system has its own class with specific precision parameters:
 
    from m3s import H3Grid, GeohashGrid, MGRSGrid
 
-   # H3 hexagonal grid (resolution 0-15)
-   h3_grid = H3Grid(resolution=8)  # ~1.7km edge length
+   # H3 hexagonal grid (precision 0-15)
+   h3_grid = H3Grid(precision=8)  # ~1.7km edge length
 
    # Geohash rectangular grid (precision 1-12)
    geohash_grid = GeohashGrid(precision=6)  # ~1.2km x 0.6km
@@ -104,7 +104,7 @@ Different grid systems have different characteristics:
    )
 
    # Generate cells with different grid systems
-   h3_cells = H3Grid(resolution=8).intersects(test_area)
+   h3_cells = H3Grid(precision=8).intersects(test_area)
    geohash_cells = GeohashGrid(precision=6).intersects(test_area) 
    mgrs_cells = MGRSGrid(precision=2).intersects(test_area)
 
@@ -161,7 +161,7 @@ M3S provides clear error messages for common issues:
 
    try:
        # Invalid precision values
-       invalid_grid = H3Grid(resolution=20)  # Max is 15
+       invalid_grid = H3Grid(precision=20)  # Max is 15
    except ValueError as e:
        print(f"Error: {e}")
 
@@ -178,3 +178,4 @@ Next Steps
 * Check out the :doc:`auto_examples/index` for more detailed use cases
 * Explore the :doc:`api` for complete method documentation
 * See the example scripts in the repository for visualization examples
+

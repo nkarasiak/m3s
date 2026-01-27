@@ -17,19 +17,19 @@ M3S (Multi Spatial Subdivision System) is a Python package that provides a unifi
 
 ### Testing
 ```bash
-pytest                    # Run all tests
-pytest tests/test_*.py    # Run specific test file
-pytest -v                 # Verbose output
-pytest --cov=m3s          # Run with coverage
+uv run pytest                    # Run all tests
+uv run pytest tests/test_*.py    # Run specific test file
+uv run pytest -v                 # Verbose output
+uv run pytest --cov=m3s          # Run with coverage
 ```
 
 ### Code Quality
 ```bash
-black m3s tests examples       # Format code
-ruff check m3s tests examples  # Lint code  
-ruff check --fix m3s tests examples  # Auto-fix linting issues
-mypy m3s                       # Type checking
-isort m3s tests examples       # Sort imports
+uv run black m3s tests examples            # Format code
+uv run ruff check m3s tests examples       # Lint code
+uv run ruff check --fix m3s tests examples # Auto-fix linting issues
+uv run mypy m3s                            # Type checking
+uv run isort m3s tests examples            # Sort imports
 ```
 
 ### Documentation
@@ -42,9 +42,8 @@ sphinx-build . _build  # Alternative build command
 
 ### Development Installation
 ```bash
-pip install -e ".[dev]"      # Install with development dependencies
-pip install -e ".[parallel]" # Install with parallel processing support
-pip install -e ".[gpu]"      # Install with GPU acceleration support
+uv pip install -e ".[dev]"      # Install with development dependencies
+uv pip install -e ".[parallel]" # Install with parallel processing support
 ```
 
 ## Architecture Overview
@@ -81,7 +80,7 @@ New modules for enhanced functionality:
 ### Performance and Memory Management
 - `cache.py` - Caching system for spatial calculations and UTM projections
 - `memory.py` - Memory monitoring, lazy loading, and streaming processors for large datasets
-- `parallel.py` - Distributed computing with Dask, GPU acceleration with RAPIDS/CuPy
+- `parallel.py` - Distributed computing with Dask
 
 ### UTM Integration
 The system automatically calculates and includes UTM zone information for optimal spatial analysis. UTM zones are determined from cell centroids and cached for performance.
@@ -135,7 +134,6 @@ When implementing new grid systems:
 ### Performance Considerations
 - Use caching for expensive spatial calculations
 - Leverage the memory management utilities for large datasets
-- Consider GPU acceleration paths when applicable
 - Profile memory usage with the built-in MemoryMonitor
 
 ### Documentation
@@ -208,11 +206,11 @@ boundary = cell_to_boundary(cell_id)
 ### Before Committing
 Always run code quality checks:
 ```bash
-black m3s tests examples              # Format code
-isort m3s tests examples               # Sort imports
-ruff check --fix m3s tests examples    # Fix linting issues
-mypy m3s                               # Type checking
-pytest                                 # Run all tests
+uv run black m3s tests examples              # Format code
+uv run isort m3s tests examples               # Sort imports
+uv run ruff check --fix m3s tests examples    # Fix linting issues
+uv run mypy m3s                               # Type checking
+uv run pytest                                 # Run all tests
 ```
 
 ### Working with A5 Grid System

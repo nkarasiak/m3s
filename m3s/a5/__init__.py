@@ -123,8 +123,8 @@ def get_res0_cells() -> list[int]:
     cells: list[int] = []
     for lat, lon in base_points:
         try:
-            cell = grid.get_cell_from_point(lat, lon)
-            cells.append(int(cell.identifier.split("_")[-1], 16))
+            cell = grid.cell(lat, lon)
+            cells.append(int(str(cell.id).split("_")[-1], 16))
         except Exception:
             continue
     return cells[:12]
