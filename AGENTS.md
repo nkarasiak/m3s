@@ -22,6 +22,8 @@ Local guidance for coding agents working in this repository.
 - Keep changes focused and avoid unrelated edits.
 - Update or add docs when behavior changes.
 - Add tests for new features or bug fixes when feasible.
+- Use Conventional Commits for all commit messages (e.g., `feat:`, `fix:`, `chore:`).
+- Follow Semantic Versioning (SemVer) for releases and tags (e.g., `v1.2.3`).
 
 ## Tooling preference
 - Use `uv` over `pip` for local dev and CI parity.
