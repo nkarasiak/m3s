@@ -17,7 +17,9 @@ print("Example 1: Basic Point Query")
 print("=" * 70)
 
 # Query a single point using H3 grid at precision 7
-result = GridBuilder.for_system("h3").with_precision(7).at_point(40.7128, -74.0060).execute()
+result = (
+    GridBuilder.for_system("h3").with_precision(7).at_point(40.7128, -74.0060).execute()
+)
 
 # Access single cell result
 cell = result.single
@@ -39,21 +41,21 @@ selector = PrecisionSelector("h3")
 
 # Strategy 1: Use-case based (most common)
 rec = selector.for_use_case("neighborhood")
-print(f"\nUse-case 'neighborhood' recommendation:")
+print("\nUse-case 'neighborhood' recommendation:")
 print(f"  Precision: {rec.precision}")
 print(f"  Confidence: {rec.confidence:.0%}")
 print(f"  {rec.explanation}")
 
 # Strategy 2: Area-based
 rec = selector.for_area(target_area_km2=10.0)
-print(f"\nArea-based (target 10 km²) recommendation:")
+print("\nArea-based (target 10 km²) recommendation:")
 print(f"  Precision: {rec.precision}")
 print(f"  Actual area: {rec.actual_area_km2:.2f} km²")
 print(f"  Confidence: {rec.confidence:.0%}")
 
 # Strategy 3: Distance-based
 rec = selector.for_distance(edge_length_m=500.0)
-print(f"\nDistance-based (target 500m edges) recommendation:")
+print("\nDistance-based (target 500m edges) recommendation:")
 print(f"  Precision: {rec.precision}")
 print(f"  Actual edge length: {rec.edge_length_m:.1f} m")
 print(f"  Confidence: {rec.confidence:.0%}")
@@ -81,7 +83,7 @@ result = (
 
 print(f"\nFound {len(result)} cells (original + neighbors)")
 print(f"Using precision: {rec.precision} (confidence: {rec.confidence:.0%})")
-print(f"\nFirst few cells:")
+print("\nFirst few cells:")
 for cell in result.many[:5]:
     print(f"  {cell.identifier} - {cell.area_km2:.2f} km²")
 print()
@@ -141,13 +143,17 @@ print("Example 6: Export to GeoPandas")
 print("=" * 70)
 
 result = (
-    GridBuilder.for_system("s2").with_precision(12).in_bbox(40.75, -74.0, 40.77, -73.97).limit(5).execute()
+    GridBuilder.for_system("s2")
+    .with_precision(12)
+    .in_bbox(40.75, -74.0, 40.77, -73.97)
+    .limit(5)
+    .execute()
 )
 
 gdf = result.to_geodataframe()
 print("\nGeoDataFrame columns:", list(gdf.columns))
 print(f"Shape: {gdf.shape}")
-print(f"\nFirst row:")
+print("\nFirst row:")
 print(gdf.head(1))
 print()
 
@@ -193,7 +199,7 @@ rec = selector.for_performance(
     region_size_km2=100.0,  # 100 km² region
 )
 
-print(f"\nPerformance-optimized precision:")
+print("\nPerformance-optimized precision:")
 print(f"  Precision: {rec.precision}")
 print(f"  Estimated time: {rec.metadata['estimated_time_ms']:.1f} ms")
 print(f"  Estimated cells: {rec.metadata['estimated_cells']}")

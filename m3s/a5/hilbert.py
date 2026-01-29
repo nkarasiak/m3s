@@ -19,7 +19,7 @@ Quaternary = Literal[0, 1, 2, 3]
 YES: Literal[-1] = -1
 NO: Literal[1] = 1
 Flip = Literal[-1, 1]
-Orientation = Literal['uv', 'vu', 'uw', 'wu', 'vw', 'wv']
+Orientation = Literal["uv", "vu", "uw", "wu", "vw", "wv"]
 
 # IJ and KJ coordinate types
 IJ = Tuple[float, float]
@@ -190,7 +190,9 @@ def _shift_digits(
     digits[i] = (parent_k + 4 + (dst // 4) - (src // 4)) % 4
 
 
-def s_to_anchor(s: Union[int, str], resolution: int, orientation: Orientation) -> Anchor:
+def s_to_anchor(
+    s: Union[int, str], resolution: int, orientation: Orientation
+) -> Anchor:
     """
     Convert s-value to anchor with orientation.
 
@@ -209,9 +211,9 @@ def s_to_anchor(s: Union[int, str], resolution: int, orientation: Orientation) -
         Anchor point with offset and flips
     """
     input_val = int(s)
-    reverse = orientation in ('vu', 'wu', 'vw')
-    invert_j = orientation in ('wv', 'vw')
-    flip_ij = orientation in ('wu', 'uw')
+    reverse = orientation in ("vu", "wu", "vw")
+    invert_j = orientation in ("wv", "vw")
+    flip_ij = orientation in ("wu", "uw")
 
     if reverse:
         input_val = (1 << (2 * resolution)) - input_val - 1
@@ -353,7 +355,7 @@ def ij_to_quaternary(ij: IJ, flips: Tuple[Flip, Flip]) -> Quaternary:
     return digit
 
 
-def ij_to_s(input_ij: IJ, resolution: int, orientation: Orientation = 'uv') -> int:
+def ij_to_s(input_ij: IJ, resolution: int, orientation: Orientation = "uv") -> int:
     """
     Convert IJ coordinates to s-value with orientation.
 
@@ -371,9 +373,9 @@ def ij_to_s(input_ij: IJ, resolution: int, orientation: Orientation = 'uv') -> i
     int
         S-value (Hilbert curve index)
     """
-    reverse = orientation in ('vu', 'wu', 'vw')
-    invert_j = orientation in ('wv', 'vw')
-    flip_ij = orientation in ('wu', 'uw')
+    reverse = orientation in ("vu", "wu", "vw")
+    invert_j = orientation in ("wv", "vw")
+    flip_ij = orientation in ("wu", "uw")
 
     # Convert tuple to list for modification, then back to tuple
     ij = list(input_ij)
@@ -413,7 +415,10 @@ def _ij_to_s(input_ij: IJ, invert_j: bool, flip_ij: bool, resolution: int) -> in
         # Update running state
         child_offset = kj_to_ij(quaternary_to_kj(digit, tuple(flips)))
         upscaled_child_offset = (child_offset[0] * scale, child_offset[1] * scale)
-        pivot = [pivot[0] + upscaled_child_offset[0], pivot[1] + upscaled_child_offset[1]]
+        pivot = [
+            pivot[0] + upscaled_child_offset[0],
+            pivot[1] + upscaled_child_offset[1],
+        ]
 
         new_flips = quaternary_to_flips(digit)
         flips[0] *= new_flips[0]
@@ -457,11 +462,11 @@ class A5HilbertCurve:
 
         self.resolution = resolution
 
-    def ij_to_s(self, i: float, j: float, orientation: Orientation = 'uv') -> int:
+    def ij_to_s(self, i: float, j: float, orientation: Orientation = "uv") -> int:
         """Convert IJ face coordinates to Hilbert S-value."""
         return ij_to_s((i, j), self.resolution, orientation)
 
-    def s_to_ij(self, s: int, orientation: Orientation = 'uv') -> Tuple[float, float]:
+    def s_to_ij(self, s: int, orientation: Orientation = "uv") -> Tuple[float, float]:
         """Convert Hilbert S-value to IJ face coordinates."""
         anchor = s_to_anchor(s, self.resolution, orientation)
         return anchor.offset

@@ -15,13 +15,13 @@ The resolution is encoded by the position of the least significant '1' bit.
 - For res < 2: R = resolution + 1, marker at bit position (58 - R)
 - For res >= 2: R = 2 * (resolution - 1) + 1, marker at bit position (58 - R)
 
-Examples:
+Examples
+--------
 - Resolution 0: R=1, marker at bit 57
 - Resolution 1: R=2, marker at bit 56
 - Resolution 2: R=1, marker at bit 57 (plus Hilbert bits)
 """
 
-import math
 from typing import Tuple
 
 from m3s.a5.constants import (

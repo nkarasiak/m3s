@@ -5,7 +5,6 @@ This module provides the origin data needed for the dodecahedron projection,
 including quaternions, rotation angles, and quintant vertices.
 """
 
-import math
 from typing import List, NamedTuple, Tuple
 
 from m3s.a5.constants import (
@@ -51,25 +50,25 @@ class Origin(NamedTuple):
 # Quintant orientation layouts (from Palmer's a5-py)
 # These define the Hilbert curve orientation for each of the 5 quintants per face
 # Each tuple contains 5 orientation strings, one for each quintant on the face
-_CLOCKWISE_FAN = ('vu', 'uw', 'vw', 'vw', 'vw')
-_CLOCKWISE_STEP = ('wu', 'uw', 'vw', 'vu', 'uw')
-_COUNTER_STEP = ('wu', 'uv', 'wv', 'wu', 'uw')
-_COUNTER_JUMP = ('vu', 'uv', 'wv', 'wu', 'uw')
+_CLOCKWISE_FAN = ("vu", "uw", "vw", "vw", "vw")
+_CLOCKWISE_STEP = ("wu", "uw", "vw", "vu", "uw")
+_COUNTER_STEP = ("wu", "uv", "wv", "wu", "uw")
+_COUNTER_JUMP = ("vu", "uv", "wv", "wu", "uw")
 
 # Palmer's orientation layouts for each origin (verified from Palmer's a5-py)
 # IMPORTANT: These exact values are critical for Hilbert curve compatibility
 QUINTANT_ORIENTATIONS = [
-    _CLOCKWISE_FAN,   # 0: Arctic
-    _COUNTER_JUMP,    # 1: North America
-    _COUNTER_STEP,    # 2: South America
-    _COUNTER_STEP,    # 3: North Atlantic
+    _CLOCKWISE_FAN,  # 0: Arctic
+    _COUNTER_JUMP,  # 1: North America
+    _COUNTER_STEP,  # 2: South America
+    _COUNTER_STEP,  # 3: North Atlantic
     _CLOCKWISE_STEP,  # 4: South Atlantic
-    _COUNTER_JUMP,    # 5: Europe/Middle East
+    _COUNTER_JUMP,  # 5: Europe/Middle East
     _CLOCKWISE_STEP,  # 6: Indian Ocean
     _CLOCKWISE_STEP,  # 7: Asia
-    _COUNTER_STEP,    # 8: Australia
-    _COUNTER_JUMP,    # 9: North Pacific
-    _COUNTER_JUMP,    # 10: South Pacific
+    _COUNTER_STEP,  # 8: Australia
+    _COUNTER_JUMP,  # 9: North Pacific
+    _COUNTER_JUMP,  # 10: South Pacific
     _CLOCKWISE_STEP,  # 11: Antarctic
 ]
 

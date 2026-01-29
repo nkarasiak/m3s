@@ -24,7 +24,7 @@ Radians = float
 class A5FixedGrid(BaseGrid):
     """
     A5 pentagonal grid system - Fixed implementation that works correctly.
-    
+
     This implementation prioritizes correctness over theoretical accuracy:
     1. Cells always contain their generating points
     2. Areas scale properly with resolution
@@ -43,7 +43,7 @@ class A5FixedGrid(BaseGrid):
         # Calculate cell size based on precision
         # Base size decreases with higher precision
         base_size = 45.0  # degrees at precision 0
-        cell_size = base_size / (2.5 ** self.precision)
+        cell_size = base_size / (2.5**self.precision)
 
         # Create pentagon vertices around the point
         vertices = []
@@ -56,7 +56,9 @@ class A5FixedGrid(BaseGrid):
             delta_lon = cell_size * math.cos(angle) / lat_correction
             delta_lat = cell_size * math.sin(angle)
 
-            vertex_lon = lon + delta_lon * 0.8  # Scale down slightly to ensure containment
+            vertex_lon = (
+                lon + delta_lon * 0.8
+            )  # Scale down slightly to ensure containment
             vertex_lat = lat + delta_lat * 0.8
 
             # Clamp to valid ranges
@@ -119,7 +121,7 @@ class A5FixedGrid(BaseGrid):
         """Generate a unique cell identifier for the given coordinates."""
         # Create a deterministic hash based on quantized coordinates
         # This ensures same coordinates always produce same cell ID
-        precision_factor = 10 ** self.precision
+        precision_factor = 10**self.precision
 
         # Quantize coordinates based on precision
         quantized_lat = round(lat * precision_factor)
@@ -127,6 +129,7 @@ class A5FixedGrid(BaseGrid):
 
         # Create hash-based cell ID that's deterministic
         import hashlib
+
         coord_string = f"{quantized_lat}_{quantized_lon}_{self.precision}"
         cell_hash = hashlib.md5(coord_string.encode()).hexdigest()
 
@@ -162,6 +165,7 @@ class A5FixedGrid(BaseGrid):
 
         # Use hash to determine a representative location
         import hashlib
+
         hash_int = int(hashlib.md5(cell_hash.encode()).hexdigest()[:8], 16)
 
         # Map hash to lat/lon coordinates
@@ -180,7 +184,7 @@ class A5FixedGrid(BaseGrid):
         center_lon, center_lat = centroid.x, centroid.y
 
         # Calculate offset based on cell size
-        cell_size = 45.0 / (2.5 ** self.precision)
+        cell_size = 45.0 / (2.5**self.precision)
 
         neighbors = []
 
@@ -190,7 +194,9 @@ class A5FixedGrid(BaseGrid):
 
             # Offset position for neighbor
             lat_correction = max(0.5, abs(math.cos(math.radians(center_lat))))
-            neighbor_lon = center_lon + cell_size * 1.5 * math.cos(angle) / lat_correction
+            neighbor_lon = (
+                center_lon + cell_size * 1.5 * math.cos(angle) / lat_correction
+            )
             neighbor_lat = center_lat + cell_size * 1.5 * math.sin(angle)
 
             # Clamp to valid ranges
@@ -209,13 +215,15 @@ class A5FixedGrid(BaseGrid):
 
         return neighbors
 
-    def get_cells_in_bbox(self, min_lat: float, min_lon: float, max_lat: float, max_lon: float) -> List[GridCell]:
+    def get_cells_in_bbox(
+        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
+    ) -> List[GridCell]:
         """Get cells in bounding box."""
         cells = []
         found_identifiers = set()
 
         # Calculate sampling density based on precision
-        cell_size = 45.0 / (2.5 ** self.precision)
+        cell_size = 45.0 / (2.5**self.precision)
         step_size = cell_size * 0.7  # Overlap slightly to ensure coverage
 
         # Ensure minimum step size to avoid infinite loops
@@ -231,8 +239,12 @@ class A5FixedGrid(BaseGrid):
                     if cell.identifier not in found_identifiers:
                         # Check if cell intersects the bounding box
                         bounds = cell.polygon.bounds
-                        if (bounds[0] <= max_lon and bounds[2] >= min_lon and
-                            bounds[1] <= max_lat and bounds[3] >= min_lat):
+                        if (
+                            bounds[0] <= max_lon
+                            and bounds[2] >= min_lon
+                            and bounds[1] <= max_lat
+                            and bounds[3] >= min_lat
+                        ):
                             cells.append(cell)
                             found_identifiers.add(cell.identifier)
                 except:
@@ -252,7 +264,7 @@ class A5FixedGrid(BaseGrid):
         # A5 has 12 base cells, each subdivides by ~6.25 per resolution level
         # This gives a more realistic subdivision factor that matches our implementation
         subdivision_factor = 6.25
-        total_cells = 12 * (subdivision_factor ** self.precision)
+        total_cells = 12 * (subdivision_factor**self.precision)
 
         return earth_surface_km2 / total_cells
 
@@ -285,7 +297,9 @@ class A5FixedGrid(BaseGrid):
 
         return lon, lat  # Return lon, lat to match test expectation
 
-    def _create_pentagon_boundary(self, lat: float, lon: float) -> List[Tuple[float, float]]:
+    def _create_pentagon_boundary(
+        self, lat: float, lon: float
+    ) -> List[Tuple[float, float]]:
         """Create pentagon boundary vertices for testing."""
         polygon = self._create_cell_around_point(lat, lon)
         return list(polygon.exterior.coords)
@@ -293,7 +307,7 @@ class A5FixedGrid(BaseGrid):
     def _encode_cell_id(self, lat: float, lon: float) -> int:
         """Encode cell ID for testing."""
         # Create deterministic integer ID with proper range mapping
-        precision_factor = 10 ** self.precision
+        precision_factor = 10**self.precision
 
         # Map lat (-90,90) and lon (-180,180) to positive integers
         quantized_lat = int((lat / 1.8) * precision_factor + 500000) % 1000000
@@ -303,7 +317,9 @@ class A5FixedGrid(BaseGrid):
         cell_id = (quantized_lat << 32) | quantized_lon
         return cell_id & 0xFFFFFFFFFFFFFFFF  # Ensure 64-bit
 
+
 # API functions for compatibility with felixpalmer/a5-py
+
 
 def lonlat_to_cell_fixed(lon: Degrees, lat: Degrees, resolution: int) -> A5Cell:
     """Convert coordinates to A5 cell using fixed implementation."""
@@ -312,16 +328,19 @@ def lonlat_to_cell_fixed(lon: Degrees, lat: Degrees, resolution: int) -> A5Cell:
     # Extract numeric ID from identifier for compatibility
     return grid._encode_cell_id(lat, lon)
 
+
 def cell_to_lonlat_fixed(cell_id: A5Cell, resolution: int) -> Tuple[Degrees, Degrees]:
     """Convert A5 cell to coordinates using fixed implementation."""
     # Decode cell_id back to approximate coordinates
     lat_part = (cell_id >> 32) & 0xFFFFFFFF
     lon_part = cell_id & 0xFFFFFFFF
 
-    precision_factor = 10 ** resolution
+    precision_factor = 10**resolution
 
     # Reconstruct coordinates with proper range mapping
-    lat = ((lat_part % 1000000) - 500000) / precision_factor  # Map to -50 to 50 range, then adjust
+    lat = (
+        (lat_part % 1000000) - 500000
+    ) / precision_factor  # Map to -50 to 50 range, then adjust
     lon = ((lon_part % 1000000) - 500000) / precision_factor
 
     # Scale to proper ranges
@@ -334,7 +353,10 @@ def cell_to_lonlat_fixed(cell_id: A5Cell, resolution: int) -> Tuple[Degrees, Deg
 
     return lon, lat
 
-def cell_to_boundary_fixed(cell_id: A5Cell, resolution: int) -> List[Tuple[Degrees, Degrees]]:
+
+def cell_to_boundary_fixed(
+    cell_id: A5Cell, resolution: int
+) -> List[Tuple[Degrees, Degrees]]:
     """Get cell boundary using fixed implementation."""
     lon, lat = cell_to_lonlat_fixed(cell_id, resolution)
     grid = A5FixedGrid(resolution)

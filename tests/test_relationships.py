@@ -45,7 +45,9 @@ class TestGridRelationshipAnalyzer:
 
         # Create container and contained cells
         large_polygon = Polygon([(0, 0), (2, 0), (2, 2), (0, 2), (0, 0)])
-        small_polygon = Polygon([(0.5, 0.5), (1.5, 0.5), (1.5, 1.5), (0.5, 1.5), (0.5, 0.5)])
+        small_polygon = Polygon(
+            [(0.5, 0.5), (1.5, 0.5), (1.5, 1.5), (0.5, 1.5), (0.5, 0.5)]
+        )
 
         large_cell = GridCell("large", large_polygon, 3)
         small_cell = GridCell("small", small_polygon, 5)
@@ -95,11 +97,11 @@ class TestGridRelationshipAnalyzer:
         relationships = analyzer.get_all_relationships(cell1, cell2)
 
         assert isinstance(relationships, dict)
-        assert 'touches' in relationships
-        assert 'adjacent' in relationships
-        assert relationships['touches'] is True
-        assert relationships['adjacent'] is True
-        assert relationships['contains'] is False
+        assert "touches" in relationships
+        assert "adjacent" in relationships
+        assert relationships["touches"] is True
+        assert relationships["adjacent"] is True
+        assert relationships["contains"] is False
 
     def test_is_adjacent(self):
         """Test adjacency checking."""
@@ -124,9 +126,17 @@ class TestGridRelationshipAnalyzer:
 
         # Small cells, some inside, some outside
         cells = [
-            GridCell("inside1", Polygon([(0.5, 0.5), (1.5, 0.5), (1.5, 1.5), (0.5, 1.5), (0.5, 0.5)]), 5),
-            GridCell("inside2", Polygon([(1.5, 1.5), (2.5, 1.5), (2.5, 2.5), (1.5, 2.5), (1.5, 1.5)]), 5),
-            GridCell("outside", Polygon([(4, 4), (5, 4), (5, 5), (4, 5), (4, 4)]), 5)
+            GridCell(
+                "inside1",
+                Polygon([(0.5, 0.5), (1.5, 0.5), (1.5, 1.5), (0.5, 1.5), (0.5, 0.5)]),
+                5,
+            ),
+            GridCell(
+                "inside2",
+                Polygon([(1.5, 1.5), (2.5, 1.5), (2.5, 2.5), (1.5, 2.5), (1.5, 1.5)]),
+                5,
+            ),
+            GridCell("outside", Polygon([(4, 4), (5, 4), (5, 5), (4, 5), (4, 4)]), 5),
         ]
 
         contained = analyzer.find_contained_cells(container_cell, cells)
@@ -141,7 +151,7 @@ class TestGridRelationshipAnalyzer:
         cells = [
             GridCell("cell1", Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]), 5),
             GridCell("cell2", Polygon([(1, 0), (2, 0), (2, 1), (1, 1), (1, 0)]), 5),
-            GridCell("cell3", Polygon([(0, 1), (1, 1), (1, 2), (0, 2), (0, 1)]), 5)
+            GridCell("cell3", Polygon([(0, 1), (1, 1), (1, 2), (0, 2), (0, 1)]), 5),
         ]
 
         matrix = analyzer.create_relationship_matrix(cells)
@@ -163,14 +173,16 @@ class TestGridRelationshipAnalyzer:
         cells = [
             GridCell("cell1", Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]), 5),
             GridCell("cell2", Polygon([(1, 0), (2, 0), (2, 1), (1, 1), (1, 0)]), 5),
-            GridCell("cell3", Polygon([(2, 2), (3, 2), (3, 3), (2, 3), (2, 2)]), 5)  # Not adjacent
+            GridCell(
+                "cell3", Polygon([(2, 2), (3, 2), (3, 3), (2, 3), (2, 2)]), 5
+            ),  # Not adjacent
         ]
 
         matrix = analyzer.create_adjacency_matrix(cells)
 
         assert isinstance(matrix, pd.DataFrame)
         assert matrix.shape == (3, 3)
-        assert matrix.dtypes.iloc[0] == int
+        assert pd.api.types.is_integer_dtype(matrix.dtypes.iloc[0])
 
         # Check adjacency
         assert matrix.loc["cell1", "cell2"] == 1  # Adjacent
@@ -189,17 +201,17 @@ class TestGridRelationshipAnalyzer:
         cells = [
             GridCell("cell1", Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]), 5),
             GridCell("cell2", Polygon([(1, 0), (2, 0), (2, 1), (1, 1), (1, 0)]), 5),
-            GridCell("cell3", Polygon([(0, 1), (1, 1), (1, 2), (0, 2), (0, 1)]), 5)
+            GridCell("cell3", Polygon([(0, 1), (1, 1), (1, 2), (0, 2), (0, 1)]), 5),
         ]
 
         stats = analyzer.get_topology_statistics(cells)
 
         assert isinstance(stats, dict)
-        assert 'total_cells' in stats
-        assert 'avg_neighbors' in stats
-        assert 'connectivity' in stats
-        assert stats['total_cells'] == 3
-        assert isinstance(stats['avg_neighbors'], float)
+        assert "total_cells" in stats
+        assert "avg_neighbors" in stats
+        assert "connectivity" in stats
+        assert stats["total_cells"] == 3
+        assert isinstance(stats["avg_neighbors"], float)
 
     def test_find_clusters(self):
         """Test finding cell clusters."""
@@ -208,15 +220,21 @@ class TestGridRelationshipAnalyzer:
         # Create two separate clusters
         cluster1_cells = [
             GridCell("c1_1", Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]), 5),
-            GridCell("c1_2", Polygon([(1, 0), (2, 0), (2, 1), (1, 1), (1, 0)]), 5)
+            GridCell("c1_2", Polygon([(1, 0), (2, 0), (2, 1), (1, 1), (1, 0)]), 5),
         ]
 
         cluster2_cells = [
             GridCell("c2_1", Polygon([(5, 5), (6, 5), (6, 6), (5, 6), (5, 5)]), 5),
-            GridCell("c2_2", Polygon([(6, 5), (7, 5), (7, 6), (6, 6), (6, 5)]), 5)
+            GridCell("c2_2", Polygon([(6, 5), (7, 5), (7, 6), (6, 6), (6, 5)]), 5),
         ]
 
-        isolated_cell = [GridCell("isolated", Polygon([(10, 10), (11, 10), (11, 11), (10, 11), (10, 10)]), 5)]
+        isolated_cell = [
+            GridCell(
+                "isolated",
+                Polygon([(10, 10), (11, 10), (11, 11), (10, 11), (10, 10)]),
+                5,
+            )
+        ]
 
         all_cells = cluster1_cells + cluster2_cells + isolated_cell
 
@@ -232,7 +250,7 @@ class TestGridRelationshipAnalyzer:
         # Create cells that cover part of a bounding box
         cells = [
             GridCell("cell1", Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]), 5),
-            GridCell("cell2", Polygon([(1, 0), (2, 0), (2, 1), (1, 1), (1, 0)]), 5)
+            GridCell("cell2", Polygon([(1, 0), (2, 0), (2, 1), (1, 1), (1, 0)]), 5),
         ]
 
         # Define bounding box larger than cells
@@ -241,10 +259,10 @@ class TestGridRelationshipAnalyzer:
         coverage = analyzer.analyze_grid_coverage(cells, bounds)
 
         assert isinstance(coverage, dict)
-        assert 'coverage_ratio' in coverage
-        assert 'overlap_ratio' in coverage
-        assert 0 <= coverage['coverage_ratio'] <= 1
-        assert coverage['overlap_ratio'] >= 0
+        assert "coverage_ratio" in coverage
+        assert "overlap_ratio" in coverage
+        assert 0 <= coverage["coverage_ratio"] <= 1
+        assert coverage["overlap_ratio"] >= 0
 
     def test_convenience_functions(self):
         """Test convenience functions."""

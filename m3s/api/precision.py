@@ -7,9 +7,7 @@ choose the optimal precision level for their use case without manual trial-and-e
 
 import math
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple, Union
-
-import numpy as np
+from typing import Dict, Optional, Tuple
 
 
 @dataclass
@@ -46,7 +44,9 @@ class PrecisionRecommendation:
     def __post_init__(self):
         """Validate confidence is in valid range."""
         if not 0.0 <= self.confidence <= 1.0:
-            raise ValueError(f"Confidence must be between 0.0 and 1.0, got {self.confidence}")
+            raise ValueError(
+                f"Confidence must be between 0.0 and 1.0, got {self.confidence}"
+            )
 
 
 class AreaCalculator:
@@ -318,7 +318,11 @@ class AreaCalculator:
             base_area = self.area_table[idx]
 
         # Apply latitude correction for systems with significant distortion
-        if latitude is not None and self.grid_system in ["geohash", "geohash_int", "mgrs"]:
+        if latitude is not None and self.grid_system in [
+            "geohash",
+            "geohash_int",
+            "mgrs",
+        ]:
             # Cells shrink in area at higher latitudes due to meridian convergence
             # Simple cosine correction (approximate)
             lat_rad = math.radians(latitude)
@@ -594,7 +598,10 @@ class PrecisionSelector:
         self.performance_profiler = PerformanceProfiler()
 
     def for_area(
-        self, target_area_km2: float, tolerance: float = 0.3, latitude: Optional[float] = None
+        self,
+        target_area_km2: float,
+        tolerance: float = 0.3,
+        latitude: Optional[float] = None,
     ) -> PrecisionRecommendation:
         """
         Select precision based on target cell area.
@@ -613,7 +620,9 @@ class PrecisionSelector:
         PrecisionRecommendation
             Recommendation with confidence and explanation
         """
-        precision = self.area_calculator.find_precision_for_area(target_area_km2, latitude)
+        precision = self.area_calculator.find_precision_for_area(
+            target_area_km2, latitude
+        )
         actual_area = self.area_calculator.get_area(precision, latitude)
 
         deviation = abs(actual_area - target_area_km2) / target_area_km2
@@ -730,9 +739,7 @@ class PrecisionSelector:
         latitude = context.get("latitude") if context else None
         if latitude is not None and abs(latitude) > 60:
             # Increase precision near poles due to cell distortion
-            precision = min(
-                precision + 1, self.area_calculator.max_precision
-            )
+            precision = min(precision + 1, self.area_calculator.max_precision)
 
         actual_area = self.area_calculator.get_area(precision, latitude)
 
@@ -750,7 +757,10 @@ class PrecisionSelector:
         )
 
     def for_distance(
-        self, edge_length_m: float, tolerance: float = 0.3, latitude: Optional[float] = None
+        self,
+        edge_length_m: float,
+        tolerance: float = 0.3,
+        latitude: Optional[float] = None,
     ) -> PrecisionRecommendation:
         """
         Select precision based on target edge length.
@@ -788,7 +798,9 @@ class PrecisionSelector:
             # Conservative estimate for other systems
             target_area_km2 = (edge_length_km**2) * 1.5
 
-        precision = self.area_calculator.find_precision_for_area(target_area_km2, latitude)
+        precision = self.area_calculator.find_precision_for_area(
+            target_area_km2, latitude
+        )
         actual_area = self.area_calculator.get_area(precision, latitude)
 
         # Estimate actual edge length from area

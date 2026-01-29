@@ -16,8 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 def calculate_utm_zones_vectorized(
-    lats: Union[np.ndarray, list, tuple],
-    lons: Union[np.ndarray, list, tuple]
+    lats: Union[np.ndarray, list, tuple], lons: Union[np.ndarray, list, tuple]
 ) -> np.ndarray:
     """
     Calculate UTM zones for arrays of coordinates using vectorized operations.
@@ -91,8 +90,7 @@ def calculate_utm_zones_vectorized(
 
 
 def calculate_utm_epsg_codes_vectorized(
-    lats: Union[np.ndarray, list, tuple],
-    lons: Union[np.ndarray, list, tuple]
+    lats: Union[np.ndarray, list, tuple], lons: Union[np.ndarray, list, tuple]
 ) -> np.ndarray:
     """
     Calculate UTM EPSG codes for arrays of coordinates.
@@ -138,7 +136,7 @@ def calculate_utm_epsg_codes_vectorized(
 
 
 def calculate_utm_hemisphere_vectorized(
-    lats: Union[np.ndarray, list, tuple]
+    lats: Union[np.ndarray, list, tuple],
 ) -> np.ndarray:
     """
     Determine UTM hemisphere (north/south) for arrays of latitudes.
@@ -165,8 +163,7 @@ def calculate_utm_hemisphere_vectorized(
 
 
 def get_utm_zone_info_vectorized(
-    lats: Union[np.ndarray, list, tuple],
-    lons: Union[np.ndarray, list, tuple]
+    lats: Union[np.ndarray, list, tuple], lons: Union[np.ndarray, list, tuple]
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Get complete UTM zone information for arrays of coordinates.
@@ -212,7 +209,7 @@ def get_utm_zone_info_vectorized(
 def batch_calculate_utm_zones(
     lats: Union[np.ndarray, list, tuple],
     lons: Union[np.ndarray, list, tuple],
-    chunk_size: int = 10000
+    chunk_size: int = 10000,
 ) -> np.ndarray:
     """
     Calculate UTM zones for very large datasets using chunked processing.
@@ -285,18 +282,19 @@ def benchmark_utm_calculations(n_points: int = 10000) -> dict:
 
     # Iterative calculation (for comparison)
     start = time.time()
-    zones_iter = np.array([
-        int((lon + 180) / UTM_ZONE_WIDTH_DEGREES) + 1
-        for lon in lons
-    ])
+    zones_iter = np.array(
+        [int((lon + 180) / UTM_ZONE_WIDTH_DEGREES) + 1 for lon in lons]
+    )
     elapsed_iter = time.time() - start
 
-    speedup = elapsed_iter / elapsed_vec if elapsed_vec > 0 else float('inf')
+    speedup = elapsed_iter / elapsed_vec if elapsed_vec > 0 else float("inf")
 
     return {
         "n_points": n_points,
         "vectorized_time": elapsed_vec,
         "iterative_time": elapsed_iter,
         "speedup": speedup,
-        "zones_match": np.allclose(zones_vec, zones_iter, atol=2),  # Allow ±2 zones for special cases
+        "zones_match": np.allclose(
+            zones_vec, zones_iter, atol=2
+        ),  # Allow ±2 zones for special cases
     }

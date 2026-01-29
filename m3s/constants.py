@@ -28,18 +28,18 @@ UTM_SOUTH_HEMISPHERE_BASE_EPSG = 32700  # EPSG code base for southern hemisphere
 
 # Default precision levels for different grid systems
 DEFAULT_PRECISIONS = {
-    "geohash": 5,      # ~5km resolution
-    "h3": 7,           # ~5km resolution
-    "quadkey": 12,     # ~5km resolution
-    "s2": 13,          # ~5km resolution
-    "slippy": 12,      # ~5km resolution
-    "mgrs": 5,         # 1km resolution
-    "csquares": 2,     # 10° resolution
-    "gars": 2,         # 5' resolution
-    "maidenhead": 6,   # ~12km resolution
-    "pluscode": 10,    # ~14m resolution
-    "what3words": 3,   # 3m resolution
-    "a5": 5,           # Varies by resolution
+    "geohash": 5,  # ~5km resolution
+    "h3": 7,  # ~5km resolution
+    "quadkey": 12,  # ~5km resolution
+    "s2": 13,  # ~5km resolution
+    "slippy": 12,  # ~5km resolution
+    "mgrs": 5,  # 1km resolution
+    "csquares": 2,  # 10° resolution
+    "gars": 2,  # 5' resolution
+    "maidenhead": 3,  # ~12km resolution (fields/squares)
+    "pluscode": 4,  # ~12.5m resolution in this implementation
+    "what3words": 3,  # 3m resolution
+    "a5": 5,  # Varies by resolution
 }
 
 # Precision/resolution limits for grid systems
@@ -52,8 +52,8 @@ PRECISION_LIMITS = {
     "mgrs": {"min": 1, "max": 5},
     "csquares": {"min": 1, "max": 5},
     "gars": {"min": 1, "max": 3},
-    "maidenhead": {"min": 2, "max": 10},
-    "pluscode": {"min": 2, "max": 15},
+    "maidenhead": {"min": 1, "max": 4},
+    "pluscode": {"min": 1, "max": 7},
     "what3words": {"min": 3, "max": 3},
     "a5": {"min": 0, "max": 30},
 }

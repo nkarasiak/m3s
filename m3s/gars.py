@@ -7,6 +7,7 @@ from typing import List
 from shapely.geometry import Polygon
 
 from .base import BaseGrid, GridCell
+from .cache import cached_property
 
 
 class GARSGrid(BaseGrid):
@@ -39,6 +40,20 @@ class GARSGrid(BaseGrid):
         if not 1 <= precision <= 3:
             raise ValueError("GARS precision must be between 1 and 3")
         super().__init__(precision)
+
+    @cached_property
+    def area_km2(self) -> float:
+        """
+        Approximate area of a GARS cell at this precision in square kilometers.
+
+        Returns
+        -------
+        float
+            Approximate area in square kilometers
+        """
+        size_degrees = {1: 0.5, 2: 0.25, 3: 0.25 / 3}[self.precision]
+        size_km = size_degrees * 111.32
+        return size_km * size_km
 
     def encode(self, lat: float, lon: float) -> str:
         """

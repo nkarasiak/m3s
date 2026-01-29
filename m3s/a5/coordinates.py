@@ -17,9 +17,7 @@ from m3s.a5.constants import (
     EPSILON,
     LONGITUDE_OFFSET,
     MAX_LATITUDE,
-    MAX_LONGITUDE,
     MIN_LATITUDE,
-    MIN_LONGITUDE,
     R_INSCRIBED,
     validate_latitude,
     validate_longitude,
@@ -96,7 +94,7 @@ class CoordinateTransformer:
         # Clenshaw summation (order 6)
         C0, C1, C2, C3, C4, C5 = coefficients
 
-        B6 = 0.0
+        # B6 = 0.0 (not used in this order-6 summation)
         B5 = C5
         B4 = X * B5 + C4
         B3 = X * B4 - B5 + C3
@@ -537,7 +535,9 @@ class CoordinateTransformer:
         lons = [c[0] for c in normalized]
         if any(lon > 180 for lon in lons):
             # Convert all negative longitudes to positive
-            normalized = [(lon + 360 if lon < 0 else lon, lat) for lon, lat in normalized]
+            normalized = [
+                (lon + 360 if lon < 0 else lon, lat) for lon, lat in normalized
+            ]
 
         return normalized
 

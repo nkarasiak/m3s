@@ -84,17 +84,22 @@ class What3WordsGrid(BaseGrid):
         # Calculate grid size in degrees (approximate)
         grid_size_degrees = 3.0 / 111320.0  # ~0.00002696 degrees
 
-        # Adjust for latitude compression
-        lat_correction = math.cos(math.radians(lat))
+        # Convert to grid coordinates (floor to handle negative coords correctly)
+        y = math.floor(lat / grid_size_degrees)
+
+        # Use the row's latitude center to compute longitude grid size
+        min_lat = y * grid_size_degrees
+        max_lat = (y + 1) * grid_size_degrees
+        lat_center = (min_lat + max_lat) / 2
+
+        lat_correction = math.cos(math.radians(lat_center))
         lon_grid_size = (
             grid_size_degrees / lat_correction
             if lat_correction != 0
             else grid_size_degrees
         )
 
-        # Convert to grid coordinates
-        x = int(lon / lon_grid_size)
-        y = int(lat / grid_size_degrees)
+        x = math.floor(lon / lon_grid_size)
 
         return x, y
 
@@ -185,6 +190,11 @@ class What3WordsGrid(BaseGrid):
         """
         x, y = self._lat_lon_to_grid_coords(lat, lon)
         min_lon, min_lat, max_lon, max_lat = self._grid_coords_to_bounds(x, y)
+        epsilon = max(1e-12, (max_lat - min_lat) * 1e-6)
+        min_lon -= epsilon
+        min_lat -= epsilon
+        max_lon += epsilon
+        max_lat += epsilon
 
         polygon = Polygon(
             [
@@ -257,6 +267,11 @@ class What3WordsGrid(BaseGrid):
                 min_lon, min_lat, max_lon, max_lat = self._grid_coords_to_bounds(
                     neighbor_x, neighbor_y
                 )
+                epsilon = max(1e-12, (max_lat - min_lat) * 1e-6)
+                min_lon -= epsilon
+                min_lat -= epsilon
+                max_lon += epsilon
+                max_lat += epsilon
 
                 # Create neighbor cell
                 polygon = Polygon(
@@ -312,6 +327,11 @@ class What3WordsGrid(BaseGrid):
                 cell_min_lon, cell_min_lat, cell_max_lon, cell_max_lat = (
                     self._grid_coords_to_bounds(x, y)
                 )
+                epsilon = max(1e-12, (cell_max_lat - cell_min_lat) * 1e-6)
+                cell_min_lon -= epsilon
+                cell_min_lat -= epsilon
+                cell_max_lon += epsilon
+                cell_max_lat += epsilon
 
                 # Create cell polygon
                 polygon = Polygon(

@@ -1,7 +1,7 @@
 """Tests for GridBuilder fluent interface."""
 
 import pytest
-from shapely.geometry import Point, Polygon, box
+from shapely.geometry import box
 
 from m3s.api.builder import GridBuilder
 from m3s.api.precision import PrecisionSelector
@@ -79,7 +79,10 @@ class TestGridBuilderSinglePointQueries:
 
         for system in systems:
             result = (
-                GridBuilder.for_system(system).with_precision(7).at_point(lat, lon).execute()
+                GridBuilder.for_system(system)
+                .with_precision(7)
+                .at_point(lat, lon)
+                .execute()
             )
 
             assert len(result) == 1
@@ -161,7 +164,9 @@ class TestGridBuilderNeighborOperations:
 class TestGridBuilderHierarchyOperations:
     """Test parent/child hierarchy operations."""
 
-    @pytest.mark.skip(reason="Needs get_children/get_parent implementation in base grids")
+    @pytest.mark.skip(
+        reason="Needs get_children/get_parent implementation in base grids"
+    )
     def test_with_children(self):
         """Test getting children at finer precision."""
         result = (
@@ -369,7 +374,10 @@ class TestGridBuilderIntegration:
     def test_s2_complete_workflow(self):
         """Test complete S2 workflow."""
         result = (
-            GridBuilder.for_system("s2").with_precision(10).at_point(35.6762, 139.6503).execute()
+            GridBuilder.for_system("s2")
+            .with_precision(10)
+            .at_point(35.6762, 139.6503)
+            .execute()
         )  # Tokyo
 
         cell = result.single

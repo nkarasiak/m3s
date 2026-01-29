@@ -7,7 +7,7 @@ grid system implementations.
 
 import functools
 import logging
-from typing import Optional, Union
+from typing import Optional
 
 import pyproj
 from shapely.geometry import Polygon
@@ -78,7 +78,9 @@ def get_utm_epsg_code(lat: float, lon: float) -> int:
 
     # Fallback: manual UTM calculation
     utm_zone = int((lon + 180) / UTM_ZONE_WIDTH_DEGREES) + 1
-    base_code = UTM_NORTH_HEMISPHERE_BASE_EPSG if lat >= 0 else UTM_SOUTH_HEMISPHERE_BASE_EPSG
+    base_code = (
+        UTM_NORTH_HEMISPHERE_BASE_EPSG if lat >= 0 else UTM_SOUTH_HEMISPHERE_BASE_EPSG
+    )
     return base_code + utm_zone
 
 
@@ -105,17 +107,11 @@ def get_utm_transformer(lat: float, lon: float) -> pyproj.Transformer:
     >>> x, y = transformer.transform(-74.0, 40.7)
     """
     epsg_code = get_utm_epsg_code(lat, lon)
-    return pyproj.Transformer.from_crs(
-        "EPSG:4326",
-        f"EPSG:{epsg_code}",
-        always_xy=True
-    )
+    return pyproj.Transformer.from_crs("EPSG:4326", f"EPSG:{epsg_code}", always_xy=True)
 
 
 def calculate_polygon_area_km2(
-    polygon: Polygon,
-    cache_key: Optional[str] = None,
-    use_cache: bool = True
+    polygon: Polygon, cache_key: Optional[str] = None, use_cache: bool = True
 ) -> float:
     """
     Calculate polygon area in square kilometers using equal-area projection.
@@ -176,9 +172,7 @@ def calculate_polygon_area_km2(
 
     except Exception as e:
         # Fallback: spherical approximation
-        logger.warning(
-            f"UTM projection failed: {e}. Using spherical approximation."
-        )
+        logger.warning(f"UTM projection failed: {e}. Using spherical approximation.")
         return calculate_polygon_area_spherical(polygon)
 
 
@@ -221,8 +215,10 @@ def calculate_polygon_area_spherical(polygon: Polygon) -> float:
     lon_diff_rad = lon_diff * DEG_TO_RAD
 
     # Approximate area using Earth's radius
-    area_km2 = EARTH_RADIUS_KM * EARTH_RADIUS_KM * abs(
-        lat_diff_rad * lon_diff_rad * abs(lat_rad)
+    area_km2 = (
+        EARTH_RADIUS_KM
+        * EARTH_RADIUS_KM
+        * abs(lat_diff_rad * lon_diff_rad * abs(lat_rad))
     )
 
     return area_km2

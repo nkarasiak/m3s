@@ -6,8 +6,9 @@ This example demonstrates all 5 intelligent precision selection strategies
 in M3S v0.6.0+, helping you choose the optimal precision level for any use case.
 """
 
-from m3s import PrecisionSelector, GridBuilder
 import pandas as pd
+
+from m3s import GridBuilder, PrecisionSelector
 
 pd.set_option("display.max_columns", None)
 pd.set_option("display.width", 120)
@@ -46,9 +47,11 @@ for target_area in target_areas:
         else 0
     )
 
-    print(f"Target: {target_area:8.1f} km² → Precision: {rec.precision:2d} "
-          f"(Actual: {rec.actual_area_km2:8.3f} km², Deviation: {deviation:5.1f}%, "
-          f"Confidence: {rec.confidence:.0%})")
+    print(
+        f"Target: {target_area:8.1f} km² → Precision: {rec.precision:2d} "
+        f"(Actual: {rec.actual_area_km2:8.3f} km², Deviation: {deviation:5.1f}%, "
+        f"Confidence: {rec.confidence:.0%})"
+    )
 
 print()
 
@@ -82,9 +85,11 @@ for target_count in target_counts:
         else 0
     )
 
-    print(f"Target: {target_count:4d} cells → Precision: {rec.precision:2d} "
-          f"(Actual: ~{rec.actual_cell_count:4d} cells, Deviation: {deviation:5.1f}%, "
-          f"Confidence: {rec.confidence:.0%})")
+    print(
+        f"Target: {target_count:4d} cells → Precision: {rec.precision:2d} "
+        f"(Actual: ~{rec.actual_cell_count:4d} cells, Deviation: {deviation:5.1f}%, "
+        f"Confidence: {rec.confidence:.0%})"
+    )
 
 print()
 
@@ -115,8 +120,10 @@ print("-" * 80)
 
 for use_case in use_cases:
     rec = selector.for_use_case(use_case)
-    print(f"{use_case:15s} → Precision: {rec.precision:2d} "
-          f"(Avg area: {rec.actual_area_km2:12.3f} km², Confidence: {rec.confidence:.0%})")
+    print(
+        f"{use_case:15s} → Precision: {rec.precision:2d} "
+        f"(Avg area: {rec.actual_area_km2:12.3f} km², Confidence: {rec.confidence:.0%})"
+    )
 
 print()
 
@@ -163,12 +170,16 @@ for target_dist in target_distances:
     rec = selector.for_distance(edge_length_m=target_dist, tolerance=0.3)
 
     deviation = (
-        abs(rec.edge_length_m - target_dist) / target_dist * 100 if target_dist > 0 else 0
+        abs(rec.edge_length_m - target_dist) / target_dist * 100
+        if target_dist > 0
+        else 0
     )
 
-    print(f"Target: {target_dist:6d} m → Precision: {rec.precision:2d} "
-          f"(Actual: ~{rec.edge_length_m:6.1f} m, Deviation: {deviation:5.1f}%, "
-          f"Confidence: {rec.confidence:.0%})")
+    print(
+        f"Target: {target_dist:6d} m → Precision: {rec.precision:2d} "
+        f"(Actual: ~{rec.edge_length_m:6.1f} m, Deviation: {deviation:5.1f}%, "
+        f"Confidence: {rec.confidence:.0%})"
+    )
 
 print()
 
@@ -198,10 +209,14 @@ for op_type, time_budget, region_size in scenarios:
         operation_type=op_type, time_budget_ms=time_budget, region_size_km2=region_size
     )
 
-    print(f"{op_type:15s} (budget: {time_budget:5.0f}ms, region: {region_size:6.0f} km²)")
-    print(f"  → Precision: {rec.precision:2d}, "
-          f"Est. cells: {rec.metadata['estimated_cells']:5d}, "
-          f"Est. time: {rec.metadata['estimated_time_ms']:5.1f} ms")
+    print(
+        f"{op_type:15s} (budget: {time_budget:5.0f}ms, region: {region_size:6.0f} km²)"
+    )
+    print(
+        f"  → Precision: {rec.precision:2d}, "
+        f"Est. cells: {rec.metadata['estimated_cells']:5d}, "
+        f"Est. time: {rec.metadata['estimated_time_ms']:5.1f} ms"
+    )
 
 print()
 
@@ -288,7 +303,9 @@ result = (
 
 print(f"\nExecuted query with precision {best_rec.precision}")
 print(f"Found {len(result)} cells (limited to 10 for display)")
-print(f"Average cell area: {sum(c.area_km2 for c in result.many) / len(result):.3f} km²")
+print(
+    f"Average cell area: {sum(c.area_km2 for c in result.many) / len(result):.3f} km²"
+)
 
 # Display cells
 print("\nSample cells:")
@@ -299,7 +316,8 @@ print()
 print("=" * 80)
 print("Summary: Choosing the Right Strategy")
 print("=" * 80)
-print("""
+print(
+    """
 1. Use-Case Based (Strategy 3):
    → Best for: Standard spatial analysis tasks
    → Pros: High confidence, battle-tested presets
@@ -330,4 +348,5 @@ General guidance:
 - Use area/distance (1/4) when you have specific size requirements
 - Use count-based (2) for bounded cell count needs
 - Use performance-based (5) when speed is critical
-""")
+"""
+)

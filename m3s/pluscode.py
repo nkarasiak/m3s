@@ -7,6 +7,7 @@ from typing import List
 from shapely.geometry import Polygon
 
 from .base import BaseGrid, GridCell
+from .cache import cached_property
 
 
 class PlusCodeGrid(BaseGrid):
@@ -51,6 +52,20 @@ class PlusCodeGrid(BaseGrid):
         if not 1 <= precision <= 7:
             raise ValueError("Plus code precision must be between 1 and 7")
         super().__init__(precision)
+
+    @cached_property
+    def area_km2(self) -> float:
+        """
+        Approximate area of a Plus Code cell at this precision in square kilometers.
+
+        Returns
+        -------
+        float
+            Approximate area in square kilometers
+        """
+        size_degrees = self.GRID_SIZES[self.precision - 1]
+        size_km = size_degrees * 111.32
+        return size_km * size_km
 
     def encode(self, lat: float, lon: float) -> str:
         """
@@ -198,6 +213,14 @@ class PlusCodeGrid(BaseGrid):
             The grid cell corresponding to the identifier
         """
         south, west, north, east = self.decode(identifier)
+        # Expand bounds slightly to ensure point containment for boundary cases
+        cell_lat = north - south
+        cell_lon = east - west
+        epsilon = max(1e-12, max(cell_lat, cell_lon) * 1e-6)
+        south -= epsilon
+        west -= epsilon
+        north += epsilon
+        east += epsilon
 
         polygon = Polygon(
             [(west, south), (east, south), (east, north), (west, north), (west, south)]

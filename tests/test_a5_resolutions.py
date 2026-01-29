@@ -190,7 +190,7 @@ class TestGridIntegration:
 
         # Parse the integer cell ID from the string identifier
         # Format is "a5_{precision}_{cell_id_hex}"
-        parts = cell.identifier.split('_')
+        parts = cell.identifier.split("_")
         cell_id_hex = parts[2]
         cell_id = int(cell_id_hex, 16)
         assert get_resolution(cell_id) == resolution

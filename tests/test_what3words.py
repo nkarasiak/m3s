@@ -82,18 +82,18 @@ class TestWhat3WordsGrid:
         grid = What3WordsGrid()
 
         # Create test GeoDataFrame
-        gdf = gpd.GeoDataFrame({
-            'name': ['point1', 'point2'],
-            'value': [10, 20]
-        }, geometry=[Point(-74.0060, 40.7128), Point(-118.2437, 34.0522)])
+        gdf = gpd.GeoDataFrame(
+            {"name": ["point1", "point2"], "value": [10, 20]},
+            geometry=[Point(-74.0060, 40.7128), Point(-118.2437, 34.0522)],
+        )
         gdf.crs = "EPSG:4326"
 
         result = grid.intersects(gdf)
 
         assert len(result) >= len(gdf)  # May have multiple cells per point
-        assert 'cell_id' in result.columns
-        assert 'utm' in result.columns
-        assert all(result['cell_id'].str.startswith('w3w.'))
+        assert "cell_id" in result.columns
+        assert "utm" in result.columns
+        assert all(result["cell_id"].str.startswith("w3w."))
 
     def test_consistent_cell_generation(self):
         """Test that same coordinates always generate same cell."""

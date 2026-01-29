@@ -33,7 +33,7 @@ A5Grid = A5ProperGrid
 def lonlat_to_cell(lon: Degrees, lat: Degrees, resolution: int) -> A5Cell:
     """
     Convert longitude/latitude coordinates to an A5 cell.
-    
+
     Parameters
     ----------
     lon : float
@@ -42,7 +42,7 @@ def lonlat_to_cell(lon: Degrees, lat: Degrees, resolution: int) -> A5Cell:
         Latitude in degrees
     resolution : int
         Resolution level (0-30)
-        
+
     Returns
     -------
     A5Cell
@@ -54,14 +54,14 @@ def lonlat_to_cell(lon: Degrees, lat: Degrees, resolution: int) -> A5Cell:
 def cell_to_lonlat(cell_id: A5Cell, resolution: int) -> Tuple[Degrees, Degrees]:
     """
     Convert an A5 cell to its center longitude/latitude.
-    
+
     Parameters
     ----------
     cell_id : A5Cell
         64-bit A5 cell identifier
     resolution : int
         Resolution level
-        
+
     Returns
     -------
     Tuple[Degrees, Degrees]
@@ -73,14 +73,14 @@ def cell_to_lonlat(cell_id: A5Cell, resolution: int) -> Tuple[Degrees, Degrees]:
 def cell_to_boundary(cell_id: A5Cell, resolution: int) -> List[Tuple[Degrees, Degrees]]:
     """
     Get the boundary vertices of an A5 cell.
-    
+
     Parameters
     ----------
     cell_id : A5Cell
         64-bit A5 cell identifier
     resolution : int
         Resolution level
-        
+
     Returns
     -------
     List[Tuple[Degrees, Degrees]]
@@ -92,14 +92,14 @@ def cell_to_boundary(cell_id: A5Cell, resolution: int) -> List[Tuple[Degrees, De
 def cell_to_parent(cell_id: A5Cell, resolution: int) -> A5Cell:
     """
     Get the parent cell at resolution-1.
-    
+
     Parameters
     ----------
     cell_id : A5Cell
         64-bit A5 cell identifier
     resolution : int
         Current resolution level
-        
+
     Returns
     -------
     A5Cell
@@ -119,14 +119,14 @@ def cell_to_parent(cell_id: A5Cell, resolution: int) -> A5Cell:
 def cell_to_children(cell_id: A5Cell, resolution: int) -> List[A5Cell]:
     """
     Get all child cells at resolution+1.
-    
+
     Parameters
     ----------
     cell_id : A5Cell
         64-bit A5 cell identifier
     resolution : int
         Current resolution level
-        
+
     Returns
     -------
     List[A5Cell]
@@ -159,9 +159,12 @@ def cell_to_children(cell_id: A5Cell, resolution: int) -> List[A5Cell]:
 
             # Check if sample point is within parent cell
             from shapely.geometry import Point
+
             sample_point = Point(sample_lon, sample_lat)
 
-            if parent_cell.polygon.contains(sample_point) or parent_cell.polygon.touches(sample_point):
+            if parent_cell.polygon.contains(
+                sample_point
+            ) or parent_cell.polygon.touches(sample_point):
                 try:
                     child_id = child_grid._encode_cell_id(sample_lat, sample_lon)
                     children.add(child_id)
@@ -174,15 +177,15 @@ def cell_to_children(cell_id: A5Cell, resolution: int) -> List[A5Cell]:
 def get_resolution(cell_id: A5Cell) -> int:
     """
     Get the resolution level of an A5 cell.
-    
+
     Note: This is a simplified implementation. In the actual A5 system,
     resolution would be encoded in the cell ID itself.
-    
+
     Parameters
     ----------
     cell_id : A5Cell
         64-bit A5 cell identifier
-        
+
     Returns
     -------
     int
@@ -196,7 +199,7 @@ def get_resolution(cell_id: A5Cell) -> int:
 def get_res0_cells() -> List[A5Cell]:
     """
     Get all resolution 0 base cells (dodecahedron faces).
-    
+
     Returns
     -------
     List[A5Cell]
@@ -209,18 +212,18 @@ def get_res0_cells() -> List[A5Cell]:
 
     # Sample 12 well-distributed points on Earth
     base_points = [
-        (0, 0),       # Equator, Prime Meridian
-        (0, 120),     # Equator, 120E
-        (0, -120),    # Equator, 120W
-        (60, 0),      # 60N, Prime Meridian
-        (60, 120),    # 60N, 120E
-        (60, -120),   # 60N, 120W
-        (-60, 0),     # 60S, Prime Meridian
-        (-60, 120),   # 60S, 120E
+        (0, 0),  # Equator, Prime Meridian
+        (0, 120),  # Equator, 120E
+        (0, -120),  # Equator, 120W
+        (60, 0),  # 60N, Prime Meridian
+        (60, 120),  # 60N, 120E
+        (60, -120),  # 60N, 120W
+        (-60, 0),  # 60S, Prime Meridian
+        (-60, 120),  # 60S, 120E
         (-60, -120),  # 60S, 120W
-        (30, 60),     # 30N, 60E
-        (-30, 60),    # 30S, 60E
-        (0, 60),      # Equator, 60E
+        (30, 60),  # 30N, 60E
+        (-30, 60),  # 30S, 60E
+        (0, 60),  # Equator, 60E
     ]
 
     for lat, lon in base_points:
@@ -237,32 +240,32 @@ def get_res0_cells() -> List[A5Cell]:
 def get_num_cells(resolution: int) -> int:
     """
     Get the total number of cells at a given resolution.
-    
+
     Parameters
     ----------
     resolution : int
         Resolution level
-        
+
     Returns
     -------
     int
         Total number of cells
     """
     # A5 has 12 base cells, each subdivides by approximately 5 per level
-    return 12 * (5 ** resolution)
+    return 12 * (5**resolution)
 
 
 def cell_area(cell_id: A5Cell, resolution: int) -> float:
     """
     Get the area of an A5 cell in square meters.
-    
+
     Parameters
     ----------
     cell_id : A5Cell
         64-bit A5 cell identifier
     resolution : int
         Resolution level
-        
+
     Returns
     -------
     float
@@ -275,12 +278,12 @@ def cell_area(cell_id: A5Cell, resolution: int) -> float:
 def hex_to_u64(hex_string: str) -> A5Cell:
     """
     Convert hex string to 64-bit unsigned integer.
-    
+
     Parameters
     ----------
     hex_string : str
         Hexadecimal string
-        
+
     Returns
     -------
     A5Cell
@@ -292,12 +295,12 @@ def hex_to_u64(hex_string: str) -> A5Cell:
 def u64_to_hex(cell_id: A5Cell) -> str:
     """
     Convert 64-bit unsigned integer to hex string.
-    
+
     Parameters
     ----------
     cell_id : A5Cell
         64-bit integer
-        
+
     Returns
     -------
     str

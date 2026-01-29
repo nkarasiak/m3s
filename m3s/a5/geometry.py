@@ -15,7 +15,6 @@ from m3s.a5.constants import (
     DODEC_ORIGINS,
     PENTAGON_ANGLE_A,
     PENTAGON_ANGLE_B,
-    PENTAGON_ANGLE_C,
     PENTAGON_ANGLE_D,
     PENTAGON_ANGLE_E,
     PHI,
@@ -292,6 +291,7 @@ class Dodecahedron:
         # Convert Cartesian to spherical if needed
         if isinstance(point, np.ndarray):
             from m3s.a5.coordinates import CoordinateTransformer
+
             theta_phi = CoordinateTransformer.cartesian_to_spherical(point)
         else:
             theta_phi = point
@@ -463,13 +463,17 @@ _c_norm = math.sqrt(_pentagon_c[0] * _pentagon_c[0] + _pentagon_c[1] * _pentagon
 _edge_midpoint_d = 2 * _c_norm * math.cos(PI_OVER_5)
 
 # Lattice growth direction is AC, rotate it to be parallel to x-axis
-_basis_rotation = PI_OVER_5 - math.atan2(_pentagon_c[1], _pentagon_c[0])  # -27.97 degrees
+_basis_rotation = PI_OVER_5 - math.atan2(
+    _pentagon_c[1], _pentagon_c[0]
+)  # -27.97 degrees
 
 # Scale to match unit sphere
 _scale = 2 * DISTANCE_TO_EDGE / _edge_midpoint_d
 
 
-def _transform_pentagon_vertex(vertex: Tuple[float, float], scale: float, rotation: float) -> Tuple[float, float]:
+def _transform_pentagon_vertex(
+    vertex: Tuple[float, float], scale: float, rotation: float
+) -> Tuple[float, float]:
     """
     Apply scale and rotation to a pentagon vertex.
 
@@ -497,7 +501,7 @@ def _transform_pentagon_vertex(vertex: Tuple[float, float], scale: float, rotati
 
     return (
         scaled_x * cos_rot - scaled_y * sin_rot,
-        scaled_x * sin_rot + scaled_y * cos_rot
+        scaled_x * sin_rot + scaled_y * cos_rot,
     )
 
 
@@ -521,17 +525,14 @@ _w = (_L * math.cos(_W), _L * math.sin(_W))
 
 # Pentagon BASIS matrices for proper lattice alignment
 # These are used in the dodecahedron projection for correct coordinate transformations
-BASIS = (
-    (_v[0], _w[0]),
-    (_v[1], _w[1])
-)
+BASIS = ((_v[0], _w[0]), (_v[1], _w[1]))
 
 # Calculate matrix inverse manually for 2x2 matrix
 # For matrix [[a, b], [c, d]], inverse is [[d, -b], [-c, a]] / (ad - bc)
 _det = BASIS[0][0] * BASIS[1][1] - BASIS[0][1] * BASIS[1][0]
 BASIS_INVERSE = (
     (BASIS[1][1] / _det, -BASIS[0][1] / _det),
-    (-BASIS[1][0] / _det, BASIS[0][0] / _det)
+    (-BASIS[1][0] / _det, BASIS[0][0] / _det),
 )
 
 # Pentagon vertices (after transformation)
@@ -545,7 +546,7 @@ TWO_PI_OVER_5 = 2 * math.pi / 5
 QUINTANT_ROTATIONS = [
     (
         (math.cos(TWO_PI_OVER_5 * quintant), -math.sin(TWO_PI_OVER_5 * quintant)),
-        (math.sin(TWO_PI_OVER_5 * quintant), math.cos(TWO_PI_OVER_5 * quintant))
+        (math.sin(TWO_PI_OVER_5 * quintant), math.cos(TWO_PI_OVER_5 * quintant)),
     )
     for quintant in range(5)
 ]

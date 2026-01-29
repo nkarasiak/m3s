@@ -427,7 +427,7 @@ class GridRelationshipAnalyzer:
         union_area = self._calculate_area_km2(union_geom)
 
         # Calculate total area of individual cells
-        total_cell_area = sum(cell.area_km2 for cell in cells)
+        total_cell_area = sum(self._calculate_area_km2(cell.polygon) for cell in cells)
 
         if bounds is None:
             # Use cells' bounding box
@@ -459,6 +459,7 @@ class GridRelationshipAnalyzer:
             if total_cell_area > 0
             else 0
         )
+        overlap_ratio = max(0.0, overlap_ratio)
 
         return {
             "coverage_ratio": coverage_ratio,

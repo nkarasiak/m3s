@@ -8,10 +8,16 @@ Original source: https://github.com/felixpalmer/a5-py/blob/main/a5/projections/d
 import math
 from typing import List, Literal, Tuple
 
-import numpy as np
-
-from m3s.a5.constants import DISTANCE_TO_EDGE, INTERHEDRAL_ANGLE, PI_OVER_5, TWO_PI_OVER_5
+from m3s.a5.constants import (
+    DISTANCE_TO_EDGE,
+    INTERHEDRAL_ANGLE,
+    PI_OVER_5,
+    TWO_PI_OVER_5,
+)
+from m3s.a5.projections import vec2_utils as vec2
+from m3s.a5.projections import vec3_utils as vec3
 from m3s.a5.projections.gnomonic import GnomonicProjection
+from m3s.a5.projections.origin_data import origins
 from m3s.a5.projections.polyhedral import (
     Cartesian,
     Face,
@@ -19,10 +25,6 @@ from m3s.a5.projections.polyhedral import (
     PolyhedralProjection,
     SphericalTriangle,
 )
-from m3s.a5.projections import vec2_utils as vec2
-from m3s.a5.projections import vec3_utils as vec3
-from m3s.a5.projections.origin_data import Origin, origins
-
 
 # Type definitions
 FaceTriangleIndex = Literal[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -191,6 +193,7 @@ class DodecahedronProjection:
         # Use Palmer's implementation for now
         try:
             from a5.core.cell import _dodecahedron as palmer_dodec
+
             return palmer_dodec.inverse(face, origin_id)
         except ImportError:
             pass

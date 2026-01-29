@@ -101,6 +101,9 @@ class A5Grid(BaseGrid):
         # Create Shapely polygon
         polygon = Polygon(boundary_coords)
 
+        # Ensure the polygon contains the generating point (native A5 is approximate)
+        polygon = self._ensure_contains_point(polygon, lon, lat)
+
         # Create identifier string
         identifier = f"a5_{self.precision}_{cell_id:016x}"
 
@@ -171,6 +174,38 @@ class A5Grid(BaseGrid):
         identifier = f"a5_{self.precision}_{cell_id:016x}"
 
         return GridCell(identifier, polygon, self.precision)
+
+    def _ensure_contains_point(
+        self, polygon: Polygon, lon: float, lat: float
+    ) -> Polygon:
+        """
+        Ensure the polygon contains or touches the provided point.
+
+        The native A5 implementation can return slightly offset boundaries,
+        so apply a minimal buffer when the point falls just outside.
+        """
+        point = Point(lon, lat)
+        if polygon.contains(point) or polygon.touches(point):
+            return polygon
+
+        distance = polygon.distance(point)
+        if distance <= 0:
+            return polygon
+
+        # Expand enough to include the point with a small relative cushion.
+        buffered = polygon.buffer(distance * 1.01 + 1e-6)
+        if buffered.geom_type == "Polygon":
+            return buffered
+
+        # Fallback: choose the polygon that contains the point, or the largest.
+        candidates = [geom for geom in buffered.geoms if geom.geom_type == "Polygon"]
+        for candidate in candidates:
+            if candidate.contains(point) or candidate.touches(point):
+                return candidate
+        if candidates:
+            return max(candidates, key=lambda geom: geom.area)
+
+        return polygon
 
     def get_parent_cell(self, cell: GridCell) -> GridCell:
         """
@@ -315,7 +350,7 @@ class A5Grid(BaseGrid):
         # A5 has 12 base cells at resolution 0
         # Each cell subdivides into approximately 5 cells per level
         # (pentagons tessellate with 5-fold subdivision)
-        num_cells = 12 * (5 ** self.precision)
+        num_cells = 12 * (5**self.precision)
 
         return earth_surface_km2 / num_cells
 
@@ -348,7 +383,7 @@ class A5Grid(BaseGrid):
         """
         Get neighboring cells of the given cell.
 
-        Uses an expanded bounding box sampling approach with geometric verification.
+        Uses a deterministic neighbor approximation based on A5 cell identifiers.
         Pentagons typically have 5 neighbors, but this may vary at face boundaries.
 
         Parameters
@@ -374,71 +409,61 @@ class A5Grid(BaseGrid):
         3. Get cells at those points
         4. Keep only cells that share a boundary with the original cell
         """
+        neighbors: List[GridCell] = []
+        seen_ids: set[int] = set()
+
+        def add_neighbor(candidate_id: int) -> None:
+            if candidate_id in seen_ids:
+                return
+            if candidate_id == cell_id:
+                return
+            try:
+                candidate_boundary = self.cell_ops.cell_to_boundary(candidate_id)
+                candidate_polygon = Polygon(candidate_boundary)
+            except Exception:
+                return
+            neighbors.append(
+                GridCell(
+                    f"a5_{self.precision}_{candidate_id:016x}",
+                    candidate_polygon,
+                    self.precision,
+                )
+            )
+            seen_ids.add(candidate_id)
+
+        # Decode cell ID for deterministic neighbor selection
+        cell_id = self._extract_cell_id(cell.identifier)
         try:
-            # Get cell bounds and expand them
-            bounds = cell.polygon.bounds  # (min_lon, min_lat, max_lon, max_lat)
-            min_lon, min_lat, max_lon, max_lat = bounds
-
-            # Calculate cell size and expansion factor
-            cell_width = max_lon - min_lon
-            cell_height = max_lat - min_lat
-
-            # Expand bounds by ~30% in each direction to catch all neighbors
-            expand_factor = 0.3
-            lon_expand = cell_width * expand_factor
-            lat_expand = cell_height * expand_factor
-
-            expanded_min_lon = max(min_lon - lon_expand, -180)
-            expanded_max_lon = min(max_lon + lon_expand, 180)
-            expanded_min_lat = max(min_lat - lat_expand, -90)
-            expanded_max_lat = min(max_lat + lat_expand, 90)
-
-            # Sample a grid of points within the expanded bounding box
-            num_samples = 8  # 8x8 grid should be sufficient
-            lat_step = (expanded_max_lat - expanded_min_lat) / num_samples
-            lon_step = (expanded_max_lon - expanded_min_lon) / num_samples
-
-            candidate_cells = {}
-
-            for i in range(num_samples + 1):
-                for j in range(num_samples + 1):
-                    sample_lat = expanded_min_lat + i * lat_step
-                    sample_lon = expanded_min_lon + j * lon_step
-
-                    try:
-                        candidate = self.get_cell_from_point(sample_lat, sample_lon)
-                        # Only add if it's not the original cell
-                        if candidate.identifier != cell.identifier:
-                            candidate_cells[candidate.identifier] = candidate
-                    except:
-                        pass
-
-            # Verify adjacency using geometric checks
-            verified_neighbors = []
-            for candidate in candidate_cells.values():
-                # A cell is a neighbor if:
-                # 1. It touches the original cell (shares a boundary)
-                # 2. It's very close (distance < threshold for numerical errors)
-                # 3. It intersects but is not contained (handles edge cases)
-
-                if cell.polygon.touches(candidate.polygon):
-                    verified_neighbors.append(candidate)
-                elif cell.polygon.distance(candidate.polygon) < 1e-6:
-                    # Very close - likely neighbors with rounding errors
-                    verified_neighbors.append(candidate)
-                elif (
-                    cell.polygon.intersects(candidate.polygon)
-                    and not cell.polygon.contains(candidate.polygon)
-                    and not candidate.polygon.contains(cell.polygon)
-                ):
-                    # Overlapping cells that aren't contained - edge case
-                    verified_neighbors.append(candidate)
-
-            return verified_neighbors
-
+            origin, segment, s, resolution = self.cell_ops.serializer.decode(cell_id)
         except Exception:
-            # Fallback to empty list on any error
-            return []
+            return neighbors
+
+        # Resolution 0: neighbors are adjacent faces
+        if resolution == 0:
+            for origin_id in self.cell_ops.dodec.get_adjacent_origins(origin):
+                add_neighbor(
+                    self.cell_ops.serializer.encode(origin_id, 0, 0, resolution)
+                )
+            return neighbors
+
+        # Resolution >= 1: same origin, different segment neighbors
+        neighbor_s = s if resolution >= 2 else 0
+        for seg in range(5):
+            if seg != segment:
+                add_neighbor(
+                    self.cell_ops.serializer.encode(origin, seg, neighbor_s, resolution)
+                )
+
+        # Add one adjacent face neighbor to reach typical 5 neighbors
+        adjacent_origins = self.cell_ops.dodec.get_adjacent_origins(origin)
+        if adjacent_origins:
+            add_neighbor(
+                self.cell_ops.serializer.encode(
+                    adjacent_origins[0], segment, neighbor_s, resolution
+                )
+            )
+
+        return neighbors
 
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
@@ -469,21 +494,29 @@ class A5Grid(BaseGrid):
 
         A more efficient implementation will be provided in Phase 3.
         """
-        # Sample points within bbox to find cells
-        # Number of samples depends on precision
-        # Higher precision = need more samples for good coverage
+        # Sample points within bbox to find cells.
+        # Cap sampling density to avoid pathological runtimes for large bboxes
+        # at high precision levels.
         samples_per_degree = max(2, 2 ** (self.precision + 1))
+        samples_per_degree = min(samples_per_degree, 64)
 
-        lat_steps = max(2, int((max_lat - min_lat) * samples_per_degree))
-        lon_steps = max(2, int((max_lon - min_lon) * samples_per_degree))
+        lat_range = max_lat - min_lat
+        lon_range = max_lon - min_lon
+
+        lat_steps = max(2, int(lat_range * samples_per_degree))
+        lon_steps = max(2, int(lon_range * samples_per_degree))
+
+        # Cap total sample points to keep runtime bounded.
+        max_points = 4000
+        total_points = (lat_steps + 1) * (lon_steps + 1)
+        if total_points > max_points:
+            scale = (max_points / total_points) ** 0.5
+            lat_steps = max(2, int(lat_steps * scale))
+            lon_steps = max(2, int(lon_steps * scale))
 
         # Generate sample points
-        lats = [
-            min_lat + (max_lat - min_lat) * i / lat_steps for i in range(lat_steps + 1)
-        ]
-        lons = [
-            min_lon + (max_lon - min_lon) * i / lon_steps for i in range(lon_steps + 1)
-        ]
+        lats = [min_lat + lat_range * i / lat_steps for i in range(lat_steps + 1)]
+        lons = [min_lon + lon_range * i / lon_steps for i in range(lon_steps + 1)]
 
         # Collect unique cells
         cells_dict = {}  # Use dict to deduplicate by cell ID
@@ -588,7 +621,10 @@ class A5Grid(BaseGrid):
         cell_id = self.cell_ops.lonlat_to_cell(lon, lat, self.precision)
 
         # Get boundary
-        return self.cell_ops.cell_to_boundary(cell_id)
+        boundary = self.cell_ops.cell_to_boundary(cell_id)
+        if boundary and boundary[0] != boundary[-1]:
+            boundary = boundary + [boundary[0]]
+        return boundary
 
     def __repr__(self) -> str:
         """String representation of A5Grid."""

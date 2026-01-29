@@ -349,7 +349,9 @@ class StreamingGridProcessor:
             if adaptive_chunking:
                 pressure = self.memory_monitor.check_memory_pressure()
                 if pressure in ["high", "critical"]:
-                    warnings.warn(f"High memory pressure detected: {pressure}", stacklevel=2)
+                    warnings.warn(
+                        f"High memory pressure detected: {pressure}", stacklevel=2
+                    )
                     # Force garbage collection
                     gc.collect()
 
@@ -359,7 +361,9 @@ class StreamingGridProcessor:
                     )
                     if new_chunk_size != base_chunk_size:
                         data_source.chunk_size = new_chunk_size
-                        warnings.warn(f"Reduced chunk size to {new_chunk_size}", stacklevel=2)
+                        warnings.warn(
+                            f"Reduced chunk size to {new_chunk_size}", stacklevel=2
+                        )
 
             # Process chunk
             current_chunk = chunk  # Keep reference for error handling
@@ -383,14 +387,19 @@ class StreamingGridProcessor:
                         gc.collect()
 
             except MemoryError:
-                warnings.warn("Memory error encountered, attempting recovery", stacklevel=2)
+                warnings.warn(
+                    "Memory error encountered, attempting recovery", stacklevel=2
+                )
                 gc.collect()
 
                 # Try with smaller chunk using current_chunk reference
                 if len(current_chunk) > 100:
                     # Split chunk in half and retry
                     mid = len(current_chunk) // 2
-                    for sub_chunk in [current_chunk.iloc[:mid], current_chunk.iloc[mid:]]:
+                    for sub_chunk in [
+                        current_chunk.iloc[:mid],
+                        current_chunk.iloc[mid:],
+                    ]:
                         try:
                             result = self.grid.intersects(sub_chunk)
                             if output_callback:
@@ -399,20 +408,20 @@ class StreamingGridProcessor:
                         except MemoryError:
                             warnings.warn(
                                 f"Skipping problematic chunk of size {len(sub_chunk)}",
-                                stacklevel=2
+                                stacklevel=2,
                             )
                         finally:
                             del sub_chunk
                 else:
                     warnings.warn(
                         f"Skipping small problematic chunk of size {len(current_chunk)}",
-                        stacklevel=2
+                        stacklevel=2,
                     )
 
             finally:
                 # Clean up chunk reference
                 del chunk
-                if 'current_chunk' in locals():
+                if "current_chunk" in locals():
                     del current_chunk
                 gc.collect()
 

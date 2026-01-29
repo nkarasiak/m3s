@@ -16,7 +16,6 @@ import numpy as np
 
 from m3s.a5.projections import vec3_utils as vec3
 
-
 # Type aliases for clarity
 Cartesian = Tuple[float, float, float]  # 3D point on sphere
 Face = Tuple[float, float]  # 2D point on face plane
@@ -232,7 +231,7 @@ class PolyhedralProjection:
         # Get cached triangle-dependent constants
         constants = self._get_triangle_constants(spherical_triangle)
         area_abc = constants["area_abc"]
-        c1 = constants["c1"]
+        # c1 = constants["c1"]  # Not used in current calculation
         c01 = constants["c01"]
         c12 = constants["c12"]
         c20 = constants["c20"]

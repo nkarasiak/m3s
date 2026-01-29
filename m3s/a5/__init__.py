@@ -34,9 +34,17 @@ from typing import List, Optional, Tuple
 
 from m3s.a5.cell import (
     cell_to_boundary as _cell_to_boundary_impl,
+)
+from m3s.a5.cell import (
     cell_to_lonlat as _cell_to_lonlat_impl,
+)
+from m3s.a5.cell import (
     get_children as _get_children_impl,
+)
+from m3s.a5.cell import (
     get_parent as _get_parent_impl,
+)
+from m3s.a5.cell import (
     get_resolution,
     lonlat_to_cell,
 )
@@ -45,8 +53,11 @@ from m3s.a5.grid import A5Grid
 # Type aliases
 A5Cell = int  # 64-bit integer cell identifier
 
+
 # Wrapper functions for API compatibility with optional resolution parameter
-def cell_to_lonlat(cell_id: A5Cell, resolution: Optional[int] = None) -> Tuple[float, float]:
+def cell_to_lonlat(
+    cell_id: A5Cell, resolution: Optional[int] = None
+) -> Tuple[float, float]:
     """
     Convert A5 cell ID to center coordinates.
 
@@ -65,7 +76,9 @@ def cell_to_lonlat(cell_id: A5Cell, resolution: Optional[int] = None) -> Tuple[f
     return _cell_to_lonlat_impl(cell_id)
 
 
-def cell_to_boundary(cell_id: A5Cell, resolution: Optional[int] = None) -> List[Tuple[float, float]]:
+def cell_to_boundary(
+    cell_id: A5Cell, resolution: Optional[int] = None
+) -> List[Tuple[float, float]]:
     """
     Get cell boundary vertices.
 
@@ -215,7 +228,7 @@ def get_num_cells(resolution: int) -> int:
     int
         Total number of cells (12 * 5^resolution)
     """
-    return 12 * (5 ** resolution)  # type: ignore[no-any-return]
+    return 12 * (5**resolution)  # type: ignore[no-any-return]
 
 
 def cell_area(cell_id: A5Cell, resolution: int) -> float:

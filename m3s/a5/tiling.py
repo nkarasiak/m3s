@@ -33,7 +33,9 @@ QUINTANT_ROTATIONS = [
 ]
 
 
-def get_pentagon_vertices(resolution: int, quintant: int, anchor: Anchor) -> PentagonShape:
+def get_pentagon_vertices(
+    resolution: int, quintant: int, anchor: Anchor
+) -> PentagonShape:
     """
     Get pentagon vertices for a specific cell.
 

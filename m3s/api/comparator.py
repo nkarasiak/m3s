@@ -5,11 +5,11 @@ Enables simultaneous querying and analysis across multiple grid systems
 to understand their relative characteristics and coverage patterns.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 import geopandas as gpd
 import pandas as pd
-from shapely.geometry import Point, Polygon, box
+from shapely.geometry import Point, box
 
 from ..base import GridCell
 from .builder import GridBuilder
@@ -53,9 +53,7 @@ class MultiGridComparator:
         for system, precision in self.grid_configs:
             ParameterNormalizer.validate_precision(system, precision)
 
-    def query_all(
-        self, latitude: float, longitude: float
-    ) -> Dict[str, GridCell]:
+    def query_all(self, latitude: float, longitude: float) -> Dict[str, GridCell]:
         """
         Query same point across all configured grid systems.
 
@@ -204,7 +202,9 @@ class MultiGridComparator:
             area = calc.get_area(precision)
 
             # Find equivalent precisions in other systems
-            equivalents = ParameterNormalizer.get_equivalent_precisions(system, precision)
+            equivalents = ParameterNormalizer.get_equivalent_precisions(
+                system, precision
+            )
 
             row = {
                 "system": system,
@@ -303,9 +303,7 @@ class MultiGridComparator:
 
         return pd.DataFrame(rows)
 
-    def find_optimal_precision_for_area(
-        self, target_area_km2: float
-    ) -> pd.DataFrame:
+    def find_optimal_precision_for_area(self, target_area_km2: float) -> pd.DataFrame:
         """
         Find optimal precision in each grid system for target area.
 

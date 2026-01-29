@@ -49,6 +49,7 @@ def demonstrate_what3words():
 
     print()
 
+
 def demonstrate_grid_conversion():
     """Demonstrate grid conversion utilities."""
     print("=== Grid Conversion Utilities ===")
@@ -56,7 +57,7 @@ def demonstrate_grid_conversion():
     # List available grid systems
     systems_info = list_grid_systems()
     print("Available grid systems:")
-    print(systems_info[['system', 'default_precision', 'default_area_km2']].head())
+    print(systems_info[["system", "default_precision", "default_area_km2"]].head())
     print()
 
     # Create source cell (Geohash)
@@ -66,9 +67,9 @@ def demonstrate_grid_conversion():
     print(f"Source cell area: {source_cell.area_km2:.2f} km²")
 
     # Convert to different systems
-    h3_cell = convert_cell(source_cell, 'h3', method='centroid')
-    quadkey_cell = convert_cell(source_cell, 'quadkey', method='centroid')
-    w3w_cell = convert_cell(source_cell, 'what3words', method='centroid')
+    h3_cell = convert_cell(source_cell, "h3", method="centroid")
+    quadkey_cell = convert_cell(source_cell, "quadkey", method="centroid")
+    w3w_cell = convert_cell(source_cell, "what3words", method="centroid")
 
     print("\nConversions:")
     print(f"  H3: {h3_cell.identifier}")
@@ -77,12 +78,14 @@ def demonstrate_grid_conversion():
 
     # Create conversion table for small area
     bounds = (-74.01, 40.71, -74.00, 40.72)
-    conversion_table = create_conversion_table('geohash', 'h3', bounds,
-                                              source_precision=5, target_precision=7)
+    conversion_table = create_conversion_table(
+        "geohash", "h3", bounds, source_precision=5, target_precision=7
+    )
     print(f"\nConversion table (Geohash -> H3): {len(conversion_table)} mappings")
     print(conversion_table.head())
 
     print()
+
 
 def demonstrate_relationship_analysis():
     """Demonstrate grid cell relationship analysis."""
@@ -105,7 +108,7 @@ def demonstrate_relationship_analysis():
         print(f"Adjacent cells to first cell: {len(adjacent)}")
 
         # Create adjacency matrix (limit to first 5 cells for readability)
-        sample_cells = cells[:min(5, len(cells))]
+        sample_cells = cells[: min(5, len(cells))]
         adj_matrix = create_adjacency_matrix(sample_cells)
         print("\nAdjacency matrix:")
         print(adj_matrix)
@@ -117,6 +120,7 @@ def demonstrate_relationship_analysis():
         print(f"Network connectivity: {connectivity:.3f}")
 
     print()
+
 
 def demonstrate_multiresolution():
     """Demonstrate multi-resolution grid operations."""
@@ -132,7 +136,7 @@ def demonstrate_multiresolution():
     # Get resolution statistics
     stats = multi_grid.get_resolution_statistics()
     print("Resolution levels:")
-    print(stats[['level', 'precision', 'area_km2']])
+    print(stats[["level", "precision", "area_km2"]])
 
     # Get hierarchical cells for NYC
     nyc_point = Point(-74.0060, 40.7128)
@@ -148,18 +152,19 @@ def demonstrate_multiresolution():
 
     transitions = multi_grid.analyze_scale_transitions(bounds)
     print("\nScale transitions:")
-    print(transitions[['from_precision', 'to_precision', 'subdivision_ratio']])
+    print(transitions[["from_precision", "to_precision", "subdivision_ratio"]])
 
     # Create adaptive grid
     adaptive_gdf = create_adaptive_grid(base_grid, bounds, resolution_levels)
     print(f"\nAdaptive grid contains {len(adaptive_gdf)} cells")
     if len(adaptive_gdf) > 0:
-        precision_counts = adaptive_gdf['precision'].value_counts().sort_index()
+        precision_counts = adaptive_gdf["precision"].value_counts().sort_index()
         print("Cells by precision level:")
         for precision, count in precision_counts.items():
             print(f"  Precision {precision}: {count} cells")
 
     print()
+
 
 def create_visualization_example():
     """Create a visualization example combining multiple enhancements."""
@@ -183,29 +188,34 @@ def create_visualization_example():
     if geohash_cells:
         converted_cells = []
         for cell in geohash_cells[:5]:  # Convert first 5
-            h3_converted = convert_cell(cell, 'h3', method='overlap')
+            h3_converted = convert_cell(cell, "h3", method="overlap")
             if isinstance(h3_converted, list):
                 converted_cells.extend(h3_converted)
             else:
                 converted_cells.append(h3_converted)
 
-        print(f"Converted {len(geohash_cells[:5])} Geohash cells to {len(converted_cells)} H3 cells")
+        print(
+            f"Converted {len(geohash_cells[:5])} Geohash cells to {len(converted_cells)} H3 cells"
+        )
 
     # Analyze relationships within H3 cells
     if len(h3_cells) > 1:
         adjacent_pairs = 0
-        sample_cells = h3_cells[:min(10, len(h3_cells))]
+        sample_cells = h3_cells[: min(10, len(h3_cells))]
 
         for i, cell1 in enumerate(sample_cells):
-            for _j, cell2 in enumerate(sample_cells[i+1:], i+1):
+            for _j, cell2 in enumerate(sample_cells[i + 1 :], i + 1):
                 rel = analyze_relationship(cell1, cell2)
-                if rel.value in ['touches', 'adjacent']:
+                if rel.value in ["touches", "adjacent"]:
                     adjacent_pairs += 1
 
-        print(f"Found {adjacent_pairs} adjacent cell pairs in sample of {len(sample_cells)} cells")
+        print(
+            f"Found {adjacent_pairs} adjacent cell pairs in sample of {len(sample_cells)} cells"
+        )
 
     print("Visualization example completed!")
     print()
+
 
 def plot_grid_comparison():
     """Create plots comparing different grid systems."""
@@ -214,26 +224,31 @@ def plot_grid_comparison():
     # Define a small area for visualization
     center_lat, center_lon = 40.7128, -74.0060
     offset = 0.01  # Small area around NYC
-    bounds = (center_lon - offset, center_lat - offset, center_lon + offset, center_lat + offset)
+    bounds = (
+        center_lon - offset,
+        center_lat - offset,
+        center_lon + offset,
+        center_lat + offset,
+    )
 
     # Create different grid systems with similar cell sizes
     grids = {
-        'Geohash': GeohashGrid(precision=7),
-        'H3': H3Grid(resolution=9),
-        'Quadkey': QuadkeyGrid(level=15)
+        "Geohash": GeohashGrid(precision=7),
+        "H3": H3Grid(resolution=9),
+        "Quadkey": QuadkeyGrid(level=15),
     }
 
     # Create subplot figure
     fig, axes = plt.subplots(2, 2, figsize=(15, 12))
-    fig.suptitle('M3S Grid System Enhancements Demo', fontsize=16, fontweight='bold')
+    fig.suptitle("M3S Grid System Enhancements Demo", fontsize=16, fontweight="bold")
 
     # Plot 1: Grid system comparison
     ax1 = axes[0, 0]
-    ax1.set_title('Grid Systems Comparison')
-    ax1.set_xlabel('Longitude')
-    ax1.set_ylabel('Latitude')
+    ax1.set_title("Grid Systems Comparison")
+    ax1.set_xlabel("Longitude")
+    ax1.set_ylabel("Latitude")
 
-    colors = ['red', 'blue', 'green']
+    colors = ["red", "blue", "green"]
     alphas = [0.3, 0.3, 0.3]
 
     for i, (name, grid) in enumerate(grids.items()):
@@ -242,11 +257,13 @@ def plot_grid_comparison():
             # Create GeoDataFrame for plotting
             cell_data = []
             for cell in cells[:20]:  # Limit for visibility
-                cell_data.append({'geometry': cell.polygon, 'system': name})
+                cell_data.append({"geometry": cell.polygon, "system": name})
 
             if cell_data:
                 gdf = gpd.GeoDataFrame(cell_data)
-                gdf.boundary.plot(ax=ax1, color=colors[i], alpha=alphas[i], linewidth=1, label=name)
+                gdf.boundary.plot(
+                    ax=ax1, color=colors[i], alpha=alphas[i], linewidth=1, label=name
+                )
 
     ax1.legend()
     ax1.set_xlim(bounds[0], bounds[2])
@@ -258,27 +275,29 @@ def plot_grid_comparison():
     systems_info = list_grid_systems()
     if len(systems_info) > 0:
         # Filter to systems we can actually use
-        plot_systems = systems_info[systems_info['system'].isin(['geohash', 'h3', 'quadkey', 'mgrs'])].copy()
+        plot_systems = systems_info[
+            systems_info["system"].isin(["geohash", "h3", "quadkey", "mgrs"])
+        ].copy()
 
         if len(plot_systems) > 0:
-            ax2.bar(plot_systems['system'], plot_systems['default_area_km2'])
-            ax2.set_title('Default Cell Areas by Grid System')
-            ax2.set_xlabel('Grid System')
-            ax2.set_ylabel('Area (km²)')
-            ax2.set_yscale('log')
+            ax2.bar(plot_systems["system"], plot_systems["default_area_km2"])
+            ax2.set_title("Default Cell Areas by Grid System")
+            ax2.set_xlabel("Grid System")
+            ax2.set_ylabel("Area (km²)")
+            ax2.set_yscale("log")
             plt.setp(ax2.get_xticklabels(), rotation=45)
 
     # Plot 3: Multi-resolution demonstration
     ax3 = axes[1, 0]
-    ax3.set_title('Multi-Resolution Grid (Geohash)')
-    ax3.set_xlabel('Longitude')
-    ax3.set_ylabel('Latitude')
+    ax3.set_title("Multi-Resolution Grid (Geohash)")
+    ax3.set_xlabel("Longitude")
+    ax3.set_ylabel("Latitude")
 
     # Create multi-resolution grid
     base_grid = GeohashGrid(precision=5)
     multi_grid = create_multiresolution_grid(base_grid, [5, 6, 7])
 
-    colors_multi = ['red', 'orange', 'yellow']
+    colors_multi = ["red", "orange", "yellow"]
     alphas_multi = [0.6, 0.4, 0.2]
 
     level_cells = multi_grid.populate_region(bounds)
@@ -286,12 +305,17 @@ def plot_grid_comparison():
         if cells:
             cell_data = []
             for cell in cells[:15]:  # Limit for visibility
-                cell_data.append({'geometry': cell.polygon, 'precision': precision})
+                cell_data.append({"geometry": cell.polygon, "precision": precision})
 
             if cell_data:
                 gdf = gpd.GeoDataFrame(cell_data)
-                gdf.boundary.plot(ax=ax3, color=colors_multi[i], alpha=alphas_multi[i],
-                                 linewidth=2-i*0.5, label=f'Precision {precision}')
+                gdf.boundary.plot(
+                    ax=ax3,
+                    color=colors_multi[i],
+                    alpha=alphas_multi[i],
+                    linewidth=2 - i * 0.5,
+                    label=f"Precision {precision}",
+                )
 
     ax3.legend()
     ax3.set_xlim(bounds[0], bounds[2])
@@ -300,38 +324,48 @@ def plot_grid_comparison():
 
     # Plot 4: Adjacency matrix heatmap
     ax4 = axes[1, 1]
-    ax4.set_title('Cell Adjacency Matrix')
+    ax4.set_title("Cell Adjacency Matrix")
 
     # Get a small sample of cells for adjacency analysis
     sample_grid = GeohashGrid(precision=8)
-    sample_cells = sample_grid.get_cells_in_bbox(center_lat - 0.005, center_lon - 0.005,
-                                                center_lat + 0.005, center_lon + 0.005)
+    sample_cells = sample_grid.get_cells_in_bbox(
+        center_lat - 0.005, center_lon - 0.005, center_lat + 0.005, center_lon + 0.005
+    )
 
     if len(sample_cells) > 1:
         # Limit to reasonable number for visualization
-        sample_cells = sample_cells[:min(8, len(sample_cells))]
+        sample_cells = sample_cells[: min(8, len(sample_cells))]
         adj_matrix = create_adjacency_matrix(sample_cells)
 
         # Convert to numpy array for plotting
         matrix_values = adj_matrix.values
 
-        im = ax4.imshow(matrix_values, cmap='Blues', aspect='auto')
+        im = ax4.imshow(matrix_values, cmap="Blues", aspect="auto")
         ax4.set_xticks(range(len(sample_cells)))
         ax4.set_yticks(range(len(sample_cells)))
-        ax4.set_xticklabels([cell.identifier[-4:] for cell in sample_cells], rotation=45)
+        ax4.set_xticklabels(
+            [cell.identifier[-4:] for cell in sample_cells], rotation=45
+        )
         ax4.set_yticklabels([cell.identifier[-4:] for cell in sample_cells])
 
         # Add colorbar
         plt.colorbar(im, ax=ax4)
     else:
-        ax4.text(0.5, 0.5, 'Insufficient cells\nfor adjacency analysis',
-                ha='center', va='center', transform=ax4.transAxes)
+        ax4.text(
+            0.5,
+            0.5,
+            "Insufficient cells\nfor adjacency analysis",
+            ha="center",
+            va="center",
+            transform=ax4.transAxes,
+        )
 
     plt.tight_layout()
-    plt.savefig('grid_enhancements_demo.png', dpi=150, bbox_inches='tight')
+    plt.savefig("grid_enhancements_demo.png", dpi=150, bbox_inches="tight")
     print("Plots saved as 'grid_enhancements_demo.png'")
     plt.show()
     print()
+
 
 def plot_conversion_analysis():
     """Create plots showing grid conversion analysis."""
@@ -342,34 +376,42 @@ def plot_conversion_analysis():
 
     # Create conversion table
     try:
-        conversion_table = create_conversion_table('geohash', 'h3', bounds,
-                                                  source_precision=6, target_precision=9)
+        conversion_table = create_conversion_table(
+            "geohash", "h3", bounds, source_precision=6, target_precision=9
+        )
 
         if len(conversion_table) > 0:
             fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
-            fig.suptitle('Grid Conversion Analysis', fontsize=14, fontweight='bold')
+            fig.suptitle("Grid Conversion Analysis", fontsize=14, fontweight="bold")
 
             # Plot 1: Conversion method distribution
-            method_counts = conversion_table['conversion_method'].value_counts()
-            ax1.pie(method_counts.values, labels=method_counts.index, autopct='%1.1f%%')
-            ax1.set_title('Distribution of Conversion Methods')
+            method_counts = conversion_table["conversion_method"].value_counts()
+            ax1.pie(method_counts.values, labels=method_counts.index, autopct="%1.1f%%")
+            ax1.set_title("Distribution of Conversion Methods")
 
             # Plot 2: Precision level comparison
-            precision_data = conversion_table.groupby(['source_precision', 'target_precision']).size().reset_index(name='count')
+            precision_data = (
+                conversion_table.groupby(["source_precision", "target_precision"])
+                .size()
+                .reset_index(name="count")
+            )
 
             if len(precision_data) > 0:
                 x_pos = np.arange(len(precision_data))
-                ax2.bar(x_pos, precision_data['count'])
-                ax2.set_title('Conversions by Precision Level')
-                ax2.set_xlabel('Source -> Target Precision')
-                ax2.set_ylabel('Number of Conversions')
+                ax2.bar(x_pos, precision_data["count"])
+                ax2.set_title("Conversions by Precision Level")
+                ax2.set_xlabel("Source -> Target Precision")
+                ax2.set_ylabel("Number of Conversions")
 
-                labels = [f"{row['source_precision']}->{row['target_precision']}" for _, row in precision_data.iterrows()]
+                labels = [
+                    f"{row['source_precision']}->{row['target_precision']}"
+                    for _, row in precision_data.iterrows()
+                ]
                 ax2.set_xticks(x_pos)
                 ax2.set_xticklabels(labels)
 
             plt.tight_layout()
-            plt.savefig('conversion_analysis.png', dpi=150, bbox_inches='tight')
+            plt.savefig("conversion_analysis.png", dpi=150, bbox_inches="tight")
             print("Conversion analysis plots saved as 'conversion_analysis.png'")
             plt.show()
         else:
@@ -379,6 +421,7 @@ def plot_conversion_analysis():
         print(f"Could not create conversion analysis plots: {e}")
 
     print()
+
 
 def main():
     """Main function to run all demonstrations."""
@@ -404,6 +447,7 @@ def main():
     print("✓ Multi-resolution grid operations with adaptive selection")
     print("✓ Combined workflows using multiple enhancement features")
     print("✓ Comprehensive visualizations and plots")
+
 
 if __name__ == "__main__":
     main()

@@ -99,8 +99,7 @@ class GridSystemType(Enum):
             if member.value == value_lower:
                 return member
         raise ValueError(
-            f"Unknown grid system: {value}. "
-            f"Valid options: {[m.value for m in cls]}"
+            f"Unknown grid system: {value}. " f"Valid options: {[m.value for m in cls]}"
         )
 
 
@@ -199,22 +198,34 @@ class BoundingBox:
         )
 
         if not (MIN_LATITUDE <= self.min_lat <= MAX_LATITUDE):
-            raise ValueError(f"min_lat must be between {MIN_LATITUDE} and {MAX_LATITUDE}")
+            raise ValueError(
+                f"min_lat must be between {MIN_LATITUDE} and {MAX_LATITUDE}"
+            )
 
         if not (MIN_LATITUDE <= self.max_lat <= MAX_LATITUDE):
-            raise ValueError(f"max_lat must be between {MIN_LATITUDE} and {MAX_LATITUDE}")
+            raise ValueError(
+                f"max_lat must be between {MIN_LATITUDE} and {MAX_LATITUDE}"
+            )
 
         if not (MIN_LONGITUDE <= self.min_lon <= MAX_LONGITUDE):
-            raise ValueError(f"min_lon must be between {MIN_LONGITUDE} and {MAX_LONGITUDE}")
+            raise ValueError(
+                f"min_lon must be between {MIN_LONGITUDE} and {MAX_LONGITUDE}"
+            )
 
         if not (MIN_LONGITUDE <= self.max_lon <= MAX_LONGITUDE):
-            raise ValueError(f"max_lon must be between {MIN_LONGITUDE} and {MAX_LONGITUDE}")
+            raise ValueError(
+                f"max_lon must be between {MIN_LONGITUDE} and {MAX_LONGITUDE}"
+            )
 
         if self.min_lat >= self.max_lat:
-            raise ValueError(f"min_lat ({self.min_lat}) must be less than max_lat ({self.max_lat})")
+            raise ValueError(
+                f"min_lat ({self.min_lat}) must be less than max_lat ({self.max_lat})"
+            )
 
         if self.min_lon >= self.max_lon:
-            raise ValueError(f"min_lon ({self.min_lon}) must be less than max_lon ({self.max_lon})")
+            raise ValueError(
+                f"min_lon ({self.min_lon}) must be less than max_lon ({self.max_lon})"
+            )
 
     @property
     def center(self) -> Tuple[float, float]:

@@ -935,7 +935,9 @@ class TestA5API:
         assert -90 <= result_lat <= 90
 
         # Should be reasonably close to original coordinates
-        assert abs(result_lon - lon) < 1.1  # Within 1.1 degrees (tolerance for A5 approximation)
+        assert (
+            abs(result_lon - lon) < 1.1
+        )  # Within 1.1 degrees (tolerance for A5 approximation)
         assert abs(result_lat - lat) < 1.1
 
     def test_cell_to_boundary(self):

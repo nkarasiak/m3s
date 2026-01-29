@@ -28,7 +28,9 @@ class GridQueryResult:
     >>> gdf = result.to_geodataframe()  # Convert to GeoPandas
     """
 
-    def __init__(self, cells: Union[GridCell, List[GridCell]], metadata: Optional[dict] = None):
+    def __init__(
+        self, cells: Union[GridCell, List[GridCell]], metadata: Optional[dict] = None
+    ):
         """
         Initialize result container.
 
@@ -156,9 +158,7 @@ class GridQueryResult:
 
         # Add UTM zone if available
         if hasattr(self._cells[0], "utm_zone"):
-            data["utm_zone"] = [
-                getattr(cell, "utm_zone", None) for cell in self._cells
-            ]
+            data["utm_zone"] = [getattr(cell, "utm_zone", None) for cell in self._cells]
 
         gdf = gpd.GeoDataFrame(data, geometry="geometry", crs="EPSG:4326")
 
@@ -193,9 +193,7 @@ class GridQueryResult:
         }
 
         if hasattr(self._cells[0], "utm_zone"):
-            data["utm_zone"] = [
-                getattr(cell, "utm_zone", None) for cell in self._cells
-            ]
+            data["utm_zone"] = [getattr(cell, "utm_zone", None) for cell in self._cells]
 
         return pd.DataFrame(data)
 

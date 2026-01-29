@@ -56,6 +56,11 @@ class H3Grid(BaseGrid):
         super().__init__(resolution)
 
     @property
+    def resolution(self) -> int:
+        """Alias for precision to match H3 terminology."""
+        return self.precision
+
+    @property
     def area_km2(self) -> float:
         """
         Get the theoretical area of H3 cells at this resolution in square kilometers.

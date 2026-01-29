@@ -9,7 +9,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import geopandas as gpd
 import numpy as np
-from shapely.geometry import Point, Polygon, box
+from shapely.geometry import Polygon, box
 
 from ..base import BaseGrid, GridCell
 from .precision import PrecisionRecommendation, PrecisionSelector
@@ -159,7 +159,9 @@ class GridBuilder:
         GridBuilder
             Builder instance for method chaining
         """
-        self._operations.append(("point", {"latitude": latitude, "longitude": longitude}))
+        self._operations.append(
+            ("point", {"latitude": latitude, "longitude": longitude})
+        )
         return self
 
     def at_points(
@@ -360,9 +362,13 @@ class GridBuilder:
         if self._grid_system is None:
             raise ValueError("Grid system not set. Call .for_system() first.")
         if self._precision is None:
-            raise ValueError("Precision not set. Call .with_precision() or .with_auto_precision() first.")
+            raise ValueError(
+                "Precision not set. Call .with_precision() or .with_auto_precision() first."
+            )
         if not self._operations:
-            raise ValueError("No operations specified. Call .at_point(), .in_bbox(), etc.")
+            raise ValueError(
+                "No operations specified. Call .at_point(), .in_bbox(), etc."
+            )
 
         # Instantiate grid
         grid = self._create_grid(self._grid_system, self._precision)
@@ -372,7 +378,11 @@ class GridBuilder:
 
         for op_name, op_params in self._operations:
             if op_name == "point":
-                cells = [grid.get_cell_from_point(op_params["latitude"], op_params["longitude"])]
+                cells = [
+                    grid.get_cell_from_point(
+                        op_params["latitude"], op_params["longitude"]
+                    )
+                ]
 
             elif op_name == "points":
                 points = op_params["points"]
@@ -393,6 +403,7 @@ class GridBuilder:
                 )
                 # Convert to GeoDataFrame for intersects method
                 import geopandas as gpd
+
                 bbox_gdf = gpd.GeoDataFrame({"geometry": [bbox_geom]}, crs="EPSG:4326")
                 result_gdf = grid.intersects(bbox_gdf)
                 # Convert GeoDataFrame to list of GridCell objects
@@ -401,7 +412,10 @@ class GridBuilder:
             elif op_name == "polygon":
                 # Convert to GeoDataFrame for intersects method
                 import geopandas as gpd
-                polygon_gdf = gpd.GeoDataFrame({"geometry": [op_params["polygon"]]}, crs="EPSG:4326")
+
+                polygon_gdf = gpd.GeoDataFrame(
+                    {"geometry": [op_params["polygon"]]}, crs="EPSG:4326"
+                )
                 result_gdf = grid.intersects(polygon_gdf)
                 # Convert GeoDataFrame to list of GridCell objects
                 cells = self._gdf_to_cells(result_gdf, grid)
@@ -455,12 +469,14 @@ class GridBuilder:
                 parents: List[GridCell] = []
                 for cell in cells:
                     parent = grid.get_parent(cell, parent_precision)  # type: ignore[attr-defined]
-                    if parent and parent.identifier not in [p.identifier for p in parents]:
+                    if parent and parent.identifier not in [
+                        p.identifier for p in parents
+                    ]:
                         parents.append(parent)
                 cells = parents
 
             elif op_name == "convert":
-                from ..conversion import convert_cell, convert_cells
+                from ..conversion import convert_cell
 
                 if not isinstance(cells, list):
                     cells = [cells]
@@ -508,9 +524,7 @@ class GridBuilder:
         cells = []
         for row in gdf.itertuples(index=False):
             cell = GridCell(
-                identifier=row.cell_id,
-                polygon=row.geometry,
-                precision=row.precision
+                identifier=row.cell_id, polygon=row.geometry, precision=row.precision
             )
             cells.append(cell)
         return cells
@@ -537,17 +551,17 @@ class GridBuilder:
             If grid system is unknown
         """
         # Import grid classes (lazy to avoid circular imports)
-        from ..geohash import GeohashGrid
-        from ..h3 import H3Grid
-        from ..s2 import S2Grid
-        from ..quadkey import QuadkeyGrid
-        from ..slippy import SlippyGrid
-        from ..mgrs import MGRSGrid
         from ..a5 import A5Grid
         from ..csquares import CSquaresGrid
         from ..gars import GARSGrid
+        from ..geohash import GeohashGrid
+        from ..h3 import H3Grid
         from ..maidenhead import MaidenheadGrid
+        from ..mgrs import MGRSGrid
         from ..pluscode import PlusCodeGrid
+        from ..quadkey import QuadkeyGrid
+        from ..s2 import S2Grid
+        from ..slippy import SlippyGrid
         from ..what3words import What3WordsGrid
 
         grid_classes = {

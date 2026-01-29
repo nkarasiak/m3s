@@ -3,7 +3,7 @@ Tests for parallel processing functionality in M3S.
 """
 
 import warnings
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import geopandas as gpd
 import pytest
@@ -28,31 +28,15 @@ class TestParallelConfig:
         """Test default configuration."""
         config = ParallelConfig()
         assert config.chunk_size == 10000
-        assert config.memory_limit == "2GB"
-        assert config.threads_per_worker == 2
-        assert config.scheduler_address is None
+        assert config.n_workers is None
+        assert config.optimize_memory is True
+        assert config.adaptive_chunking is True
 
     def test_custom_config(self):
         """Test custom configuration."""
-        config = ParallelConfig(
-            chunk_size=5000, memory_limit="4GB", threads_per_worker=4, n_workers=8
-        )
+        config = ParallelConfig(chunk_size=5000, n_workers=8, optimize_memory=False)
         assert config.chunk_size == 5000
-        assert config.memory_limit == "4GB"
-        assert config.threads_per_worker == 4
         assert config.n_workers == 8
-
-    def test_fallback_when_dask_unavailable(self):
-        """Test fallback when Dask is unavailable."""
-        with patch("m3s.parallel.DASK_AVAILABLE", False):
-            config = ParallelConfig(use_dask=True)
-            assert config.use_dask is False
-
-    def test_fallback_when_gpu_unavailable(self):
-        """Test fallback when GPU is unavailable."""
-        with patch("m3s.parallel.GPU_AVAILABLE", False):
-            config = ParallelConfig(use_gpu=True)
-            assert config.use_gpu is False
 
 
 class TestGridStreamProcessor:
@@ -133,16 +117,14 @@ class TestParallelGridEngine:
 
     def test_engine_initialization(self):
         """Test engine initialization."""
-        config = ParallelConfig(use_dask=False, use_gpu=False)
+        config = ParallelConfig()
         engine = ParallelGridEngine(config)
 
         assert engine.config is not None
-        assert not engine.config.use_dask
-        assert not engine.config.use_gpu
 
     def test_intersect_parallel_threaded(self, sample_grid, sample_gdf_large):
         """Test parallel intersection using threading."""
-        config = ParallelConfig(use_dask=False, use_gpu=False, chunk_size=25)
+        config = ParallelConfig(chunk_size=25)
         engine = ParallelGridEngine(config)
 
         result = engine.intersect_parallel(sample_grid, sample_gdf_large, chunk_size=25)
@@ -154,7 +136,7 @@ class TestParallelGridEngine:
 
     def test_intersect_parallel_empty_input(self, sample_grid):
         """Test parallel intersection with empty input."""
-        config = ParallelConfig(use_dask=False)
+        config = ParallelConfig()
         engine = ParallelGridEngine(config)
 
         empty_gdf = gpd.GeoDataFrame(geometry=[], crs="EPSG:4326")
@@ -165,7 +147,7 @@ class TestParallelGridEngine:
 
     def test_intersect_parallel_small_input(self, sample_grid):
         """Test parallel intersection with small input (no chunking)."""
-        config = ParallelConfig(use_dask=False, chunk_size=100)
+        config = ParallelConfig(chunk_size=100)
         engine = ParallelGridEngine(config)
 
         small_gdf = gpd.GeoDataFrame(
@@ -177,29 +159,6 @@ class TestParallelGridEngine:
         assert isinstance(result, gpd.GeoDataFrame)
         assert len(result) >= 1
 
-    @patch("m3s.parallel.DASK_AVAILABLE", True)
-    @patch("m3s.parallel.dask")
-    @patch("m3s.parallel.delayed")
-    def test_intersect_parallel_dask_fallback(
-        self, mock_delayed, mock_dask, sample_grid, sample_gdf_large
-    ):
-        """Test Dask processing with mocked dependencies."""
-        # Mock dask.compute to return expected results
-        mock_result = sample_grid.intersects(sample_gdf_large.iloc[:25])
-        mock_dask.compute.return_value = [mock_result]
-        mock_delayed.return_value = Mock()
-
-        config = ParallelConfig(use_dask=True, use_gpu=False)
-
-        # Mock client setup to avoid actual Dask cluster
-        with patch.object(ParallelGridEngine, "_setup_client"):
-            engine = ParallelGridEngine(config)
-            engine._client = Mock()  # Mock client
-
-            result = engine._intersect_dask(sample_grid, sample_gdf_large.iloc[:25], 25)
-
-            assert isinstance(result, gpd.GeoDataFrame)
-
     def test_batch_intersect_multiple_grids(self, sample_gdf_large):
         """Test batch intersection with multiple grids."""
         grids = [
@@ -209,7 +168,7 @@ class TestParallelGridEngine:
         ]
         grid_names = ["geohash_4", "geohash_5", "h3_6"]
 
-        config = ParallelConfig(use_dask=False, use_gpu=False)
+        config = ParallelConfig()
         engine = ParallelGridEngine(config)
 
         # Use smaller dataset for testing
@@ -228,7 +187,7 @@ class TestParallelGridEngine:
         """Test batch intersection with auto-generated names."""
         grids = [GeohashGrid(precision=4), GeohashGrid(precision=5)]
 
-        config = ParallelConfig(use_dask=False, use_gpu=False)
+        config = ParallelConfig()
         engine = ParallelGridEngine(config)
 
         small_gdf = sample_gdf_large.iloc[:5]
@@ -238,14 +197,14 @@ class TestParallelGridEngine:
         assert "grid_1" in results
 
     def test_get_performance_stats_no_client(self):
-        """Test performance stats when no Dask client."""
-        config = ParallelConfig(use_dask=False)
+        """Test performance stats in threading-only mode."""
+        config = ParallelConfig()
         engine = ParallelGridEngine(config)
 
         stats = engine.get_performance_stats()
 
         assert "status" in stats
-        assert stats["status"] == "dask_disabled"
+        assert stats["status"] == "threading_only"
         assert "config" in stats
 
 
@@ -268,7 +227,7 @@ class TestStreamProcessing:
         grid = GeohashGrid(precision=5)
         processor = GridStreamProcessor(grid)
 
-        config = ParallelConfig(use_dask=False, use_gpu=False)
+        config = ParallelConfig()
         engine = ParallelGridEngine(config)
 
         result = engine.stream_process(iter(sample_stream_data), processor)
@@ -282,7 +241,7 @@ class TestStreamProcessing:
         grid = GeohashGrid(precision=5)
         processor = GridStreamProcessor(grid)
 
-        config = ParallelConfig(use_dask=False, use_gpu=False)
+        config = ParallelConfig()
         engine = ParallelGridEngine(config)
 
         callback_results = []
@@ -309,7 +268,7 @@ class TestConvenienceFunctions:
     def test_parallel_intersect_function(self, sample_gdf):
         """Test parallel_intersect convenience function."""
         grid = GeohashGrid(precision=5)
-        config = ParallelConfig(use_dask=False, use_gpu=False)
+        config = ParallelConfig()
 
         result = parallel_intersect(grid, sample_gdf, config, chunk_size=1)
 
@@ -320,7 +279,7 @@ class TestConvenienceFunctions:
     def test_stream_grid_processing_function(self, sample_gdf):
         """Test stream_grid_processing convenience function."""
         grid = GeohashGrid(precision=5)
-        config = ParallelConfig(use_dask=False, use_gpu=False)
+        config = ParallelConfig()
 
         # Create stream from data
         stream = create_data_stream(sample_gdf, chunk_size=1)
@@ -427,7 +386,7 @@ class TestEdgeCases:
         grid = GeohashGrid(precision=5)
         processor = GridStreamProcessor(grid)
 
-        config = ParallelConfig(use_dask=False)
+        config = ParallelConfig()
         engine = ParallelGridEngine(config)
 
         empty_stream = iter([])
@@ -441,7 +400,7 @@ class TestEdgeCases:
         grid = GeohashGrid(precision=5)
         processor = GridStreamProcessor(grid)
 
-        config = ParallelConfig(use_dask=False)
+        config = ParallelConfig()
         engine = ParallelGridEngine(config)
 
         # Create stream with empty and non-empty chunks
@@ -457,32 +416,6 @@ class TestEdgeCases:
 
         assert isinstance(result, gpd.GeoDataFrame)
         assert len(result) >= 1  # Should have results from non-empty chunk
-
-    def test_gpu_fallback_on_error(self):
-        """Test GPU processing fallback on error."""
-        mock_cudf = Mock()
-        mock_cudf.from_pandas.side_effect = Exception("GPU error")
-
-        with patch("m3s.parallel.GPU_AVAILABLE", True), patch(
-            "m3s.parallel.cudf", mock_cudf
-        ):
-            config = ParallelConfig(use_dask=False, use_gpu=True)
-            engine = ParallelGridEngine(config)
-
-            grid = GeohashGrid(precision=5)
-            gdf = gpd.GeoDataFrame(
-                {"id": [1]}, geometry=[Point(-74.0, 40.7)], crs="EPSG:4326"
-            )
-
-            with warnings.catch_warnings(record=True) as w:
-                warnings.simplefilter("always")
-                result = engine._intersect_gpu(grid, gdf, 1000)
-
-                assert isinstance(result, gpd.GeoDataFrame)
-                assert len(w) > 0  # Warning about GPU fallback
-                assert any(
-                    "GPU processing failed" in str(warning.message) for warning in w
-                )
 
 
 if __name__ == "__main__":

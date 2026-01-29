@@ -10,7 +10,7 @@ for the result, and return the 'out' parameter for chaining.
 """
 
 import math
-from typing import List, Tuple, Union, cast
+from typing import List, Tuple, Union
 
 import numpy as np
 

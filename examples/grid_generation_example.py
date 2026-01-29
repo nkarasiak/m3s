@@ -113,7 +113,13 @@ grid_configs = [
         axes[2, 1],
     ),
     (gars_result, "GARS Grid\nPrecision 3", "lavender", "mediumorchid", axes[2, 2]),
-    (a5_result, "A5 Pentagon Grid\nPrecision 7", "lightsalmon", "darkorange", axes[3, 0]),
+    (
+        a5_result,
+        "A5 Pentagon Grid\nPrecision 7",
+        "lightsalmon",
+        "darkorange",
+        axes[3, 0],
+    ),
 ]
 
 # Plot each grid system

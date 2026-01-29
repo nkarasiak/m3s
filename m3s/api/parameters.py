@@ -157,7 +157,9 @@ class ParameterNormalizer:
         return f"{grid_system} precision {precision}"
 
     @classmethod
-    def normalize_for_grid_class(cls, grid_system: str, precision: int) -> Dict[str, int]:
+    def normalize_for_grid_class(
+        cls, grid_system: str, precision: int
+    ) -> Dict[str, int]:
         """
         Create parameter dict for grid class constructor.
 
@@ -188,7 +190,9 @@ class ParameterNormalizer:
         return {"precision": precision}
 
     @classmethod
-    def get_equivalent_precisions(cls, reference_system: str, reference_precision: int) -> Dict[str, int]:
+    def get_equivalent_precisions(
+        cls, reference_system: str, reference_precision: int
+    ) -> Dict[str, int]:
         """
         Get approximately equivalent precisions across all grid systems.
 

@@ -8,8 +8,6 @@ based on the dodecahedral projection described in Felix Palmer's specification.
 import math
 from typing import List, Tuple
 
-import numpy as np
-
 # ============================================================================
 # Golden Ratio and Fundamental Constants
 # ============================================================================
@@ -211,17 +209,14 @@ _w_y = _L * math.sin(_W)
 
 # BASIS matrix as nested tuples (column vectors)
 # Used to transform IJ coordinates to face coordinates
-BASIS = (
-    (_v_x, _w_x),  # First row: [v.x, w.x]
-    (_v_y, _w_y)   # Second row: [v.y, w.y]
-)
+BASIS = ((_v_x, _w_x), (_v_y, _w_y))  # First row: [v.x, w.x]  # Second row: [v.y, w.y]
 
 # Inverse of BASIS matrix (for transforming face coordinates to IJ)
 # For 2x2 matrix [[a,b],[c,d]], inverse is [[d,-b],[-c,a]] / (ad - bc)
 _det = BASIS[0][0] * BASIS[1][1] - BASIS[0][1] * BASIS[1][0]
 BASIS_INVERSE = (
     (BASIS[1][1] / _det, -BASIS[0][1] / _det),
-    (-BASIS[1][0] / _det, BASIS[0][0] / _det)
+    (-BASIS[1][0] / _det, BASIS[0][0] / _det),
 )
 
 # ============================================================================
@@ -268,7 +263,7 @@ _face_centers = [
     (_C, -_A),  # [cos36, -sin36]
     (_C, _A),  # [cos36, sin36]
     (-_E, _G),  # [-cos72, sin72]
-    (0, 0)
+    (0, 0),
 ]
 
 # Obtain axes by cross product with the z-axis

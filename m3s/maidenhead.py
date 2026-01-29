@@ -7,6 +7,7 @@ from typing import List
 from shapely.geometry import Polygon
 
 from .base import BaseGrid, GridCell
+from .cache import cached_property
 
 
 class MaidenheadGrid(BaseGrid):
@@ -40,6 +41,25 @@ class MaidenheadGrid(BaseGrid):
         if not 1 <= precision <= 4:
             raise ValueError("Maidenhead precision must be between 1 and 4")
         super().__init__(precision)
+
+    @cached_property
+    def area_km2(self) -> float:
+        """
+        Approximate area of a Maidenhead cell at this precision in square kilometers.
+
+        Returns
+        -------
+        float
+            Approximate area in square kilometers
+        """
+        sizes = {
+            1: (20.0, 10.0),
+            2: (2.0, 1.0),
+            3: (2.0 / 24, 1.0 / 24),
+            4: (2.0 / 240, 1.0 / 240),
+        }
+        lon_deg, lat_deg = sizes[self.precision]
+        return (lon_deg * 111.32) * (lat_deg * 111.32)
 
     def encode(self, lat: float, lon: float) -> str:
         """

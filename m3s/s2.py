@@ -331,6 +331,9 @@ class S2Grid(BaseGrid):
         List[GridCell]
             List of cells covering the polygon
         """
+        if not hasattr(s2sphere, "Loop") or not hasattr(s2sphere, "Polygon"):
+            return self._covering_from_bbox(polygon, max_cells)
+
         try:
             # Convert Shapely polygon to S2Polygon
             exterior_coords = list(polygon.exterior.coords)
@@ -361,9 +364,14 @@ class S2Grid(BaseGrid):
             return cells
         except Exception as e:
             warnings.warn(f"Failed to get covering cells: {e}", stacklevel=2)
-            # Fallback to bounding box
-            bounds = polygon.bounds
-            return self.get_cells_in_bbox(bounds[1], bounds[0], bounds[3], bounds[2])
+            return self._covering_from_bbox(polygon, max_cells)
+
+    def _covering_from_bbox(self, polygon: Polygon, max_cells: int) -> List[GridCell]:
+        bounds = polygon.bounds
+        cells = self.get_cells_in_bbox(bounds[1], bounds[0], bounds[3], bounds[2])
+        if max_cells > 0 and len(cells) > max_cells:
+            return cells[:max_cells]
+        return cells
 
     def __repr__(self):
         return f"S2Grid(level={self.level})"

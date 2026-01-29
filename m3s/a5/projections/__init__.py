@@ -11,6 +11,9 @@ in the A5 DGGS, including:
 Ported from Felix Palmer's a5-py reference implementation.
 """
 
+from m3s.a5.projections.dodecahedron import DodecahedronProjection
+from m3s.a5.projections.gnomonic import GnomonicProjection
+from m3s.a5.projections.polyhedral import PolyhedralProjection
 from m3s.a5.projections.quaternion import (
     conjugate,
     create,
@@ -18,11 +21,23 @@ from m3s.a5.projections.quaternion import (
 )
 from m3s.a5.projections.vec2_utils import (
     add as vec2_add,
+)
+from m3s.a5.projections.vec2_utils import (
     clone as vec2_clone,
+)
+from m3s.a5.projections.vec2_utils import (
     create as vec2_create,
+)
+from m3s.a5.projections.vec2_utils import (
     length as vec2_length,
+)
+from m3s.a5.projections.vec2_utils import (
     lerp as vec2_lerp,
+)
+from m3s.a5.projections.vec2_utils import (
     negate as vec2_negate,
+)
+from m3s.a5.projections.vec2_utils import (
     scale as vec2_scale,
 )
 from m3s.a5.projections.vec3_utils import (
@@ -43,9 +58,6 @@ from m3s.a5.projections.vec3_utils import (
     tripleProduct,
     vectorDifference,
 )
-from m3s.a5.projections.gnomonic import GnomonicProjection
-from m3s.a5.projections.polyhedral import PolyhedralProjection
-from m3s.a5.projections.dodecahedron import DodecahedronProjection
 
 __all__ = [
     # Quaternion operations

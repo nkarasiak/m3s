@@ -4,9 +4,9 @@ Tests for caching functionality.
 
 from shapely.geometry import Polygon
 
-from m3s.geohash import GeohashGrid
 from m3s.base import GridCell
 from m3s.cache import LRUCache, SpatialCache, get_spatial_cache
+from m3s.geohash import GeohashGrid
 
 
 class TestLRUCache:

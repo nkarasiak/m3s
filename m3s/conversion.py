@@ -11,6 +11,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 
+from .a5 import A5Grid
 from .base import BaseGrid, GridCell
 from .csquares import CSquaresGrid
 from .gars import GARSGrid
@@ -23,7 +24,6 @@ from .quadkey import QuadkeyGrid
 from .s2 import S2Grid
 from .slippy import SlippyGrid
 from .what3words import What3WordsGrid
-from .a5 import A5Grid
 
 
 class GridConverter:
@@ -61,7 +61,7 @@ class GridConverter:
         "csquares": 2,  # ~100 km²
         "gars": 2,  # ~464 km²
         "maidenhead": 4,  # ~232 km²
-        "pluscode": 8,  # ~14 m²
+        "pluscode": 4,  # ~12.5m resolution in this implementation
         "what3words": 1,  # ~9 m²
         "a5": 8,  # ~1,247 km²
     }
@@ -355,7 +355,9 @@ class GridConverter:
                 )
 
             except Exception as e:
-                warnings.warn(f"Could not load info for {system_name}: {e}", stacklevel=2)
+                warnings.warn(
+                    f"Could not load info for {system_name}: {e}", stacklevel=2
+                )
                 continue
 
         return pd.DataFrame(info_data)

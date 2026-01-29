@@ -120,10 +120,10 @@ class TestMultiResolutionGrid:
 
         assert isinstance(lod_view, gpd.GeoDataFrame)
         if len(lod_view) > 0:  # May be empty for small regions
-            assert 'cell_id' in lod_view.columns
-            assert 'precision' in lod_view.columns
-            assert 'area_km2' in lod_view.columns
-            assert 'geometry' in lod_view.columns
+            assert "cell_id" in lod_view.columns
+            assert "precision" in lod_view.columns
+            assert "area_km2" in lod_view.columns
+            assert "geometry" in lod_view.columns
 
     def test_analyze_scale_transitions(self):
         """Test scale transition analysis."""
@@ -136,8 +136,14 @@ class TestMultiResolutionGrid:
         transitions = multi_grid.analyze_scale_transitions(bounds)
 
         assert isinstance(transitions, pd.DataFrame)
-        expected_cols = ['from_precision', 'to_precision', 'from_level', 'to_level',
-                        'subdivision_ratio', 'area_ratio']
+        expected_cols = [
+            "from_precision",
+            "to_precision",
+            "from_level",
+            "to_level",
+            "subdivision_ratio",
+            "area_ratio",
+        ]
         for col in expected_cols:
             assert col in transitions.columns
 
@@ -154,23 +160,27 @@ class TestMultiResolutionGrid:
         if fine_cells:  # Only test if we have cells
             data_rows = []
             for i, cell in enumerate(fine_cells[:5]):  # Limit for testing
-                data_rows.append({
-                    'cell_id': cell.identifier,
-                    'value': i + 1,
-                    'geometry': cell.polygon
-                })
+                data_rows.append(
+                    {
+                        "cell_id": cell.identifier,
+                        "value": i + 1,
+                        "geometry": cell.polygon,
+                    }
+                )
 
             test_data = gpd.GeoDataFrame(data_rows)
             test_data.crs = "EPSG:4326"
 
             # Aggregate to coarser level
-            aggregated = multi_grid.aggregate_to_level(test_data, target_level=0)  # Level 0 = precision 4
+            aggregated = multi_grid.aggregate_to_level(
+                test_data, target_level=0
+            )  # Level 0 = precision 4
 
             assert isinstance(aggregated, gpd.GeoDataFrame)
             if len(aggregated) > 0:
-                assert 'cell_id' in aggregated.columns
-                assert 'value' in aggregated.columns
-                assert 'contributing_cells' in aggregated.columns
+                assert "cell_id" in aggregated.columns
+                assert "value" in aggregated.columns
+                assert "contributing_cells" in aggregated.columns
 
     def test_get_resolution_statistics(self):
         """Test getting resolution statistics."""
@@ -183,13 +193,13 @@ class TestMultiResolutionGrid:
 
         assert isinstance(stats, pd.DataFrame)
         assert len(stats) == 3
-        assert 'level' in stats.columns
-        assert 'precision' in stats.columns
-        assert 'area_km2' in stats.columns
-        assert 'grid_type' in stats.columns
+        assert "level" in stats.columns
+        assert "precision" in stats.columns
+        assert "area_km2" in stats.columns
+        assert "grid_type" in stats.columns
 
         # Check that areas decrease with increasing precision
-        areas = stats.sort_values('level')['area_km2'].values
+        areas = stats.sort_values("level")["area_km2"].values
         assert areas[0] > areas[1] > areas[2]  # Coarser levels have larger areas
 
     def test_create_quad_tree_structure(self):
@@ -203,12 +213,12 @@ class TestMultiResolutionGrid:
         tree = multi_grid.create_quad_tree_structure(bounds)
 
         assert isinstance(tree, dict)
-        assert 'level' in tree
-        assert 'precision' in tree
-        assert 'cells' in tree
-        assert 'children' in tree
-        assert tree['level'] == 0
-        assert tree['precision'] == 4  # Coarsest level
+        assert "level" in tree
+        assert "precision" in tree
+        assert "cells" in tree
+        assert "children" in tree
+        assert tree["level"] == 0
+        assert tree["precision"] == 4  # Coarsest level
 
     def test_adaptive_filtering(self):
         """Test adaptive filtering functionality."""
@@ -220,7 +230,7 @@ class TestMultiResolutionGrid:
         # Create test cells
         test_cells = []
         for i in range(10):
-            polygon = Polygon([(i, 0), (i+1, 0), (i+1, 1), (i, 1), (i, 0)])
+            polygon = Polygon([(i, 0), (i + 1, 0), (i + 1, 1), (i, 1), (i, 0)])
             test_cells.append(GridCell(f"cell_{i}", polygon, 5))
 
         # Apply adaptive filtering
@@ -237,9 +247,15 @@ class TestMultiResolutionGrid:
         multi_grid = MultiResolutionGrid(base_grid, levels)
 
         # Create test cells with different areas
-        large_cell = GridCell("large", Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]), 3)
-        medium_cell = GridCell("medium", Polygon([(0, 0), (5, 0), (5, 5), (0, 5), (0, 0)]), 4)
-        small_cell = GridCell("small", Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]), 5)
+        large_cell = GridCell(
+            "large", Polygon([(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)]), 3
+        )
+        medium_cell = GridCell(
+            "medium", Polygon([(0, 0), (5, 0), (5, 5), (0, 5), (0, 0)]), 4
+        )
+        small_cell = GridCell(
+            "small", Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]), 5
+        )
 
         # Test detail function
         large_detail = multi_grid._default_detail_function(large_cell)
@@ -262,6 +278,7 @@ class TestMultiResolutionGrid:
 
         # Test get_hierarchical_cells convenience function
         from m3s.multiresolution import get_hierarchical_cells
+
         point = Point(-74.0060, 40.7128)
         hierarchical = get_hierarchical_cells(multi_grid, point)
         assert isinstance(hierarchical, dict)
@@ -292,10 +309,9 @@ class TestMultiResolutionGrid:
         multi_grid = MultiResolutionGrid(base_grid, levels)
 
         # Create dummy data
-        test_data = gpd.GeoDataFrame({
-            'value': [1],
-            'geometry': [Point(0, 0).buffer(0.1)]
-        })
+        test_data = gpd.GeoDataFrame(
+            {"value": [1], "geometry": [Point(0, 0).buffer(0.1)]}
+        )
 
         with pytest.raises(ValueError):
             multi_grid.aggregate_to_level(test_data, target_level=10)  # Invalid level
