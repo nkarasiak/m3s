@@ -10,24 +10,24 @@ jobs:
   check-tests:
     runs-on: ubuntu-latest
     steps:
-    - name: Wait for tests
+    - name: Wait for tests to complete
       uses: lewagon/wait-on-check-action@v1.3.4
       with:
         ref: ${{ github.ref }}
-        check-name: 'test'
+        check-name: 'tests-complete'
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-        wait-interval: 10
+        wait-interval: 20
 
   check-docs:
     runs-on: ubuntu-latest
     steps:
-    - name: Wait for docs
+    - name: Wait for docs to build
       uses: lewagon/wait-on-check-action@v1.3.4
       with:
         ref: ${{ github.ref }}
         check-name: 'build'
         repo-token: ${{ secrets.GITHUB_TOKEN }}
-        wait-interval: 10
+        wait-interval: 20
 
   deploy:
     runs-on: ubuntu-latest
