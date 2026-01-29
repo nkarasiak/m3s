@@ -6,9 +6,12 @@ on:
       - 'v*'
 
 jobs:
-  # Wait for tests and docs to pass before publishing
-  check-tests:
+  deploy:
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
+
     steps:
     - name: Wait for tests to complete
       uses: lewagon/wait-on-check-action@v1.3.4
@@ -18,9 +21,6 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         wait-interval: 20
 
-  check-docs:
-    runs-on: ubuntu-latest
-    steps:
     - name: Wait for docs to build
       uses: lewagon/wait-on-check-action@v1.3.4
       with:
@@ -29,14 +29,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         wait-interval: 20
 
-  deploy:
-    runs-on: ubuntu-latest
-    needs: [check-tests, check-docs]
-    environment: release
-    permissions:
-      id-token: write
-
-    steps:
+    # Build and publish steps
     - uses: actions/checkout@v4
     
     - name: Set up Python
