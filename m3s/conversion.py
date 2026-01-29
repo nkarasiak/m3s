@@ -7,7 +7,7 @@ multiple indexing systems.
 """
 
 import warnings
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 
@@ -66,8 +66,8 @@ class GridConverter:
         "a5": 8,  # ~1,247 km²
     }
 
-    def __init__(self):
-        self._grid_cache = {}
+    def __init__(self) -> None:
+        self._grid_cache: Dict[Tuple[str, int], BaseGrid] = {}
 
     def _get_grid(self, system_name: str, precision: Optional[int] = None) -> BaseGrid:
         """
@@ -108,7 +108,7 @@ class GridConverter:
             else:
                 self._grid_cache[cache_key] = grid_class(precision=precision)
 
-        return self._grid_cache[cache_key]
+        return self._grid_cache[cache_key]  # type: ignore[no-any-return]
 
     def convert_cell(
         self,
@@ -299,7 +299,7 @@ class GridConverter:
             Equivalent precision in target system
         """
         source_grid = self._get_grid(source_system, source_precision)
-        source_area = source_grid.area_km2
+        source_area = source_grid.area_km2  # type: ignore[attr-defined]
 
         # Try different precisions in target system to find closest match
         best_precision = self.DEFAULT_PRECISIONS[target_system]
@@ -311,7 +311,7 @@ class GridConverter:
         for test_precision in test_range:
             try:
                 target_grid = self._get_grid(target_system, test_precision)
-                target_area = target_grid.area_km2
+                target_area = target_grid.area_km2  # type: ignore[attr-defined]
                 diff = abs(source_area - target_area)
 
                 if diff < best_diff:
@@ -345,7 +345,7 @@ class GridConverter:
                         "system": system_name,
                         "class": grid_class.__name__,
                         "default_precision": default_precision,
-                        "default_area_km2": grid.area_km2,
+                        "default_area_km2": grid.area_km2,  # type: ignore[attr-defined]
                         "description": (
                             grid_class.__doc__.split("\n")[1].strip()
                             if grid_class.__doc__
@@ -367,14 +367,14 @@ converter = GridConverter()
 
 # Convenience functions
 def convert_cell(
-    cell: GridCell, target_system: str, **kwargs
+    cell: GridCell, target_system: str, **kwargs: Any
 ) -> Union[GridCell, List[GridCell]]:
     """Convert a single grid cell to another system."""
     return converter.convert_cell(cell, target_system, **kwargs)
 
 
 def convert_cells(
-    cells: List[GridCell], target_system: str, **kwargs
+    cells: List[GridCell], target_system: str, **kwargs: Any
 ) -> List[Union[GridCell, List[GridCell]]]:
     """Convert multiple grid cells to another system."""
     return converter.convert_cells_batch(cells, target_system, **kwargs)
@@ -390,7 +390,7 @@ def get_equivalent_precision(
 
 
 def create_conversion_table(
-    source_system: str, target_system: str, bounds: tuple, **kwargs
+    source_system: str, target_system: str, bounds: tuple, **kwargs: Any
 ) -> pd.DataFrame:
     """Create a conversion table between two grid systems."""
     return converter.create_conversion_table(

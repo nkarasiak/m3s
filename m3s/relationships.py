@@ -6,7 +6,7 @@ including containment, overlap, adjacency, and topological operations.
 """
 
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -366,7 +366,7 @@ class GridRelationshipAnalyzer:
             List of cell clusters
         """
         # Build adjacency graph
-        adjacency_dict = {cell.identifier: set() for cell in cells}
+        adjacency_dict: Dict[str, Set[str]] = {cell.identifier: set() for cell in cells}
         cell_lookup = {cell.identifier: cell for cell in cells}
 
         for i, cell1 in enumerate(cells):
@@ -391,7 +391,7 @@ class GridRelationshipAnalyzer:
 
         for cell in cells:
             if cell.identifier not in visited:
-                cluster = []
+                cluster: List[str] = []
                 dfs(cell.identifier, cluster)
                 if len(cluster) >= min_cluster_size:
                     clusters.append([cell_lookup[cell_id] for cell_id in cluster])

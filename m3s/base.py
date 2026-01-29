@@ -116,7 +116,7 @@ class GridCell:
             return False
         return self.identifier == other.identifier
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.identifier)
 
 

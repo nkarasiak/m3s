@@ -35,7 +35,7 @@ class A5CellOperations:
     including coordinate conversion, cell ID generation, and boundary calculation.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize cell operations with geometry and coordinate transformers."""
         self.transformer = CoordinateTransformer()
         self.dodec = Dodecahedron()

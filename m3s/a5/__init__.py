@@ -30,7 +30,7 @@ Types:
     A5Cell: Type alias for int (64-bit cell identifier)
 """
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from m3s.a5.cell import (
     cell_to_boundary as _cell_to_boundary_impl,
@@ -46,7 +46,7 @@ from m3s.a5.grid import A5Grid
 A5Cell = int  # 64-bit integer cell identifier
 
 # Wrapper functions for API compatibility with optional resolution parameter
-def cell_to_lonlat(cell_id: A5Cell, resolution: int = None) -> Tuple[float, float]:
+def cell_to_lonlat(cell_id: A5Cell, resolution: Optional[int] = None) -> Tuple[float, float]:
     """
     Convert A5 cell ID to center coordinates.
 
@@ -65,7 +65,7 @@ def cell_to_lonlat(cell_id: A5Cell, resolution: int = None) -> Tuple[float, floa
     return _cell_to_lonlat_impl(cell_id)
 
 
-def cell_to_boundary(cell_id: A5Cell, resolution: int = None) -> List[Tuple[float, float]]:
+def cell_to_boundary(cell_id: A5Cell, resolution: Optional[int] = None) -> List[Tuple[float, float]]:
     """
     Get cell boundary vertices.
 
@@ -119,7 +119,7 @@ def get_children(cell_id: A5Cell) -> List[A5Cell]:
 
 
 # Alias functions for alternate API
-def cell_to_parent(cell_id: A5Cell, resolution: int = None) -> A5Cell:
+def cell_to_parent(cell_id: A5Cell, resolution: Optional[int] = None) -> A5Cell:
     """
     Get parent cell at resolution-1 (alternate API).
 
@@ -138,7 +138,7 @@ def cell_to_parent(cell_id: A5Cell, resolution: int = None) -> A5Cell:
     return _get_parent_impl(cell_id)
 
 
-def cell_to_children(cell_id: A5Cell, resolution: int = None) -> List[A5Cell]:
+def cell_to_children(cell_id: A5Cell, resolution: Optional[int] = None) -> List[A5Cell]:
     """
     Get child cells at resolution+1 (alternate API).
 
@@ -215,7 +215,7 @@ def get_num_cells(resolution: int) -> int:
     int
         Total number of cells (12 * 5^resolution)
     """
-    return 12 * (5 ** resolution)
+    return 12 * (5 ** resolution)  # type: ignore[no-any-return]
 
 
 def cell_area(cell_id: A5Cell, resolution: int) -> float:

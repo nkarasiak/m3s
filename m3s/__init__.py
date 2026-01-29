@@ -7,6 +7,17 @@ including grid conversion utilities, relationship analysis, and multi-resolution
 
 from .base import BaseGrid
 
+# Modern API
+from .api import (
+    GridBuilder,
+    PrecisionSelector,
+    PrecisionRecommendation,
+    AreaCalculator,
+    PerformanceProfiler,
+    GridQueryResult,
+    MultiGridComparator,
+)
+
 # New grid system enhancements
 from .conversion import (
     GridConverter,
@@ -95,6 +106,15 @@ __all__ = [
     "SlippyGrid",
     "What3WordsGrid",
     "A5Grid",
+
+    # Modern API
+    "GridBuilder",
+    "PrecisionSelector",
+    "PrecisionRecommendation",
+    "AreaCalculator",
+    "PerformanceProfiler",
+    "GridQueryResult",
+    "MultiGridComparator",
 
     # A5 API functions
     "A5Cell",

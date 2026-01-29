@@ -9,7 +9,7 @@ This module provides coordinate system transformations for the A5 grid:
 """
 
 import math
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 
@@ -63,7 +63,7 @@ class CoordinateTransformer:
     _dodec_projection = None  # Singleton instance
 
     @classmethod
-    def get_dodec_projection(cls):
+    def get_dodec_projection(cls) -> "DodecahedronProjection":
         """Get or create dodecahedron projection instance."""
         if cls._dodec_projection is None:
             cls._dodec_projection = DodecahedronProjection()
@@ -371,7 +371,7 @@ class CoordinateTransformer:
 
     @staticmethod
     def face_ij_to_cartesian(
-        i: float, j: float, origin_xyz: np.ndarray, origin_id: int = None
+        i: float, j: float, origin_xyz: np.ndarray, origin_id: Optional[int] = None
     ) -> np.ndarray:
         """
         Convert 2D face IJ coordinates back to 3D Cartesian.

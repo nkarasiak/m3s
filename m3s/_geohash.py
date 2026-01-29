@@ -10,7 +10,7 @@ class GeohashEncoder:
 
     BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz"
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.base32_map = {c: i for i, c in enumerate(self.BASE32)}
 
     def encode(self, lat: float, lon: float, precision: int = 5) -> str:
@@ -18,7 +18,7 @@ class GeohashEncoder:
         lat_range = [-90.0, 90.0]
         lon_range = [-180.0, 180.0]
 
-        geohash = []
+        geohash: List[str] = []
         bits = 0
         bit_count = 0
         even_bit = True  # Start with longitude

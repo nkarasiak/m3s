@@ -5,7 +5,7 @@ This module provides the A5Grid class that implements the M3S BaseGrid interface
 for the A5 pentagonal grid system.
 """
 
-from typing import List
+from typing import Dict, List
 
 from shapely.geometry import Point, Polygon
 
@@ -128,7 +128,7 @@ class A5Grid(BaseGrid):
         due to caching.
         """
         cells = []
-        seen_ids = {}  # Cache cells we've already created
+        seen_ids: Dict[int, GridCell] = {}  # Cache cells we've already created
 
         for lat, lon in points:
             cell_id = self.cell_ops.lonlat_to_cell(lon, lat, self.precision)

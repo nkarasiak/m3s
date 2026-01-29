@@ -8,7 +8,7 @@ including lazy evaluation, chunked processing, and memory monitoring.
 import gc
 import warnings
 from contextlib import contextmanager
-from typing import Callable, Iterator, Optional
+from typing import Any, Callable, Iterator, List, Optional
 
 import geopandas as gpd
 import pandas as pd
@@ -317,7 +317,7 @@ class StreamingGridProcessor:
         self.grid = grid
         self.memory_monitor = memory_monitor or MemoryMonitor()
         self.processed_count = 0
-        self.results_cache = []
+        self.results_cache: List[Any] = []
 
     def process_stream(
         self,
