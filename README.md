@@ -11,7 +11,7 @@ A unified Python package for working with hierarchical spatial grid systems. M3S
 - **Polygon Intersection**: Find grid cells that intersect with any Shapely polygon or GeoDataFrame
 - **Hierarchical Operations**: Work with different precision levels and resolutions
 - **Neighbor Finding**: Get neighboring grid cells across all supported systems
-- **Parallel Processing**: Distributed computing with Dask, GPU acceleration, and streaming support
+- **Parallel Processing**: Threaded parallelism and streaming support
 - **Unified Interface**: Consistent API across all grid systems
 - **Modern Python**: Built with modern Python packaging and comprehensive type hints
 - **Comprehensive Testing**: Full test coverage with pytest
@@ -231,8 +231,6 @@ from m3s.parallel import ParallelGridEngine, ParallelConfig
 
 # Configure parallel processing
 config = ParallelConfig(
-    use_dask=True,
-    use_gpu=True,
     n_workers=4,
     chunk_size=10000
 )
@@ -297,10 +295,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [mgrs](https://pypi.org/project/mgrs/) - MGRS coordinate conversions
 - [h3](https://pypi.org/project/h3/) - H3 hexagonal grid operations
 - [s2sphere](https://pypi.org/project/s2sphere/) - S2 spherical geometry operations
-
-### Optional (for parallel processing)
-- [dask](https://dask.org/) - Distributed computing (`uv pip install m3s[parallel]`)
-- [cupy](https://cupy.dev/) - GPU acceleration (`uv pip install m3s[gpu]`)
 
 **Notes**: 
 - Geohash, Quadkey, and Slippy Map Tiles are implemented using pure Python (no external dependencies)

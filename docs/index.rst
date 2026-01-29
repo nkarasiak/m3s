@@ -24,7 +24,7 @@ M3S (Multi Spatial Subdivision System) is a powerful Python library that provide
    .. grid-item-card:: ⚡ Performance Optimized
       :class-header: bg-light
 
-      Built with performance in mind, supporting both CPU and GPU acceleration for large-scale spatial operations.
+      Built with performance in mind, offering threaded parallelism for large-scale spatial operations.
 
    .. grid-item-card:: 🔧 Easy Integration
       :class-header: bg-light
@@ -177,10 +177,10 @@ Key Features
    All 12 grid systems use consistent `precision` parameter (no more confusion between resolution/level/zoom).
 
 🚀 **High Performance**
-   Precomputed lookup tables, caching, lazy evaluation, and optional GPU acceleration.
+   Precomputed lookup tables, caching, and lazy evaluation.
 
 📈 **Scalable Operations**
-   Memory-efficient streaming, parallel processing with Dask, and adaptive chunking for large datasets.
+   Memory-efficient streaming, threaded parallel processing, and adaptive chunking for large datasets.
 
 🛠️ **GeoPandas Integration**
    Native support for GeoDataFrames with automatic CRS transformation and UTM zone detection.

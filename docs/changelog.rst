@@ -82,12 +82,6 @@ Enhanced
 
 Fixed
 ~~~~~
-- **Parallel Processing Bugs**: Fixed critical issues in Dask integration
-
-  - Resolved ``NameError: name 'delayed' is not defined`` in Dask processing
-  - Fixed GPU fallback test failures with proper mock handling
-  - Added proper import fallbacks for missing Dask/GPU dependencies
-
 - **Memory Management**: Graceful handling of optional dependencies
 
   - ``psutil`` made optional with fallback implementations for memory monitoring
@@ -143,11 +137,10 @@ Added
   - Returns theoretical area in square kilometers for cells at specified precision/resolution/level
   - Example: ``H3Grid(7).area_km2`` returns 5.16 km²
 
-- **Parallel Processing Engine**: Comprehensive distributed computing support
+- **Parallel Processing Engine**: Threaded processing support
 
-  - ``ParallelGridEngine`` with Dask, GPU (RAPIDS), and threading backends
+  - ``ParallelGridEngine`` with threading backend
   - Stream processing capabilities for large datasets
-  - Automatic fallbacks when specialized libraries are unavailable
 
 - **Enhanced Examples**: Updated visualization examples
 
