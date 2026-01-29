@@ -147,10 +147,10 @@ class TestDodecahedronGeometry:
         origin_id = dodec.find_nearest_origin(north_pole)
         assert origin_id == 0
 
-        # South pole should be nearest to origin 11
+        # South pole should be nearest to origin 9 (after Hilbert reordering)
         south_pole = np.array([0, 0, -1])
         origin_id = dodec.find_nearest_origin(south_pole)
-        assert origin_id == 11
+        assert origin_id == 9
 
     def test_get_origin_spherical(self):
         """Test getting origin in spherical coordinates."""
@@ -350,8 +350,18 @@ class TestSerialization:
         """Test encode -> decode roundtrip."""
         serializer = A5Serializer()
 
-        # Test all origins and segments at resolution 0-1
-        for resolution in [0, 1]:
+        # Test resolution 0 (only origin, no segment)
+        for origin in range(12):
+            cell_id = serializer.encode(origin, 0, 0, 0)
+            decoded = serializer.decode(cell_id)
+
+            assert decoded[0] == origin
+            assert decoded[1] == 0  # segment always 0 at res 0
+            assert decoded[2] == 0  # s value
+            assert decoded[3] == 0  # resolution
+
+        # Test resolution 1 and higher (with segments)
+        for resolution in [1, 2]:
             for origin in range(12):
                 for segment in range(5):
                     cell_id = serializer.encode(origin, segment, 0, resolution)
