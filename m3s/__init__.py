@@ -62,15 +62,21 @@ from .relationships import (
 from .s2 import S2Grid
 from .slippy import SlippyGrid
 from .what3words import What3WordsGrid
-# A5 Grid System (Phase 1-2: Resolution 0-1)
+# A5 Grid System
 from .a5 import (
+    A5Cell,
     A5Grid,
+    cell_area,
     cell_to_boundary,
+    cell_to_children,
     cell_to_lonlat,
-    get_children,
-    get_parent,
+    cell_to_parent,
+    get_num_cells,
+    get_res0_cells,
     get_resolution,
+    hex_to_u64,
     lonlat_to_cell,
+    u64_to_hex,
 )
 
 __version__ = "0.5.0"
@@ -90,13 +96,19 @@ __all__ = [
     "What3WordsGrid",
     "A5Grid",
 
-    # A5 API functions (Phase 1-2: Resolution 0-1)
+    # A5 API functions
+    "A5Cell",
     "lonlat_to_cell",
     "cell_to_lonlat",
     "cell_to_boundary",
-    "get_parent",
-    "get_children",
+    "cell_to_parent",
+    "cell_to_children",
     "get_resolution",
+    "get_res0_cells",
+    "get_num_cells",
+    "cell_area",
+    "hex_to_u64",
+    "u64_to_hex",
 
     # Parallel processing
     "ParallelConfig",

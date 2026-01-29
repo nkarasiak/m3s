@@ -1,4 +1,55 @@
 {
+ "A5Grid": [
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s",
+   "name": "BaseGrid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  }
+ ],
  "GARSGrid": [
   {
    "is_class": true,
@@ -393,6 +444,89 @@
    "module": "m3s",
    "module_short": "m3s",
    "name": "SlippyGrid"
+  }
+ ],
+ "a5_grid": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid"
+  }
+ ],
+ "a5_grid.intersects": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5.grid",
+   "module_short": "m3s",
+   "name": "A5Grid.intersects"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.a5",
+   "module_short": "m3s",
+   "name": "A5Grid.intersects"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "A5Grid.intersects"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s",
+   "name": "BaseGrid.intersects"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid.intersects"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC.intersects"
+  }
+ ],
+ "a5_result": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "geopandas.geodataframe",
+   "module_short": "geopandas",
+   "name": "GeoDataFrame"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "geopandas",
+   "module_short": "geopandas",
+   "name": "GeoDataFrame"
   }
  ],
  "ax": [

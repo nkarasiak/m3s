@@ -24,6 +24,7 @@ from m3s.a5.constants import (
     validate_latitude,
     validate_longitude,
 )
+from m3s.a5.projections.dodecahedron import DodecahedronProjection
 
 # Authalic projection coefficients (from Palmer's implementation)
 # These ensure equal-area properties when mapping the WGS84 ellipsoid to a sphere
@@ -58,6 +59,15 @@ class CoordinateTransformer:
     - Face IJ coordinates
     - Polar (r, theta) for quintant determination
     """
+
+    _dodec_projection = None  # Singleton instance
+
+    @classmethod
+    def get_dodec_projection(cls):
+        """Get or create dodecahedron projection instance."""
+        if cls._dodec_projection is None:
+            cls._dodec_projection = DodecahedronProjection()
+        return cls._dodec_projection
 
     @staticmethod
     def _apply_authalic_coefficients(phi: float, coefficients: tuple) -> float:
@@ -346,24 +356,22 @@ class CoordinateTransformer:
 
         Notes
         -----
-        TEMPORARY: Using Palmer's dodecahedron projection directly for compatibility
-        TODO: Debug and fix our DodecahedronProjection implementation
+        Uses the native DodecahedronProjection implementation for proper
+        equal-area polyhedral projection (Slice & Dice algorithm).
         """
-        # TEMPORARY: Use Palmer's projection for now
-        from a5.core.cell import _dodecahedron as palmer_dodec
-
         # Convert Cartesian to spherical coordinates
         theta, phi = CoordinateTransformer.cartesian_to_spherical(xyz)
         spherical = (theta, phi)
 
-        # Use Palmer's dodecahedron projection
-        i, j = palmer_dodec.forward(spherical, origin_id)
+        # Use NATIVE dodecahedron projection
+        dodec = CoordinateTransformer.get_dodec_projection()
+        i, j = dodec.forward(spherical, origin_id)
 
         return i, j
 
     @staticmethod
     def face_ij_to_cartesian(
-        i: float, j: float, origin_xyz: np.ndarray
+        i: float, j: float, origin_xyz: np.ndarray, origin_id: int = None
     ) -> np.ndarray:
         """
         Convert 2D face IJ coordinates back to 3D Cartesian.
@@ -378,12 +386,26 @@ class CoordinateTransformer:
             J coordinate on face
         origin_xyz : np.ndarray
             Face center in 3D [x, y, z]
+        origin_id : int, optional
+            Origin ID for proper inverse projection (required for accuracy)
 
         Returns
         -------
         np.ndarray
             3D Cartesian coordinates [x, y, z] on sphere
+
+        Notes
+        -----
+        When origin_id is provided, uses proper dodecahedron inverse projection.
+        Otherwise falls back to planar approximation.
         """
+        if origin_id is not None:
+            # Use proper dodecahedron inverse projection
+            dodec = CoordinateTransformer.get_dodec_projection()
+            theta, phi = dodec.inverse((i, j), origin_id)
+            return CoordinateTransformer.spherical_to_cartesian(theta, phi)
+
+        # Fallback to planar approximation (for compatibility)
         # Normalize face normal
         face_normal = origin_xyz / np.linalg.norm(origin_xyz)
 

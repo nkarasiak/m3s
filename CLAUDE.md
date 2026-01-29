@@ -11,7 +11,7 @@ M3S (Multi Spatial Subdivision System) is a Python package that provides a unifi
 - **Relationship Analysis**: Analyze spatial relationships between grid cells (adjacency, containment, overlap)
 - **Multi-Resolution Operations**: Work with multiple precision levels simultaneously for hierarchical analysis
 - **What3Words Grid**: 3-meter precision grid system
-- **A5 Grid System** (In Development): Pentagonal DGGS based on dodecahedral projection (compatible with felixpalmer/a5-py API)
+- **A5 Grid System**: Pentagonal DGGS based on dodecahedral projection with resolutions 0-30 (compatible with felixpalmer/a5-py API)
 
 ## Development Commands
 
@@ -42,9 +42,9 @@ sphinx-build . _build  # Alternative build command
 
 ### Development Installation
 ```bash
-pip install -e ".[dev]"      # Install with development dependencies
-pip install -e ".[parallel]" # Install with parallel processing support
-pip install -e ".[gpu]"      # Install with GPU acceleration support
+uv pip install -e ".[dev]"      # Install with development dependencies
+uv pip install -e ".[parallel]" # Install with parallel processing support
+uv pip install -e ".[gpu]"      # Install with GPU acceleration support
 ```
 
 ## Architecture Overview
@@ -86,15 +86,28 @@ New modules for enhanced functionality:
 ### UTM Integration
 The system automatically calculates and includes UTM zone information for optimal spatial analysis. UTM zones are determined from cell centroids and cached for performance.
 
-### A5 Grid System (In Development)
-The A5 grid system is a pentagonal DGGS implementation with multiple variants being tested:
-- `a5.py` - Main module exposing public API compatible with felixpalmer/a5-py
-- `a5_proper_tessellation.py` - Current implementation using proper dodecahedral tessellation
-- Several experimental implementations (`a5_fixed.py`, `a5_hierarchical.py`, `a5_palmer.py`, etc.) exploring different approaches
-- Test files: `test_a5.py` validates all implementations
-- Debug files in root directory (`debug_a5.py`, `debug_overlap.py`, `debug_pole_contain.py`, etc.) for investigating edge cases
+### A5 Grid System
+The A5 grid system is a pentagonal DGGS implementation using dodecahedral projection:
+- `m3s/a5/` - Modular implementation package (primary implementation)
+  - `grid.py` - A5Grid class implementing BaseGrid interface
+  - `cell.py` - Core cell operations (lonlat_to_cell, cell_to_boundary, parent/child hierarchy)
+  - `geometry.py` - Dodecahedral projection and pentagon geometry
+  - `coordinates.py` - Coordinate transformations (lonlat ↔ spherical ↔ Cartesian ↔ face IJ)
+  - `serialization.py` - Cell ID encoding/decoding (64-bit format)
+  - `constants.py` - Grid constants and validation
+  - `hilbert.py` - Hilbert curve support for resolutions 2+
+- `archive/` - Experimental implementations archived for reference
+  - `a5.py`, `a5_proper_tessellation.py`, `a5_fixed.py`, etc.
+- `test_a5.py` - Comprehensive test suite
+- Debug files in root directory (`debug_a5.py`, `debug_overlap.py`, etc.) for investigating edge cases
 
-**Important**: When working with A5, note that there are multiple implementation files. The main entry point is `a5.py` which delegates to the current best implementation.
+**Implementation Status**:
+- ✅ Resolutions 0-30 supported with Hilbert curves
+- ✅ Full BaseGrid interface (get_cell_from_point, get_neighbors, area_km2, etc.)
+- ✅ Parent/child hierarchy operations
+- ✅ 100% compatible with felixpalmer/a5-py API (all compatibility tests passing)
+- ✅ Neighbor finding using bounding box sampling with geometric verification
+- ⚠️ Requires felixpalmer/a5-py for resolution 1+ (uses Palmer's quintant-to-segment mapping)
 
 ## Testing Structure
 

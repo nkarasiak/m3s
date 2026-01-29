@@ -19,7 +19,7 @@ A unified Python package for working with hierarchical spatial grid systems. M3S
 ## Installation
 
 ```bash
-pip install m3s
+uv pip install m3s
 ```
 
 For development:
@@ -27,7 +27,7 @@ For development:
 ```bash
 git clone https://github.com/yourusername/m3s.git
 cd m3s
-pip install -e ".[dev]"
+uv pip install -e ".[dev]"
 ```
 
 ## Quick Start
@@ -259,7 +259,7 @@ The UTM column contains EPSG codes (e.g., 32614 for UTM Zone 14N, 32723 for UTM 
 ```bash
 git clone https://github.com/yourusername/m3s.git
 cd m3s
-pip install -e ".[dev]"
+uv pip install -e ".[dev]"
 ```
 
 ### Running Tests
@@ -299,8 +299,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [s2sphere](https://pypi.org/project/s2sphere/) - S2 spherical geometry operations
 
 ### Optional (for parallel processing)
-- [dask](https://dask.org/) - Distributed computing (`pip install m3s[parallel]`)
-- [cupy](https://cupy.dev/) - GPU acceleration (`pip install m3s[gpu]`)
+- [dask](https://dask.org/) - Distributed computing (`uv pip install m3s[parallel]`)
+- [cupy](https://cupy.dev/) - GPU acceleration (`uv pip install m3s[gpu]`)
 
 **Notes**: 
 - Geohash, Quadkey, and Slippy Map Tiles are implemented using pure Python (no external dependencies)

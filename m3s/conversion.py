@@ -23,7 +23,7 @@ from .quadkey import QuadkeyGrid
 from .s2 import S2Grid
 from .slippy import SlippyGrid
 from .what3words import What3WordsGrid
-from .a5_proper import A5ProperGrid as A5Grid
+from .a5 import A5Grid
 
 
 class GridConverter:

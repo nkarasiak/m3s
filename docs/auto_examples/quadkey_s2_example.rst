@@ -18,7 +18,7 @@
 .. _sphx_glr_auto_examples_quadkey_s2_example.py:
 
 
-Quadkey and S2 Grid Systems Demonstration
+Quadkey and S2 Grid Systems Demonstration.
 ==========================================
 
 This example showcases the new Quadkey and S2 grid systems added to M3S,
@@ -485,7 +485,7 @@ demonstrating their unique properties and use cases.
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 0.453 seconds)
+   **Total running time of the script:** (0 minutes 1.396 seconds)
 
 
 .. _sphx_glr_download_auto_examples_quadkey_s2_example.py:

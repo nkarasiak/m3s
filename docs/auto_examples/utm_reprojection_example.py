@@ -1,5 +1,5 @@
 """
-Reproject grid using UTM zone information and visualize
+Reproject grid using UTM zone information and visualize.
 ========================================================
 
 This example demonstrates how to use the UTM zone information provided

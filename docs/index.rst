@@ -10,7 +10,9 @@ M3S: Multi Spatial Subdivision System
        </p>
    </div>
 
-M3S (Multi Spatial Subdivision System) is a powerful Python library that provides a unified interface for working with various spatial grid systems including **Geohash**, **MGRS** (Military Grid Reference System), **H3** (Uber's Hexagonal Hierarchical Spatial Index), and many more.
+M3S (Multi Spatial Subdivision System) is a powerful Python library that provides a modern fluent interface with intelligent precision selection for 12 spatial grid systems including **H3**, **Geohash**, **S2**, **MGRS**, **A5**, and more.
+
+**New in v0.6.0**: Complete API redesign with fluent builder interface, 5 intelligent precision selection strategies, and unified parameters across all grid systems.
 
 .. grid:: 3
 
@@ -35,111 +37,170 @@ Getting Started
 Installation
 ------------
 
-Install M3S using pip:
+Install M3S using uv (recommended):
+
+.. code-block:: bash
+
+   uv pip install m3s
+
+Or using pip:
 
 .. code-block:: bash
 
    pip install m3s
 
-Or with conda:
+Quick Example (v0.6.0+)
+-----------------------
 
-.. code-block:: bash
-
-   conda install -c conda-forge m3s
-
-Quick Example
--------------
-
-Get started with M3S in just a few lines of code:
+Get started with the modern fluent API:
 
 .. code-block:: python
 
-   import geopandas as gpd
-   from shapely.geometry import Point
-   from m3s import H3Grid, GeohashGrid, MGRSGrid
+   from m3s import GridBuilder, PrecisionSelector
 
-   # Create sample locations
-   gdf = gpd.GeoDataFrame({
-       'city': ['New York', 'London', 'Tokyo'],
-       'geometry': [
-           Point(-74.0060, 40.7128),  # NYC
-           Point(-0.1278, 51.5074),   # London
-           Point(139.6503, 35.6762)   # Tokyo
-       ]
-   }, crs="EPSG:4326")
+   # Intelligent precision selection
+   selector = PrecisionSelector('h3')
+   rec = selector.for_use_case('neighborhood')
 
-   # Generate different grid systems
-   h3_grid = H3Grid(resolution=8)
-   h3_cells = h3_grid.intersects(gdf)
+   # Fluent query with method chaining
+   result = (GridBuilder
+       .for_system('h3')
+       .with_auto_precision(rec)
+       .at_point(40.7128, -74.0060)  # NYC
+       .find_neighbors(depth=1)
+       .execute())
 
-   geohash_grid = GeohashGrid(precision=6)
-   geohash_cells = geohash_grid.intersects(gdf)
+   print(f"Found {len(result)} cells at precision {rec.precision}")
+   print(f"Confidence: {rec.confidence:.0%}")
 
-   print(f"Generated {len(h3_cells)} H3 cells and {len(geohash_cells)} Geohash cells")
+   # Type-safe result access
+   cell = result.single
+   gdf = result.to_geodataframe()
+
+Multi-Grid Comparison
+----------------------
+
+Compare same location across multiple grid systems:
+
+.. code-block:: python
+
+   from m3s import MultiGridComparator
+
+   comparator = MultiGridComparator([
+       ('geohash', 5),
+       ('h3', 7),
+       ('s2', 10)
+   ])
+
+   results = comparator.query_all(40.7128, -74.0060)
+   for system, cell in results.items():
+       print(f"{system}: {cell.identifier} ({cell.area_km2:.2f} km²)")
 
 Supported Grid Systems
 ======================
 
+M3S supports **12 spatial grid systems** with unified precision parameters:
+
 .. list-table::
    :header-rows: 1
-   :widths: 20 30 25 25
+   :widths: 15 35 30 20
 
    * - Grid System
      - Description
      - Use Cases
-     - Coverage
+     - Precision Range
    * - **H3**
      - Hexagonal hierarchical spatial index
-     - Location analytics, ride-sharing
-     - Global
+     - Analytics, ride-sharing, logistics
+     - 0-15
    * - **Geohash**
      - Base-32 string location encoding
-     - Caching, databases
-     - Global
-   * - **MGRS**
-     - Military Grid Reference System
-     - Military, survey applications
-     - Global (UTM-based)
+     - Databases, simple indexing
+     - 1-12
    * - **S2**
      - Google's spherical geometry library
-     - Large-scale geo applications
-     - Global
-   * - **QuadKey**
-     - Microsoft's tile system
-     - Web mapping, Bing Maps
-     - Global
+     - Global applications, planetary-scale
+     - 0-30
+   * - **MGRS**
+     - Military Grid Reference System
+     - Military, surveying, precise reference
+     - 1-6 (100km→1m)
+   * - **Quadkey**
+     - Microsoft Bing Maps tile system
+     - Web mapping, tile services
+     - 1-23
+   * - **Slippy**
+     - OpenStreetMap standard tiles
+     - Web maps, tile servers, caching
+     - 0-20
+   * - **A5**
+     - Pentagonal DGGS (dodecahedral)
+     - Climate modeling, global analysis
+     - 0-30
+   * - **C-squares**
+     - Marine data indexing
+     - Oceanography, marine biology
+     - 1-5
+   * - **GARS**
+     - Global Area Reference System
+     - Military, area reference
+     - 1-3
+   * - **Maidenhead**
+     - Amateur radio grid locator
+     - Amateur radio, QSO logging
+     - 1-6
+   * - **Plus Codes**
+     - Open Location Codes
+     - Address replacement, geocoding
+     - 2-15
+   * - **What3Words**
+     - 3-meter precision squares
+     - Precise location reference
+     - 1 (fixed)
 
 Key Features
 ============
 
-🎯 **Unified API**
-   Consistent interface across all supported grid systems - learn once, use everywhere.
+🎯 **Intelligent Precision Selection**
+   5 strategies to auto-select optimal precision: area-based, count-based, use-case presets, distance-based, and performance-based.
 
-🔄 **Format Conversion**
-   Easy conversion between different grid systems and coordinate formats.
+🔗 **Fluent Builder Interface**
+   Method chaining for elegant, readable workflows - compose queries with `.for_system().with_precision().at_point().execute()`.
 
-📊 **GeoPandas Integration**
-   Native support for GeoPandas GeoDataFrames with spatial operations.
+📊 **Multi-Grid Comparison**
+   Simultaneously analyze multiple grid systems, compare coverage patterns, and find precision equivalence.
+
+🎨 **Type-Safe Results**
+   Explicit `.single`, `.many`, and `.to_geodataframe()` accessors eliminate type ambiguity.
+
+🔧 **Unified Parameters**
+   All 12 grid systems use consistent `precision` parameter (no more confusion between resolution/level/zoom).
 
 🚀 **High Performance**
-   Optimized implementations with optional GPU acceleration support.
+   Precomputed lookup tables, caching, lazy evaluation, and optional GPU acceleration.
 
 📈 **Scalable Operations**
-   Handle everything from single points to massive datasets efficiently.
+   Memory-efficient streaming, parallel processing with Dask, and adaptive chunking for large datasets.
 
-🛠️ **Extensible Design**
-   Easy to add new grid systems and extend functionality.
+🛠️ **GeoPandas Integration**
+   Native support for GeoDataFrames with automatic CRS transformation and UTM zone detection.
 
 Documentation
 =============
 
 .. toctree::
    :maxdepth: 2
-   :caption: User Guide
+   :caption: Getting Started
 
    installation
    quickstart
    auto_examples/index
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Guides
+
+   grid_comparison
 
 .. toctree::
    :maxdepth: 2

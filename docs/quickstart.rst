@@ -1,180 +1,191 @@
-Quick Start Guide
-=================
+Quickstart
+==========
 
-This guide will help you get started with M3S by showing basic usage patterns for each grid system.
+This guide shows you how to get started with M3S in two simple workflows:
 
-Basic Grid Operations
----------------------
+1. **I know my grid system** - You want to use MGRS, Geohash, H3, etc. and generate cells
+2. **Help me choose precision** - You need guidance on what precision level to use
 
-Creating Grid Instances
-~~~~~~~~~~~~~~~~~~~~~~~~
+Installation
+------------
 
-Each grid system has its own class with specific precision parameters:
+.. code-block:: bash
 
-.. code-block:: python
+   uv pip install m3s
+   # or: pip install m3s
 
-   from m3s import H3Grid, GeohashGrid, MGRSGrid
+Workflow 1: I Know My Grid System
+----------------------------------
 
-   # H3 hexagonal grid (resolution 0-15)
-   h3_grid = H3Grid(resolution=8)  # ~1.7km edge length
+Use this workflow when you know which grid system you need (MGRS, Geohash, H3, etc.) and want to generate cells that intersect your geometry.
 
-   # Geohash rectangular grid (precision 1-12)
-   geohash_grid = GeohashGrid(precision=6)  # ~1.2km x 0.6km
-
-   # MGRS square grid (precision 0-5)
-   mgrs_grid = MGRSGrid(precision=2)  # 1km x 1km grid
-
-Getting Cells from Points
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Convert latitude/longitude coordinates to grid cells:
+Generate MGRS Cells for a Region
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
-   # New York City coordinates
-   lat, lon = 40.7128, -74.0060
-
-   # Get cells for the same point in different grid systems
-   h3_cell = h3_grid.get_cell_from_point(lat, lon)
-   geohash_cell = geohash_grid.get_cell_from_point(lat, lon)
-   mgrs_cell = mgrs_grid.get_cell_from_point(lat, lon)
-
-   print(f"H3 cell: {h3_cell.identifier}")
-   print(f"Geohash cell: {geohash_cell.identifier}")
-   print(f"MGRS cell: {mgrs_cell.identifier}")
-
-Working with GeoDataFrames
----------------------------
-
-M3S integrates seamlessly with GeoPandas for spatial data analysis:
-
-.. code-block:: python
-
+   from m3s import GridBuilder
    import geopandas as gpd
-   from shapely.geometry import Point, box
 
-   # Create a sample GeoDataFrame
-   gdf = gpd.GeoDataFrame({
-       'city': ['New York', 'London', 'Tokyo'],
-       'population': [8_400_000, 9_000_000, 14_000_000],
-       'geometry': [
-           Point(-74.0060, 40.7128),   # NYC
-           Point(-0.1278, 51.5074),    # London
-           Point(139.6917, 35.6895),   # Tokyo
-       ]
-   }, crs="EPSG:4326")
+   # Load your area of interest
+   my_area = gpd.read_file("my_region.geojson")
 
-   # Generate grid cells that intersect with the points
-   h3_result = h3_grid.intersects(gdf)
-   
-   print(f"Generated {len(h3_result)} H3 cells")
-   print(h3_result[['city', 'cell_id', 'utm']].head())
+   # Generate all MGRS cells at 100m precision
+   result = (GridBuilder
+       .for_system('mgrs')
+       .with_precision(3)  # precision 3 = 100m grid
+       .in_polygon(my_area)
+       .execute())
 
-Polygon Intersections
-~~~~~~~~~~~~~~~~~~~~~
+   cells = result.to_geodataframe()
+   print(f"Generated {len(cells)} MGRS cells")
+   print(cells[['cell_id', 'utm']].head())
 
-Find grid cells that intersect with larger areas:
+Generate Geohash Cell at a Point
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
-   # Create a bounding box around Manhattan
-   manhattan_bbox = box(-74.02, 40.70, -73.93, 40.80)
-   manhattan_gdf = gpd.GeoDataFrame(
-       {'name': ['Manhattan']}, 
-       geometry=[manhattan_bbox], 
-       crs="EPSG:4326"
+   from m3s import GridBuilder
+
+   # Get Geohash cell for New York City
+   result = (GridBuilder
+       .for_system('geohash')
+       .with_precision(6)  # ~1.2km x 0.6km cells
+       .at_point(40.7128, -74.0060)  # NYC coordinates
+       .execute())
+
+   cell = result.single
+   print(f"Geohash: {cell.identifier}")
+   print(f"Area: {cell.area_km2:.2f} km²")
+
+Generate H3 Cells in a Bounding Box
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: python
+
+   from m3s import GridBuilder
+
+   # Generate H3 hexagons covering Manhattan
+   result = (GridBuilder
+       .for_system('h3')
+       .with_precision(8)  # resolution 8 (~0.7km edge)
+       .in_bbox(-74.02, 40.70, -73.93, 40.80)  # Manhattan bbox
+       .execute())
+
+   cells = result.to_geodataframe()
+   print(f"Generated {len(cells)} H3 cells")
+
+Workflow 2: Help Me Choose Precision
+-------------------------------------
+
+Use this workflow when you don't know what precision to use. M3S provides intelligent precision selection based on your needs.
+
+Option A: Choose by Use Case
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Pick from common use cases like 'neighborhood', 'city', 'country':
+
+.. code-block:: python
+
+   from m3s import GridBuilder, PrecisionSelector
+   import geopandas as gpd
+
+   my_area = gpd.read_file("my_region.geojson")
+
+   # Select precision for neighborhood-scale analysis
+   selector = PrecisionSelector('h3')
+   rec = selector.for_use_case('neighborhood')
+
+   result = (GridBuilder
+       .for_system('h3')
+       .with_auto_precision(rec)
+       .in_polygon(my_area)
+       .execute())
+
+   print(f"Using precision {rec.precision} ({rec.explanation})")
+   print(f"Confidence: {rec.confidence:.0%}")
+   print(f"Generated {len(result)} cells")
+
+Option B: Choose by Target Cell Area
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specify the desired cell area in km²:
+
+.. code-block:: python
+
+   from m3s import GridBuilder, PrecisionSelector
+
+   # I want cells around 10 km² each
+   selector = PrecisionSelector('mgrs')
+   rec = selector.for_area(10.0)  # 10 km² target
+
+   result = (GridBuilder
+       .for_system('mgrs')
+       .with_auto_precision(rec)
+       .in_bbox(-74.1, 40.7, -74.0, 40.8)
+       .execute())
+
+   print(f"Using precision {rec.precision}")
+   print(f"Target area: 10 km², actual: {rec.actual_area_km2:.2f} km²")
+   print(f"Generated {len(result)} cells")
+
+Option C: Choose by Target Cell Count
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Specify how many cells you want for your region:
+
+.. code-block:: python
+
+   from m3s import PrecisionSelector
+
+   # I want about 50 cells to cover this region
+   selector = PrecisionSelector('geohash')
+   rec = selector.for_region_count(
+       bounds=(-74.1, 40.7, -74.0, 40.8),
+       target_count=50
    )
 
-   # Find all grid cells that intersect Manhattan
-   manhattan_cells = h3_grid.intersects(manhattan_gdf)
-   print(f"Manhattan intersects {len(manhattan_cells)} H3 cells")
+   print(f"Recommended precision: {rec.precision}")
+   print(f"Expected cells: ~{rec.metadata.get('estimated_cells', 'N/A')}")
 
-Grid System Comparison
-----------------------
+Common Grid Systems Quick Reference
+------------------------------------
 
-Different grid systems have different characteristics:
+Here are typical precision values for popular grid systems:
 
-.. code-block:: python
+.. list-table::
+   :header-rows: 1
+   :widths: 15 15 50
 
-   # Compare grid systems for the same area
-   test_area = gpd.GeoDataFrame(
-       {'name': ['Test Area']},
-       geometry=[box(-74.1, 40.7, -74.0, 40.8)],
-       crs="EPSG:4326"
-   )
+   * - Grid System
+     - Precision Range
+     - Example Sizes
+   * - **MGRS**
+     - 1-5
+     - P1: 100km, P3: 100m, P5: 1m
+   * - **Geohash**
+     - 1-12
+     - P5: ~5km, P7: ~150m, P10: ~1m
+   * - **H3**
+     - 0-15
+     - P5: ~250km², P8: ~0.7km², P12: ~3m²
+   * - **S2**
+     - 0-30
+     - P10: ~500km², P20: ~0.5km², P25: ~2m²
+   * - **Quadkey**
+     - 1-23
+     - P10: ~1000km², P15: ~30km², P18: ~4km²
+   * - **Slippy**
+     - 0-20
+     - P5: ~2500km², P10: ~78km², P15: ~2.4km²
 
-   # Generate cells with different grid systems
-   h3_cells = H3Grid(resolution=8).intersects(test_area)
-   geohash_cells = GeohashGrid(precision=6).intersects(test_area) 
-   mgrs_cells = MGRSGrid(precision=2).intersects(test_area)
-
-   print(f"H3 cells: {len(h3_cells)}")
-   print(f"Geohash cells: {len(geohash_cells)}")
-   print(f"MGRS cells: {len(mgrs_cells)}")
-
-Working with Neighbors
-----------------------
-
-Find neighboring cells:
-
-.. code-block:: python
-
-   # Get a cell and its neighbors
-   center_cell = h3_grid.get_cell_from_point(40.7128, -74.0060)
-   neighbors = h3_grid.get_neighbors(center_cell)
-
-   print(f"Center cell: {center_cell.identifier}")
-   print(f"Number of neighbors: {len(neighbors)}")
-   for neighbor in neighbors:
-       print(f"  Neighbor: {neighbor.identifier}")
-
-UTM Zone Information
---------------------
-
-M3S automatically provides UTM zone information for accurate area calculations:
-
-.. code-block:: python
-
-   # The intersects() method includes UTM zone information
-   result = h3_grid.intersects(gdf)
-   
-   # Group by UTM zone
-   for utm_zone in result['utm'].unique():
-       zone_data = result[result['utm'] == utm_zone]
-       cities = zone_data['city'].unique()
-       print(f"UTM Zone {utm_zone}: {', '.join(cities)}")
-
-   # Reproject to UTM for accurate area calculations
-   for utm_zone in result['utm'].unique():
-       zone_cells = result[result['utm'] == utm_zone].copy()
-       utm_crs = f"EPSG:{utm_zone}"
-       zone_cells_utm = zone_cells.to_crs(utm_crs)
-       zone_cells_utm['area_km2'] = zone_cells_utm.geometry.area / 1_000_000
-       print(f"Zone {utm_zone} total area: {zone_cells_utm['area_km2'].sum():.2f} km²")
-
-Error Handling
---------------
-
-M3S provides clear error messages for common issues:
-
-.. code-block:: python
-
-   try:
-       # Invalid precision values
-       invalid_grid = H3Grid(resolution=20)  # Max is 15
-   except ValueError as e:
-       print(f"Error: {e}")
-
-   try:
-       # GeoDataFrame without CRS
-       gdf_no_crs = gpd.GeoDataFrame(geometry=[Point(0, 0)])
-       result = h3_grid.intersects(gdf_no_crs)
-   except ValueError as e:
-       print(f"Error: {e}")
+See :doc:`grid_comparison` for detailed precision equivalences.
 
 Next Steps
 ----------
 
-* Check out the :doc:`examples` for more detailed use cases
-* Explore the :doc:`api` for complete method documentation
-* See the example scripts in the repository for visualization examples
+* **Explore Examples**: Check out the :doc:`auto_examples/index` for visual examples with code
+* **Choose Your Grid**: Read the :doc:`grid_comparison` guide to select the best grid system
+* **API Reference**: See the complete :doc:`api` documentation for all features
+* **Advanced Features**: Learn about grid conversion, relationship analysis, and multi-resolution operations in the examples

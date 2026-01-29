@@ -266,7 +266,7 @@ class Dodecahedron:
 
         return vectors
 
-    def find_nearest_origin(self, theta_phi: Tuple[float, float]) -> int:
+    def find_nearest_origin(self, point) -> int:
         """
         Find the nearest dodecahedron face to a point on the sphere.
 
@@ -275,8 +275,9 @@ class Dodecahedron:
 
         Parameters
         ----------
-        theta_phi : Tuple[float, float]
-            Spherical coordinates (theta, phi) in radians
+        point : Tuple[float, float] or np.ndarray
+            Either spherical coordinates (theta, phi) in radians,
+            or Cartesian coordinates [x, y, z]
 
         Returns
         -------
@@ -288,6 +289,13 @@ class Dodecahedron:
         This uses spherical distance (haversine) rather than Cartesian
         dot products, which is critical for matching Palmer's A5 specification.
         """
+        # Convert Cartesian to spherical if needed
+        if isinstance(point, np.ndarray):
+            from m3s.a5.coordinates import CoordinateTransformer
+            theta_phi = CoordinateTransformer.cartesian_to_spherical(point)
+        else:
+            theta_phi = point
+
         min_distance = float("inf")
         nearest_id = 0
 
