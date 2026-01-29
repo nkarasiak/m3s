@@ -574,6 +574,12 @@ class GridBuilder:
 
         grid_class = grid_classes[system]
 
-        # Create grid with unified precision parameter
-        # Note: This assumes all grid classes have been updated to accept 'precision'
-        return grid_class(precision=precision)  # type: ignore[no-any-return]
+        # Create grid with appropriate parameter name for each system
+        if system == "h3":
+            return grid_class(resolution=precision)  # type: ignore[no-any-return]
+        elif system in ["quadkey", "s2"]:
+            return grid_class(level=precision)  # type: ignore[no-any-return]
+        elif system == "slippy":
+            return grid_class(zoom=precision)  # type: ignore[no-any-return]
+        else:
+            return grid_class(precision=precision)  # type: ignore[no-any-return]
