@@ -4,25 +4,22 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "m3s"
-version = "0.5.1"
+version = "0.5.2"
 authors = [
     {name = "Nicolas Karasiak", email = "karasiak.nicolas@gmail.com"},
 ]
 description = "Multi Spatial Subdivision System - A unified Python package for working with spatial grid systems"
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.9"
+requires-python = ">=3.12"
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: GIS",
 ]
 keywords = ["gis", "spatial", "grid", "geohash", "mgrs", "h3", "quadkey", "s2", "hierarchical", "subdivision", "geometry"]
@@ -77,11 +74,11 @@ Repository = "https://github.com/nkarasiak/m3s.git"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["m3s*"]
-exclude = ["tests*"]
+exclude = ["tests*", "m3s.archive*"]
 
 [tool.black]
 line-length = 88
-target-version = ['py38']
+target-version = ['py312']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -105,7 +102,8 @@ testpaths = [
 ]
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.12"
+strict = true
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -166,8 +164,9 @@ use_parentheses = true
 ensure_newline_before_comments = true
 
 [tool.ruff]
-target-version = "py38"
+target-version = "py312"
 line-length = 88
+exclude = ["m3s/archive"]
 
 [tool.ruff.lint]
 select = [

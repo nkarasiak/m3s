@@ -2,7 +2,8 @@
 M3S - Multi Spatial Subdivision System.
 
 A unified Python package for working with hierarchical spatial grid systems,
-including grid conversion utilities, relationship analysis, and multi-resolution operations.
+including grid conversion utilities, relationship analysis, and multi-resolution
+operations.
 """
 
 # A5 Grid System
@@ -26,9 +27,12 @@ from .a5 import (
 from .api import (
     AreaCalculator,
     GridBuilder,
+    GridCellCollection,
     GridQueryResult,
+    GridWrapper,
     MultiGridComparator,
     PerformanceProfiler,
+    PrecisionFinder,
     PrecisionRecommendation,
     PrecisionSelector,
 )
@@ -90,9 +94,40 @@ from .s2 import S2Grid
 from .slippy import SlippyGrid
 from .what3words import What3WordsGrid
 
-__version__ = "0.5.1"
+# Simplified API: Grid system singletons for direct access
+A5 = GridWrapper(A5Grid, default_precision=8)  # Uses 'precision' parameter
+Geohash = GridWrapper(GeohashGrid, default_precision=5)
+# Max precision is 5, use 3 as default.
+MGRS = GridWrapper(MGRSGrid, default_precision=3)
+H3 = GridWrapper(H3Grid, default_precision=7, precision_param_name="resolution")
+S2 = GridWrapper(S2Grid, default_precision=10, precision_param_name="level")
+Quadkey = GridWrapper(QuadkeyGrid, default_precision=12, precision_param_name="level")
+Slippy = GridWrapper(SlippyGrid, default_precision=12, precision_param_name="zoom")
+CSquares = GridWrapper(CSquaresGrid, default_precision=5)
+# Max precision is 3, use 2 as default.
+GARS = GridWrapper(GARSGrid, default_precision=2)
+Maidenhead = GridWrapper(MaidenheadGrid, default_precision=4)
+# Max precision is 7, use 5 as default.
+PlusCode = GridWrapper(PlusCodeGrid, default_precision=5)
+# Only supports precision 1 (3m squares).
+What3Words = GridWrapper(What3WordsGrid, default_precision=1)
+
+__version__ = "0.5.2"
 __all__ = [
-    # Core grid systems
+    # Simplified API: Grid singletons
+    "A5",
+    "Geohash",
+    "MGRS",
+    "H3",
+    "S2",
+    "Quadkey",
+    "Slippy",
+    "CSquares",
+    "GARS",
+    "Maidenhead",
+    "PlusCode",
+    "What3Words",
+    # Core grid systems (for advanced use)
     "BaseGrid",
     "GeohashGrid",
     "MGRSGrid",
@@ -108,6 +143,9 @@ __all__ = [
     "A5Grid",
     # Modern API
     "GridBuilder",
+    "GridWrapper",
+    "GridCellCollection",
+    "PrecisionFinder",
     "PrecisionSelector",
     "PrecisionRecommendation",
     "AreaCalculator",
