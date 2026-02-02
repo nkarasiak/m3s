@@ -7,7 +7,7 @@ multiple indexing systems.
 """
 
 import warnings
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import pandas as pd
 
@@ -67,9 +67,9 @@ class GridConverter:
     }
 
     def __init__(self) -> None:
-        self._grid_cache: Dict[Tuple[str, int], BaseGrid] = {}
+        self._grid_cache: dict[tuple[str, int], BaseGrid] = {}
 
-    def _get_grid(self, system_name: str, precision: Optional[int] = None) -> BaseGrid:
+    def _get_grid(self, system_name: str, precision: int | None = None) -> BaseGrid:
         """
         Get a grid instance with caching.
 
@@ -97,16 +97,8 @@ class GridConverter:
         cache_key = (system_name, precision)
         if cache_key not in self._grid_cache:
             grid_class = self.GRID_SYSTEMS[system_name]
-            # Handle different parameter names for grid systems
-            if system_name == "h3":
-                self._grid_cache[cache_key] = grid_class(resolution=precision)
-            elif system_name in ["quadkey", "slippy", "s2"]:
-                if system_name == "slippy":
-                    self._grid_cache[cache_key] = grid_class(zoom=precision)
-                else:
-                    self._grid_cache[cache_key] = grid_class(level=precision)
-            else:
-                self._grid_cache[cache_key] = grid_class(precision=precision)
+            # All grid systems now use the standardized 'precision' parameter
+            self._grid_cache[cache_key] = grid_class(precision=precision)
 
         return self._grid_cache[cache_key]  # type: ignore[no-any-return]
 
@@ -114,9 +106,9 @@ class GridConverter:
         self,
         cell: GridCell,
         target_system: str,
-        target_precision: Optional[int] = None,
+        target_precision: int | None = None,
         method: str = "centroid",
-    ) -> Union[GridCell, List[GridCell]]:
+    ) -> GridCell | list[GridCell]:
         """
         Convert a grid cell to another grid system.
 
@@ -133,60 +125,61 @@ class GridConverter:
 
         Returns
         -------
-        GridCell or List[GridCell]
+        GridCell or list[GridCell]
             Converted grid cell(s)
         """
         target_grid = self._get_grid(target_system, target_precision)
 
-        if method == "centroid":
-            # Convert using cell centroid
-            centroid = cell.polygon.centroid
-            return target_grid.get_cell_from_point(centroid.y, centroid.x)
+        match method:
+            case "centroid":
+                # Convert using cell centroid
+                centroid = cell.polygon.centroid
+                return target_grid.get_cell_from_point(centroid.y, centroid.x)
 
-        elif method == "overlap":
-            # Find all target cells that overlap with source cell
-            bounds = cell.polygon.bounds
-            target_cells = target_grid.get_cells_in_bbox(
-                bounds[1], bounds[0], bounds[3], bounds[2]
-            )
+            case "overlap":
+                # Find all target cells that overlap with source cell
+                bounds = cell.polygon.bounds
+                target_cells = target_grid.get_cells_in_bbox(
+                    bounds[1], bounds[0], bounds[3], bounds[2]
+                )
 
-            overlapping_cells = []
-            for target_cell in target_cells:
-                if cell.polygon.intersects(target_cell.polygon):
-                    overlapping_cells.append(target_cell)
+                overlapping_cells = []
+                for target_cell in target_cells:
+                    if cell.polygon.intersects(target_cell.polygon):
+                        overlapping_cells.append(target_cell)
 
-            return overlapping_cells if overlapping_cells else []
+                return overlapping_cells if overlapping_cells else []
 
-        elif method == "contains":
-            # Find target cells completely contained within source cell
-            bounds = cell.polygon.bounds
-            target_cells = target_grid.get_cells_in_bbox(
-                bounds[1], bounds[0], bounds[3], bounds[2]
-            )
+            case "contains":
+                # Find target cells completely contained within source cell
+                bounds = cell.polygon.bounds
+                target_cells = target_grid.get_cells_in_bbox(
+                    bounds[1], bounds[0], bounds[3], bounds[2]
+                )
 
-            contained_cells = []
-            for target_cell in target_cells:
-                if cell.polygon.contains(target_cell.polygon):
-                    contained_cells.append(target_cell)
+                contained_cells = []
+                for target_cell in target_cells:
+                    if cell.polygon.contains(target_cell.polygon):
+                        contained_cells.append(target_cell)
 
-            return contained_cells
+                return contained_cells
 
-        else:
-            raise ValueError(f"Unknown conversion method: {method}")
+            case _:
+                raise ValueError(f"Unknown conversion method: {method}")
 
     def convert_cells_batch(
         self,
-        cells: List[GridCell],
+        cells: list[GridCell],
         target_system: str,
-        target_precision: Optional[int] = None,
+        target_precision: int | None = None,
         method: str = "centroid",
-    ) -> List[Union[GridCell, List[GridCell]]]:
+    ) -> list[GridCell | list[GridCell]]:
         """
         Convert multiple grid cells to another system.
 
         Parameters
         ----------
-        cells : List[GridCell]
+        cells : list[GridCell]
             Source grid cells to convert
         target_system : str
             Target grid system name
@@ -197,7 +190,7 @@ class GridConverter:
 
         Returns
         -------
-        List[Union[GridCell, List[GridCell]]]
+        list[GridCell | list[GridCell]]
             List of converted cells
         """
         return [
@@ -210,8 +203,8 @@ class GridConverter:
         source_system: str,
         target_system: str,
         bounds: tuple,
-        source_precision: Optional[int] = None,
-        target_precision: Optional[int] = None,
+        source_precision: int | None = None,
+        target_precision: int | None = None,
         method: str = "centroid",
     ) -> pd.DataFrame:
         """
@@ -370,14 +363,14 @@ converter = GridConverter()
 # Convenience functions
 def convert_cell(
     cell: GridCell, target_system: str, **kwargs: Any
-) -> Union[GridCell, List[GridCell]]:
+) -> GridCell | list[GridCell]:
     """Convert a single grid cell to another system."""
     return converter.convert_cell(cell, target_system, **kwargs)
 
 
 def convert_cells(
-    cells: List[GridCell], target_system: str, **kwargs: Any
-) -> List[Union[GridCell, List[GridCell]]]:
+    cells: list[GridCell], target_system: str, **kwargs: Any
+) -> list[GridCell | list[GridCell]]:
     """Convert multiple grid cells to another system."""
     return converter.convert_cells_batch(cells, target_system, **kwargs)
 

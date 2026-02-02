@@ -2,7 +2,7 @@
 C-squares (Concise Spatial Query and Representation System) grid implementation.
 """
 
-from typing import List
+from typing import override
 
 from shapely.geometry import Polygon
 
@@ -43,6 +43,7 @@ class CSquaresGrid(BaseGrid):
             raise ValueError("C-squares precision must be between 1 and 5")
         super().__init__(precision)
 
+    @override
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
         """
         Get the C-squares cell containing the given point.
@@ -72,6 +73,7 @@ class CSquaresGrid(BaseGrid):
         csquare_code = self._encode_csquare(lat, lon, self.precision)
         return self.get_cell_from_identifier(csquare_code)
 
+    @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """
         Get a C-squares cell from its identifier.
@@ -111,7 +113,8 @@ class CSquaresGrid(BaseGrid):
         except Exception as e:
             raise ValueError(f"Invalid C-squares identifier: {identifier}") from e
 
-    def get_neighbors(self, cell: GridCell) -> List[GridCell]:
+    @override
+    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
         """
         Get neighboring C-squares cells.
 
@@ -122,7 +125,7 @@ class CSquaresGrid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of neighboring C-squares cells (up to 8 neighbors)
         """
         try:
@@ -150,16 +153,19 @@ class CSquaresGrid(BaseGrid):
                         neighbor_cell = self.get_cell_from_point(n_lat, n_lon)
                         if neighbor_cell.identifier != cell.identifier:
                             neighbors.append(neighbor_cell)
-                except:
+                except Exception:
+                    # Skip invalid neighbor coordinates
                     pass
 
             return list(set(neighbors))
-        except:
+        except Exception:
+            # Return empty list if cell lookup fails
             return []
 
+    @override
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> List[GridCell]:
+    ) -> list[GridCell]:
         """
         Get all C-squares cells within the given bounding box.
 
@@ -176,7 +182,7 @@ class CSquaresGrid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of C-squares cells that intersect the bounding box
         """
         cells = set()

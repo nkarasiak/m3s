@@ -5,7 +5,7 @@ This module provides the A5Grid class that implements the M3S BaseGrid interface
 for the A5 pentagonal grid system.
 """
 
-from typing import Dict, List
+from typing import override
 
 from shapely.geometry import Point, Polygon
 
@@ -71,6 +71,7 @@ class A5Grid(BaseGrid):
         self.cell_ops = A5CellOperations()
 
     @cached_method(cache_key_func=geo_cache_key)
+    @override
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
         """
         Get the A5 cell containing the given point.
@@ -110,19 +111,19 @@ class A5Grid(BaseGrid):
         return GridCell(identifier, polygon, self.precision)
 
     def get_cells_from_points(
-        self, points: List[tuple[float, float]]
-    ) -> List[GridCell]:
+        self, points: list[tuple[float, float]]
+    ) -> list[GridCell]:
         """
         Get A5 cells for multiple points.
 
         Parameters
         ----------
-        points : List[tuple[float, float]]
+        points : list[tuple[float, float]]
             List of (lat, lon) tuples
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of cells containing each point
 
         Notes
@@ -131,7 +132,7 @@ class A5Grid(BaseGrid):
         due to caching.
         """
         cells = []
-        seen_ids: Dict[int, GridCell] = {}  # Cache cells we've already created
+        seen_ids: dict[int, GridCell] = {}  # Cache cells we've already created
 
         for lat, lon in points:
             cell_id = self.cell_ops.lonlat_to_cell(lon, lat, self.precision)
@@ -241,7 +242,7 @@ class A5Grid(BaseGrid):
         # Get parent cell
         return parent_grid.get_cell_by_id(parent_id)
 
-    def get_child_cells(self, cell: GridCell) -> List[GridCell]:
+    def get_child_cells(self, cell: GridCell) -> list[GridCell]:
         """
         Get 5 child cells at precision+1.
 
@@ -254,7 +255,7 @@ class A5Grid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of 5 child cells
 
         Raises
@@ -354,6 +355,7 @@ class A5Grid(BaseGrid):
 
         return earth_surface_km2 / num_cells
 
+    @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """
         Get a grid cell from its identifier.
@@ -379,7 +381,8 @@ class A5Grid(BaseGrid):
         # Get cell using cell ID
         return self.get_cell_by_id(cell_id)
 
-    def get_neighbors(self, cell: GridCell) -> List[GridCell]:
+    @override
+    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
         """
         Get neighboring cells of the given cell.
 
@@ -393,7 +396,7 @@ class A5Grid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of neighboring grid cells
 
         Notes
@@ -409,7 +412,7 @@ class A5Grid(BaseGrid):
         3. Get cells at those points
         4. Keep only cells that share a boundary with the original cell
         """
-        neighbors: List[GridCell] = []
+        neighbors: list[GridCell] = []
         seen_ids: set[int] = set()
 
         def add_neighbor(candidate_id: int) -> None:
@@ -465,9 +468,10 @@ class A5Grid(BaseGrid):
 
         return neighbors
 
+    @override
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> List[GridCell]:
+    ) -> list[GridCell]:
         """
         Get all grid cells within the given bounding box.
 
@@ -484,7 +488,7 @@ class A5Grid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of grid cells that intersect the bounding box
 
         Notes
@@ -627,9 +631,9 @@ class A5Grid(BaseGrid):
         return boundary
 
     def __repr__(self) -> str:
-        """String representation of A5Grid."""
+        """Return string representation of A5Grid."""
         return f"A5Grid(precision={self.precision})"
 
     def __str__(self) -> str:
-        """String representation of A5Grid."""
+        """Return string representation of A5Grid."""
         return f"A5 Grid (resolution {self.precision})"

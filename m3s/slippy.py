@@ -7,7 +7,8 @@ Google Maps, and most web mapping services. They use a Web Mercator projection
 """
 
 import math
-from typing import List, Optional, Tuple
+import warnings
+from typing import override
 
 from shapely.geometry import Polygon
 
@@ -28,30 +29,50 @@ class SlippyGrid(BaseGrid):
         Zoom level (0-22), where higher levels provide smaller tiles
     """
 
-    def __init__(self, zoom: int):
+    def __init__(self, precision: int | None = None, zoom: int | None = None):
         """
         Initialize Slippy Map Tiling grid.
 
         Parameters
         ----------
-        zoom : int
-            Zoom level (0-22)
+        precision : int, optional
+            Precision level (0-22).
+            This is the standardized parameter name across all grid systems.
+        zoom : int, optional
+            Deprecated alias for precision. Use 'precision' instead.
             Zoom 0: 1 tile covering the world
             Zoom 1: 2×2 = 4 tiles
             Zoom 10: 1024×1024 = ~1M tiles (~40km tiles)
             Zoom 15: 32768×32768 = ~1B tiles (~1.2km tiles)
             Zoom 18: 262144×262144 tiles (~150m tiles)
         """
-        if not 0 <= zoom <= 22:
-            raise ValueError("Slippy zoom level must be between 0 and 22")
+        # Handle parameter aliases with deprecation warning
+        if precision is None and zoom is None:
+            raise ValueError("Must specify either 'precision' or 'zoom' parameter")
+        elif precision is not None and zoom is not None:
+            raise ValueError(
+                "Cannot specify both 'precision' and 'zoom'. Use 'precision' instead."
+            )
+        elif zoom is not None:
+            warnings.warn(
+                "The 'zoom' parameter is deprecated. Use 'precision' instead.",
+                DeprecationWarning,
+                stacklevel=2
+            )
+            precision = zoom
 
-        super().__init__(zoom)
-        self.zoom = zoom
+        if not 0 <= precision <= 22:
+            raise ValueError("Slippy precision must be between 0 and 22")
+
+        super().__init__(precision)
+        self.zoom = precision  # Keep for backwards compatibility
 
     @property
     def area_km2(self) -> float:
         """
-        Get the theoretical area of Slippy Map tiles at this zoom level in square kilometers.
+        Get the theoretical area of Slippy Map tiles.
+
+        At this zoom level, returns the area in square kilometers.
 
         Returns
         -------
@@ -73,7 +94,7 @@ class SlippyGrid(BaseGrid):
         # Area (square)
         return tile_size_km * tile_size_km
 
-    def _deg2num(self, lat: float, lon: float) -> Tuple[int, int]:
+    def _deg2num(self, lat: float, lon: float) -> tuple[int, int]:
         """
         Convert latitude/longitude to tile numbers.
 
@@ -97,7 +118,7 @@ class SlippyGrid(BaseGrid):
 
         return x, y
 
-    def _num2deg(self, x: int, y: int) -> Tuple[float, float, float, float]:
+    def _num2deg(self, x: int, y: int) -> tuple[float, float, float, float]:
         """
         Convert tile numbers to bounding box coordinates.
 
@@ -151,6 +172,7 @@ class SlippyGrid(BaseGrid):
             ]
         )
 
+    @override
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
         """
         Get the Slippy Map tile containing the given point.
@@ -176,6 +198,7 @@ class SlippyGrid(BaseGrid):
 
         return GridCell(identifier, polygon, self.zoom)
 
+    @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """
         Get a tile from its z/x/y identifier.
@@ -211,7 +234,8 @@ class SlippyGrid(BaseGrid):
         except Exception as e:
             raise ValueError(f"Invalid Slippy tile identifier: {identifier}") from e
 
-    def get_neighbors(self, cell: GridCell) -> List[GridCell]:
+    @override
+    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
         """
         Get neighboring tiles of the given tile.
 
@@ -222,7 +246,7 @@ class SlippyGrid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of neighboring tiles (up to 8 neighbors)
         """
         try:
@@ -241,7 +265,8 @@ class SlippyGrid(BaseGrid):
                     new_x = x + dx
                     new_y = y + dy
 
-                    # Check boundaries (tiles wrap around horizontally but not vertically)
+                    # Check boundaries (tiles wrap around horizontally but not
+                    # vertically).
                     if 0 <= new_y < max_coord:
                         # Handle horizontal wrapping
                         new_x = new_x % max_coord
@@ -254,7 +279,7 @@ class SlippyGrid(BaseGrid):
         except Exception:
             return []
 
-    def get_children(self, cell: GridCell) -> List[GridCell]:
+    def get_children(self, cell: GridCell) -> list[GridCell]:
         """
         Get child tiles at the next zoom level.
 
@@ -265,7 +290,7 @@ class SlippyGrid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of 4 child tiles
         """
         if self.zoom >= 22:
@@ -292,7 +317,7 @@ class SlippyGrid(BaseGrid):
         except Exception:
             return []
 
-    def get_parent(self, cell: GridCell) -> Optional[GridCell]:
+    def get_parent(self, cell: GridCell) -> GridCell | None:
         """
         Get parent tile at the previous zoom level.
 
@@ -303,7 +328,7 @@ class SlippyGrid(BaseGrid):
 
         Returns
         -------
-        GridCell or None
+        GridCell | None
             Parent tile, or None if already at zoom 0
         """
         if self.zoom <= 0:
@@ -324,9 +349,10 @@ class SlippyGrid(BaseGrid):
         except Exception:
             return None
 
+    @override
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> List[GridCell]:
+    ) -> list[GridCell]:
         """
         Get all tiles within the given bounding box.
 
@@ -343,7 +369,7 @@ class SlippyGrid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of tiles that intersect the bounding box
         """
         try:
@@ -379,7 +405,7 @@ class SlippyGrid(BaseGrid):
 
     def get_covering_cells(
         self, polygon: Polygon, max_cells: int = 100
-    ) -> List[GridCell]:
+    ) -> list[GridCell]:
         """
         Get Slippy Map tiles that cover the given polygon.
 
@@ -392,7 +418,7 @@ class SlippyGrid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of tiles covering the polygon
         """
         # Use bounding box approach for Slippy tiles

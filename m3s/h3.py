@@ -2,13 +2,14 @@
 H3 (Uber's Hexagonal Hierarchical Spatial Index) grid implementation.
 """
 
-from typing import List
+import warnings
+from typing import Any, override
 
-import geopandas as gpd
 import h3
 from shapely.geometry import Polygon
 
 from .base import BaseGrid, GridCell
+from .projection_utils import get_utm_epsg_code
 
 
 class H3Grid(BaseGrid):
@@ -19,14 +20,19 @@ class H3Grid(BaseGrid):
     providing uniform hexagonal cells with consistent neighbor relationships.
     """
 
-    def __init__(self, resolution: int = 7):
+    def __init__(
+        self, precision: int | None = None, resolution: int | None = None
+    ):
         """
         Initialize H3Grid.
 
         Parameters
         ----------
+        precision : int, optional
+            H3 precision level (0-15), by default 7.
+            This is the standardized parameter name across all grid systems.
         resolution : int, optional
-            H3 resolution level (0-15), by default 7.
+            Deprecated alias for precision. Use 'precision' instead.
 
             Resolution scales:
                 0 = ~4,250km edge length (continent scale)
@@ -49,11 +55,27 @@ class H3Grid(BaseGrid):
         Raises
         ------
         ValueError
-            If resolution is not between 0 and 15
+            If precision/resolution is not between 0 and 15
         """
-        if not 0 <= resolution <= 15:
-            raise ValueError("H3 resolution must be between 0 and 15")
-        super().__init__(resolution)
+        # Handle parameter aliases with deprecation warning
+        if precision is None and resolution is None:
+            precision = 7  # Default value
+        elif precision is not None and resolution is not None:
+            raise ValueError(
+                "Cannot specify both 'precision' and 'resolution'. Use 'precision' "
+                "instead."
+            )
+        elif resolution is not None:
+            warnings.warn(
+                "The 'resolution' parameter is deprecated. Use 'precision' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            precision = resolution
+
+        if not 0 <= precision <= 15:
+            raise ValueError("H3 precision must be between 0 and 15")
+        super().__init__(precision)
 
     @property
     def resolution(self) -> int:
@@ -75,7 +97,7 @@ class H3Grid(BaseGrid):
             # h3.cell_area returns area in square meters for the given resolution
             area_m2 = h3.cell_area(self.precision, unit="m^2")
             return area_m2 / 1_000_000  # Convert to km²
-        except:
+        except Exception:
             # Fallback with approximate values if h3.cell_area is not available
             # These are approximate areas for each H3 resolution level in km²
             areas = {
@@ -98,6 +120,7 @@ class H3Grid(BaseGrid):
             }
             return areas.get(self.precision, 5.16)  # Default to resolution 7
 
+    @override
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
         """
         Get the H3 cell containing the given point.
@@ -117,6 +140,7 @@ class H3Grid(BaseGrid):
         h3_index = h3.latlng_to_cell(lat, lon, self.precision)
         return self.get_cell_from_identifier(h3_index)
 
+    @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """
         Get an H3 cell from its identifier.
@@ -140,15 +164,23 @@ class H3Grid(BaseGrid):
             # Get hexagon boundary
             boundary = h3.cell_to_boundary(identifier)
 
-            # Convert lat/lng pairs to lon/lat pairs for Polygon (boundary is [(lat, lng), ...])
+            # Convert lat/lng pairs to lon/lat pairs for Polygon
+            # (boundary is [(lat, lng), ...]).
             coords = [(lng, lat) for lat, lng in boundary]
             polygon = Polygon(coords)
 
-            return GridCell(identifier, polygon, self.precision)
+            cell_resolution = self.precision
+            try:
+                cell_resolution = h3.get_resolution(identifier)
+            except Exception:
+                pass
+
+            return GridCell(identifier, polygon, cell_resolution)
         except Exception as e:
             raise ValueError(f"Invalid H3 identifier: {identifier}") from e
 
-    def get_neighbors(self, cell: GridCell) -> List[GridCell]:
+    @override
+    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
         """
         Get neighboring H3 cells (6 neighbors for hexagons).
 
@@ -159,7 +191,7 @@ class H3Grid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of neighboring H3 cells (typically 6 for hexagons)
         """
         try:
@@ -176,9 +208,10 @@ class H3Grid(BaseGrid):
         except Exception:
             return []
 
+    @override
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> List[GridCell]:
+    ) -> list[GridCell]:
         """
         Get all H3 cells within the given bounding box.
 
@@ -195,7 +228,7 @@ class H3Grid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of H3 cells that intersect the bounding box
         """
         try:
@@ -226,7 +259,7 @@ class H3Grid(BaseGrid):
 
     def _get_cells_in_bbox_fallback(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> List[GridCell]:
+    ) -> list[GridCell]:
         """
         Fallback method using point sampling.
 
@@ -243,7 +276,7 @@ class H3Grid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of H3 cells found through point sampling
         """
         cells = set()
@@ -264,23 +297,26 @@ class H3Grid(BaseGrid):
                 try:
                     cell = self.get_cell_from_point(lat, lon)
                     cells.add(cell.identifier)
-                except:
+                except Exception:
+                    # Skip invalid coordinates
                     pass
                 lon += step_size
             lat += step_size
 
-        # Convert back to GridCell objects - batch process to minimize try-except overhead
+        # Convert back to GridCell objects - batch process to minimize try-except
+        # overhead.
         result_cells = []
         try:
             result_cells = [
                 self.get_cell_from_identifier(h3_index) for h3_index in cells
             ]
-        except:
+        except Exception:
             # Fallback to individual processing only if batch fails
             for h3_index in cells:
                 try:
                     result_cells.append(self.get_cell_from_identifier(h3_index))
-                except:
+                except Exception:
+                    # Skip invalid H3 indices
                     pass
 
         return result_cells
@@ -351,7 +387,7 @@ class H3Grid(BaseGrid):
             }
             return areas_km2.get(self.precision, 1.0)
 
-    def get_children(self, cell: GridCell) -> List[GridCell]:
+    def get_children(self, cell: GridCell) -> list[GridCell]:
         """
         Get child cells at the next resolution level.
 
@@ -362,7 +398,7 @@ class H3Grid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of child cells at resolution + 1 (typically 7 children)
         """
         if self.precision >= 15:
@@ -445,7 +481,7 @@ class H3Grid(BaseGrid):
             "neighbors_per_cell": 6,  # Each hexagon has 6 neighbors
         }
 
-    def compact_cells(self, cells: List[GridCell]) -> List[GridCell]:
+    def compact_cells(self, cells: list[GridCell]) -> list[GridCell]:
         """
         Compact a set of cells by replacing groups of children with their parents.
 
@@ -453,12 +489,12 @@ class H3Grid(BaseGrid):
 
         Parameters
         ----------
-        cells : List[GridCell]
+        cells : list[GridCell]
             List of H3 cells to compact
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             Compacted list with parent cells replacing complete sets of children
         """
         try:
@@ -479,21 +515,21 @@ class H3Grid(BaseGrid):
             return cells  # Return original cells if compacting fails
 
     def uncompact_cells(
-        self, cells: List[GridCell], target_resolution: int
-    ) -> List[GridCell]:
+        self, cells: list[GridCell], target_resolution: int
+    ) -> list[GridCell]:
         """
         Uncompact cells to a target resolution, expanding parent cells to children.
 
         Parameters
         ----------
-        cells : List[GridCell]
+        cells : list[GridCell]
             List of H3 cells to uncompact
         target_resolution : int
             Target resolution level for expansion
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             Expanded list of cells at the target resolution
         """
         try:
@@ -507,129 +543,24 @@ class H3Grid(BaseGrid):
         except Exception:
             return cells  # Return original cells if uncompacting fails
 
-    def _get_utm_epsg_from_coords(self, lat: float, lon: float) -> int:
+    @override
+    def _get_additional_columns(self, cell: GridCell) -> dict[str, Any]:
         """
-        Get the best UTM EPSG code for given coordinates.
+        Add UTM zone column for H3 cells.
 
         Parameters
         ----------
-        lat : float
-            Latitude coordinate
-        lon : float
-            Longitude coordinate
+        cell : GridCell
+            The grid cell to extract UTM data from
 
         Returns
         -------
-        int
-            EPSG code for the appropriate UTM zone
+        dict
+            Dictionary with 'utm' column
         """
-        # Calculate UTM zone number
-        zone_number = int((lon + 180) / 6) + 1
+        if not cell.identifier or cell.polygon.is_empty:
+            return {}
 
-        # Handle special cases for Norway and Svalbard
-        if 56 <= lat < 64 and 3 <= lon < 12:
-            zone_number = 32
-        elif 72 <= lat < 84 and lon >= 0:
-            if lon < 9:
-                zone_number = 31
-            elif lon < 21:
-                zone_number = 33
-            elif lon < 33:
-                zone_number = 35
-            elif lon < 42:
-                zone_number = 37
-
-        # Determine hemisphere and construct EPSG code
-        if lat >= 0:
-            return 32600 + zone_number  # Northern hemisphere
-        else:
-            return 32700 + zone_number  # Southern hemisphere
-
-    def intersects(
-        self, gdf: gpd.GeoDataFrame, target_crs: str = "EPSG:4326"
-    ) -> gpd.GeoDataFrame:
-        """
-        Get all grid cells that intersect with geometries in a GeoDataFrame.
-
-        For H3 grids, includes an additional 'utm' column with the best UTM CRS
-        for each H3 cell based on its centroid.
-
-        Parameters
-        ----------
-        gdf : gpd.GeoDataFrame
-            A GeoDataFrame containing geometries to intersect with grid cells
-        target_crs : str, optional
-            Target CRS for grid operations (default: "EPSG:4326")
-
-        Returns
-        -------
-        gpd.GeoDataFrame
-            GeoDataFrame with grid cell identifiers, UTM codes, geometries, and original data
-        """
-        if gdf.empty:
-            empty_columns = ["cell_id", "precision", "utm", "geometry"] + [
-                col for col in gdf.columns if col != "geometry"
-            ]
-            return gpd.GeoDataFrame(columns=empty_columns)
-
-        original_crs = gdf.crs
-
-        # Transform to target CRS if needed
-        if original_crs is None:
-            raise ValueError("GeoDataFrame CRS must be defined")
-
-        if original_crs != target_crs:
-            gdf_transformed = gdf.to_crs(target_crs)
-        else:
-            gdf_transformed = gdf.copy()
-
-        # Collect all intersecting cells with source geometry indices
-        all_cells = []
-        source_indices = []
-
-        for idx, geometry in enumerate(gdf_transformed.geometry):
-            if geometry is not None and not geometry.is_empty:
-                bounds = geometry.bounds
-                min_lon, min_lat, max_lon, max_lat = bounds
-                candidate_cells = self.get_cells_in_bbox(
-                    min_lat, min_lon, max_lat, max_lon
-                )
-                intersecting_cells = [
-                    cell
-                    for cell in candidate_cells
-                    if cell.polygon.intersects(geometry)
-                ]
-                for cell in intersecting_cells:
-                    # Get cell centroid for UTM calculation
-                    centroid = cell.polygon.centroid
-                    utm_epsg = self._get_utm_epsg_from_coords(centroid.y, centroid.x)
-
-                    all_cells.append(
-                        {
-                            "cell_id": cell.identifier,
-                            "precision": cell.precision,
-                            "utm": utm_epsg,
-                            "geometry": cell.polygon,
-                        }
-                    )
-                    source_indices.append(idx)
-
-        if not all_cells:
-            empty_columns = ["cell_id", "precision", "utm", "geometry"] + [
-                col for col in gdf.columns if col != "geometry"
-            ]
-            return gpd.GeoDataFrame(columns=empty_columns)
-
-        # Create result GeoDataFrame
-        result_gdf = gpd.GeoDataFrame(all_cells, crs=target_crs)
-
-        # Add original data for each intersecting cell
-        for col in gdf.columns:
-            if col != "geometry":
-                result_gdf[col] = [gdf.iloc[idx][col] for idx in source_indices]
-
-        # Transform back to original CRS if different
-        if original_crs != target_crs:
-            result_gdf = result_gdf.to_crs(original_crs)
-
-        return result_gdf
+        centroid = cell.polygon.centroid
+        utm_epsg = get_utm_epsg_code(centroid.y, centroid.x)
+        return {"utm": utm_epsg}

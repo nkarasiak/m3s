@@ -6,7 +6,6 @@ including containment, overlap, adjacency, and topological operations.
 """
 
 from enum import Enum
-from typing import Dict, List, Optional, Set, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -86,7 +85,7 @@ class GridRelationshipAnalyzer:
 
     def get_all_relationships(
         self, cell1: GridCell, cell2: GridCell
-    ) -> Dict[str, bool]:
+    ) -> dict[str, bool]:
         """
         Get all spatial relationships between two grid cells.
 
@@ -99,7 +98,7 @@ class GridRelationshipAnalyzer:
 
         Returns
         -------
-        Dict[str, bool]
+        dict[str, bool]
             Dictionary mapping relationship names to boolean values
         """
         geom1, geom2 = cell1.polygon, cell2.polygon
@@ -138,8 +137,8 @@ class GridRelationshipAnalyzer:
         ) and not cell1.polygon.overlaps(cell2.polygon)
 
     def find_contained_cells(
-        self, container: GridCell, cells: List[GridCell]
-    ) -> List[GridCell]:
+        self, container: GridCell, cells: list[GridCell]
+    ) -> list[GridCell]:
         """
         Find all cells that are contained within a container cell.
 
@@ -147,12 +146,12 @@ class GridRelationshipAnalyzer:
         ----------
         container : GridCell
             Container cell
-        cells : List[GridCell]
+        cells : list[GridCell]
             List of cells to check
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of contained cells
         """
         contained = []
@@ -162,8 +161,8 @@ class GridRelationshipAnalyzer:
         return contained
 
     def find_overlapping_cells(
-        self, target: GridCell, cells: List[GridCell]
-    ) -> List[GridCell]:
+        self, target: GridCell, cells: list[GridCell]
+    ) -> list[GridCell]:
         """
         Find all cells that overlap with a target cell.
 
@@ -171,12 +170,12 @@ class GridRelationshipAnalyzer:
         ----------
         target : GridCell
             Target cell
-        cells : List[GridCell]
+        cells : list[GridCell]
             List of cells to check
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of overlapping cells
         """
         overlapping = []
@@ -188,8 +187,8 @@ class GridRelationshipAnalyzer:
         return overlapping
 
     def find_adjacent_cells(
-        self, target: GridCell, cells: List[GridCell]
-    ) -> List[GridCell]:
+        self, target: GridCell, cells: list[GridCell]
+    ) -> list[GridCell]:
         """
         Find all cells that are adjacent to a target cell.
 
@@ -197,12 +196,12 @@ class GridRelationshipAnalyzer:
         ----------
         target : GridCell
             Target cell
-        cells : List[GridCell]
+        cells : list[GridCell]
             List of cells to check
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of adjacent cells
         """
         adjacent = []
@@ -211,13 +210,13 @@ class GridRelationshipAnalyzer:
                 adjacent.append(cell)
         return adjacent
 
-    def create_relationship_matrix(self, cells: List[GridCell]) -> pd.DataFrame:
+    def create_relationship_matrix(self, cells: list[GridCell]) -> pd.DataFrame:
         """
         Create a relationship matrix for a collection of cells.
 
         Parameters
         ----------
-        cells : List[GridCell]
+        cells : list[GridCell]
             List of grid cells
 
         Returns
@@ -225,7 +224,6 @@ class GridRelationshipAnalyzer:
         pd.DataFrame
             Matrix showing relationships between all cell pairs
         """
-        len(cells)
         cell_ids = [cell.identifier for cell in cells]
 
         # Initialize matrix with relationship types
@@ -244,13 +242,13 @@ class GridRelationshipAnalyzer:
         df = pd.DataFrame(matrix_data, index=cell_ids)
         return df
 
-    def create_adjacency_matrix(self, cells: List[GridCell]) -> pd.DataFrame:
+    def create_adjacency_matrix(self, cells: list[GridCell]) -> pd.DataFrame:
         """
         Create an adjacency matrix for a collection of cells.
 
         Parameters
         ----------
-        cells : List[GridCell]
+        cells : list[GridCell]
             List of grid cells
 
         Returns
@@ -271,20 +269,18 @@ class GridRelationshipAnalyzer:
         df = pd.DataFrame(matrix, index=cell_ids, columns=cell_ids)
         return df
 
-    def get_topology_statistics(
-        self, cells: List[GridCell]
-    ) -> Dict[str, Union[int, float]]:
+    def get_topology_statistics(self, cells: list[GridCell]) -> dict[str, int | float]:
         """
         Calculate topological statistics for a collection of cells.
 
         Parameters
         ----------
-        cells : List[GridCell]
+        cells : list[GridCell]
             List of grid cells
 
         Returns
         -------
-        Dict[str, Union[int, float]]
+        dict[str, int | float]
             Dictionary of topology statistics
         """
         n_cells = len(cells)
@@ -319,7 +315,7 @@ class GridRelationshipAnalyzer:
 
         return stats
 
-    def _calculate_area_km2(self, geometry: Union[Polygon, MultiPolygon]) -> float:
+    def _calculate_area_km2(self, geometry: Polygon | MultiPolygon) -> float:
         """
         Calculate area of a geometry in square kilometers.
 
@@ -348,25 +344,25 @@ class GridRelationshipAnalyzer:
         return area_km2
 
     def find_clusters(
-        self, cells: List[GridCell], min_cluster_size: int = 2
-    ) -> List[List[GridCell]]:
+        self, cells: list[GridCell], min_cluster_size: int = 2
+    ) -> list[list[GridCell]]:
         """
         Find clusters of connected (adjacent) cells.
 
         Parameters
         ----------
-        cells : List[GridCell]
+        cells : list[GridCell]
             List of grid cells
         min_cluster_size : int, optional
             Minimum cluster size, by default 2
 
         Returns
         -------
-        List[List[GridCell]]
+        list[list[GridCell]]
             List of cell clusters
         """
         # Build adjacency graph
-        adjacency_dict: Dict[str, Set[str]] = {cell.identifier: set() for cell in cells}
+        adjacency_dict: dict[str, set[str]] = {cell.identifier: set() for cell in cells}
         cell_lookup = {cell.identifier: cell for cell in cells}
 
         for i, cell1 in enumerate(cells):
@@ -379,7 +375,7 @@ class GridRelationshipAnalyzer:
         visited = set()
         clusters = []
 
-        def dfs(cell_id: str, current_cluster: List[str]):
+        def dfs(cell_id: str, current_cluster: list[str]) -> None:
             if cell_id in visited:
                 return
             visited.add(cell_id)
@@ -391,7 +387,7 @@ class GridRelationshipAnalyzer:
 
         for cell in cells:
             if cell.identifier not in visited:
-                cluster: List[str] = []
+                cluster: list[str] = []
                 dfs(cell.identifier, cluster)
                 if len(cluster) >= min_cluster_size:
                     clusters.append([cell_lookup[cell_id] for cell_id in cluster])
@@ -400,23 +396,23 @@ class GridRelationshipAnalyzer:
 
     def analyze_grid_coverage(
         self,
-        cells: List[GridCell],
-        bounds: Optional[Tuple[float, float, float, float]] = None,
-    ) -> Dict[str, float]:
+        cells: list[GridCell],
+        bounds: tuple[float, float, float, float] | None = None,
+    ) -> dict[str, float]:
         """
         Analyze how well cells cover a given area.
 
         Parameters
         ----------
-        cells : List[GridCell]
+        cells : list[GridCell]
             List of grid cells
-        bounds : Tuple[float, float, float, float], optional
+        bounds : tuple[float, float, float, float] | None, optional
             Bounding box as (min_lon, min_lat, max_lon, max_lat)
             If None, uses cells' bounding box
 
         Returns
         -------
-        Dict[str, float]
+        dict[str, float]
             Coverage statistics
         """
         if not cells:
@@ -485,40 +481,40 @@ def is_adjacent(cell1: GridCell, cell2: GridCell) -> bool:
     return analyzer.is_adjacent(cell1, cell2)
 
 
-def find_contained_cells(container: GridCell, cells: List[GridCell]) -> List[GridCell]:
+def find_contained_cells(container: GridCell, cells: list[GridCell]) -> list[GridCell]:
     """Find cells contained within a container cell."""
     return analyzer.find_contained_cells(container, cells)
 
 
-def find_overlapping_cells(target: GridCell, cells: List[GridCell]) -> List[GridCell]:
+def find_overlapping_cells(target: GridCell, cells: list[GridCell]) -> list[GridCell]:
     """Find cells that overlap with a target cell."""
     return analyzer.find_overlapping_cells(target, cells)
 
 
-def find_adjacent_cells(target: GridCell, cells: List[GridCell]) -> List[GridCell]:
+def find_adjacent_cells(target: GridCell, cells: list[GridCell]) -> list[GridCell]:
     """Find cells adjacent to a target cell."""
     return analyzer.find_adjacent_cells(target, cells)
 
 
-def create_relationship_matrix(cells: List[GridCell]) -> pd.DataFrame:
+def create_relationship_matrix(cells: list[GridCell]) -> pd.DataFrame:
     """Create a relationship matrix for a collection of cells."""
     return analyzer.create_relationship_matrix(cells)
 
 
-def create_adjacency_matrix(cells: List[GridCell]) -> pd.DataFrame:
+def create_adjacency_matrix(cells: list[GridCell]) -> pd.DataFrame:
     """Create an adjacency matrix for a collection of cells."""
     return analyzer.create_adjacency_matrix(cells)
 
 
 def find_cell_clusters(
-    cells: List[GridCell], min_cluster_size: int = 2
-) -> List[List[GridCell]]:
+    cells: list[GridCell], min_cluster_size: int = 2
+) -> list[list[GridCell]]:
     """Find clusters of connected cells."""
     return analyzer.find_clusters(cells, min_cluster_size)
 
 
 def analyze_coverage(
-    cells: List[GridCell], bounds: Optional[Tuple[float, float, float, float]] = None
-) -> Dict[str, float]:
+    cells: list[GridCell], bounds: tuple[float, float, float, float] | None = None
+) -> dict[str, float]:
     """Analyze how well cells cover a given area."""
     return analyzer.analyze_grid_coverage(cells, bounds)

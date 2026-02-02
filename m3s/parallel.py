@@ -6,8 +6,9 @@ Threading-only implementation for parallel and streaming workloads.
 
 import warnings
 from abc import ABC, abstractmethod
+from collections.abc import Callable, Iterator
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Callable, Dict, Iterator, List, Optional
+from typing import Any
 
 import geopandas as gpd
 import pandas as pd
@@ -21,7 +22,7 @@ class ParallelConfig:
 
     def __init__(
         self,
-        n_workers: Optional[int] = None,
+        n_workers: int | None = None,
         chunk_size: int = 10000,
         optimize_memory: bool = True,
         adaptive_chunking: bool = True,
@@ -41,7 +42,7 @@ class StreamProcessor(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def combine_results(self, results: List[gpd.GeoDataFrame]) -> gpd.GeoDataFrame:
+    def combine_results(self, results: list[gpd.GeoDataFrame]) -> gpd.GeoDataFrame:
         """Combine multiple processed chunks into final result."""
         raise NotImplementedError
 
@@ -56,7 +57,7 @@ class GridStreamProcessor(StreamProcessor):
         """Process a chunk through grid intersection."""
         return self.grid.intersects(chunk)
 
-    def combine_results(self, results: List[gpd.GeoDataFrame]) -> gpd.GeoDataFrame:
+    def combine_results(self, results: list[gpd.GeoDataFrame]) -> gpd.GeoDataFrame:
         """Combine intersection results."""
         if not results:
             return gpd.GeoDataFrame()
@@ -72,12 +73,12 @@ class ParallelGridEngine:
     Threading-only implementation for moderate-size workloads.
     """
 
-    def __init__(self, config: Optional[ParallelConfig] = None):
+    def __init__(self, config: ParallelConfig | None = None):
         self.config = config or ParallelConfig()
         self.memory_monitor = MemoryMonitor() if self.config.optimize_memory else None
 
     def intersect_parallel(
-        self, grid: BaseGrid, gdf: gpd.GeoDataFrame, chunk_size: Optional[int] = None
+        self, grid: BaseGrid, gdf: gpd.GeoDataFrame, chunk_size: int | None = None
     ) -> gpd.GeoDataFrame:
         """
         Perform parallel grid intersection on GeoDataFrame.
@@ -88,7 +89,7 @@ class ParallelGridEngine:
             Grid system to use for intersection
         gdf : gpd.GeoDataFrame
             Input GeoDataFrame
-        chunk_size : int, optional
+        chunk_size : int | None, optional
             Size of chunks for parallel processing
 
         Returns
@@ -116,7 +117,7 @@ class ParallelGridEngine:
             return grid.intersects(gdf)
 
         chunks = [gdf.iloc[i : i + chunk_size] for i in range(0, len(gdf), chunk_size)]
-        results: List[gpd.GeoDataFrame] = []
+        results: list[gpd.GeoDataFrame] = []
 
         max_workers = self.config.n_workers or min(4, len(chunks))
 
@@ -142,7 +143,7 @@ class ParallelGridEngine:
         self,
         data_stream: Iterator[gpd.GeoDataFrame],
         processor: StreamProcessor,
-        output_callback: Optional[Callable[[gpd.GeoDataFrame], None]] = None,
+        output_callback: Callable[[gpd.GeoDataFrame], None] | None = None,
     ) -> gpd.GeoDataFrame:
         """
         Process streaming geospatial data.
@@ -153,7 +154,7 @@ class ParallelGridEngine:
             Stream of GeoDataFrame chunks
         processor : StreamProcessor
             Processor to apply to each chunk
-        output_callback : callable, optional
+        output_callback : Callable[[gpd.GeoDataFrame], None] | None, optional
             Callback function called with each processed chunk
 
         Returns
@@ -167,10 +168,10 @@ class ParallelGridEngine:
         self,
         data_stream: Iterator[gpd.GeoDataFrame],
         processor: StreamProcessor,
-        output_callback: Optional[Callable[[gpd.GeoDataFrame], None]],
+        output_callback: Callable[[gpd.GeoDataFrame], None] | None,
     ) -> gpd.GeoDataFrame:
         """Thread-based stream processing."""
-        results: List[gpd.GeoDataFrame] = []
+        results: list[gpd.GeoDataFrame] = []
         max_workers = self.config.n_workers or 4
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -194,37 +195,37 @@ class ParallelGridEngine:
 
     def batch_intersect_multiple_grids(
         self,
-        grids: List[BaseGrid],
+        grids: list[BaseGrid],
         gdf: gpd.GeoDataFrame,
-        grid_names: Optional[List[str]] = None,
-    ) -> Dict[str, gpd.GeoDataFrame]:
+        grid_names: list[str] | None = None,
+    ) -> dict[str, gpd.GeoDataFrame]:
         """
         Intersect GeoDataFrame with multiple grid systems in parallel.
 
         Parameters
         ----------
-        grids : List[BaseGrid]
+        grids : list[BaseGrid]
             List of grid systems
         gdf : gpd.GeoDataFrame
             Input GeoDataFrame
-        grid_names : List[str], optional
+        grid_names : list[str] | None, optional
             Names for each grid system
 
         Returns
         -------
-        Dict[str, gpd.GeoDataFrame]
+        dict[str, gpd.GeoDataFrame]
             Results keyed by grid name
         """
         if not grid_names:
             grid_names = [f"grid_{i}" for i in range(len(grids))]
 
-        results: Dict[str, gpd.GeoDataFrame] = {}
+        results: dict[str, gpd.GeoDataFrame] = {}
         max_workers = min(len(grids), self.config.n_workers or 4)
 
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             future_to_name = {
                 executor.submit(self.intersect_parallel, grid, gdf): name
-                for name, grid in zip(grid_names, grids)
+                for name, grid in zip(grid_names, grids, strict=True)
             }
 
             for future in as_completed(future_to_name):
@@ -237,7 +238,7 @@ class ParallelGridEngine:
 
         return results
 
-    def get_performance_stats(self) -> Dict[str, Any]:
+    def get_performance_stats(self) -> dict[str, Any]:
         """Get basic performance statistics."""
         return {
             "status": "threading_only",
@@ -272,16 +273,16 @@ def create_data_stream(
 
 
 def create_file_stream(
-    file_paths: List[str], chunk_size: Optional[int] = None
+    file_paths: list[str], chunk_size: int | None = None
 ) -> Iterator[gpd.GeoDataFrame]:
     """
     Create a streaming iterator from multiple geospatial files.
 
     Parameters
     ----------
-    file_paths : List[str]
+    file_paths : list[str]
         List of file paths to read
-    chunk_size : int, optional
+    chunk_size : int | None, optional
         If provided, split large files into chunks
 
     Yields
@@ -304,10 +305,10 @@ def create_file_stream(
 def parallel_intersect(
     grid: BaseGrid,
     gdf: gpd.GeoDataFrame,
-    config: Optional[ParallelConfig] = None,
-    chunk_size: Optional[int] = None,
+    config: ParallelConfig | None = None,
+    chunk_size: int | None = None,
 ) -> gpd.GeoDataFrame:
-    """Convenience wrapper for parallel intersection."""
+    """Return a convenience wrapper for parallel intersection."""
     engine = ParallelGridEngine(config)
     return engine.intersect_parallel(grid, gdf, chunk_size)
 
@@ -315,10 +316,10 @@ def parallel_intersect(
 def stream_grid_processing(
     grid: BaseGrid,
     data_stream: Iterator[gpd.GeoDataFrame],
-    config: Optional[ParallelConfig] = None,
-    output_callback: Optional[Callable[[gpd.GeoDataFrame], None]] = None,
+    config: ParallelConfig | None = None,
+    output_callback: Callable[[gpd.GeoDataFrame], None] | None = None,
 ) -> gpd.GeoDataFrame:
-    """Convenience wrapper for stream processing."""
+    """Return a convenience wrapper for stream processing."""
     engine = ParallelGridEngine(config)
     processor = GridStreamProcessor(grid)
     return engine.stream_process(data_stream, processor, output_callback)

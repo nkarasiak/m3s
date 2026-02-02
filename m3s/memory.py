@@ -7,8 +7,9 @@ including lazy evaluation, chunked processing, and memory monitoring.
 
 import gc
 import warnings
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
-from typing import Any, Callable, Iterator, List, Optional
+from typing import Any
 
 import geopandas as gpd
 import pandas as pd
@@ -167,8 +168,8 @@ class LazyGeodataFrame:
 
     def __init__(
         self,
-        file_path: str = None,
-        gdf: gpd.GeoDataFrame = None,
+        file_path: str | None = None,
+        gdf: gpd.GeoDataFrame | None = None,
         chunk_size: int = 10000,
     ):
         """
@@ -176,9 +177,9 @@ class LazyGeodataFrame:
 
         Parameters
         ----------
-        file_path : str, optional
+        file_path : str | None, optional
             Path to geospatial file to load lazily
-        gdf : gpd.GeoDataFrame, optional
+        gdf : gpd.GeoDataFrame | None, optional
             Existing GeoDataFrame to wrap
         chunk_size : int, optional
             Size of chunks for processing, by default 10000
@@ -232,13 +233,13 @@ class LazyGeodataFrame:
                 self._bounds = self._gdf.total_bounds
         return self._bounds
 
-    def chunks(self, chunk_size: Optional[int] = None) -> Iterator[gpd.GeoDataFrame]:
+    def chunks(self, chunk_size: int | None = None) -> Iterator[gpd.GeoDataFrame]:
         """
         Iterate over chunks of the GeoDataFrame.
 
         Parameters
         ----------
-        chunk_size : int, optional
+        chunk_size : int | None, optional
             Size of chunks, uses instance default if None
 
         Yields
@@ -303,7 +304,7 @@ class StreamingGridProcessor:
     Processes large datasets in chunks while maintaining minimal memory footprint.
     """
 
-    def __init__(self, grid, memory_monitor: Optional[MemoryMonitor] = None):
+    def __init__(self, grid, memory_monitor: MemoryMonitor | None = None):
         """
         Initialize streaming processor.
 
@@ -311,18 +312,18 @@ class StreamingGridProcessor:
         ----------
         grid : BaseGrid
             Grid system to use for processing
-        memory_monitor : MemoryMonitor, optional
+        memory_monitor : MemoryMonitor | None, optional
             Memory monitor for optimization
         """
         self.grid = grid
         self.memory_monitor = memory_monitor or MemoryMonitor()
         self.processed_count = 0
-        self.results_cache: List[Any] = []
+        self.results_cache: list[Any] = []
 
     def process_stream(
         self,
         data_source: LazyGeodataFrame,
-        output_callback: Optional[Callable[[gpd.GeoDataFrame], None]] = None,
+        output_callback: Callable[[gpd.GeoDataFrame], None] | None = None,
         adaptive_chunking: bool = True,
     ) -> Iterator[gpd.GeoDataFrame]:
         """
@@ -332,7 +333,7 @@ class StreamingGridProcessor:
         ----------
         data_source : LazyGeodataFrame
             Lazy data source to process
-        output_callback : callable, optional
+        output_callback : Callable[[gpd.GeoDataFrame], None] | None, optional
             Callback function for each processed chunk
         adaptive_chunking : bool, optional
             Whether to adjust chunk size based on memory pressure
@@ -380,7 +381,8 @@ class StreamingGridProcessor:
                 del result
                 # Don't delete chunk here - wait until after error handling
 
-                # Periodic garbage collection - optimize frequency based on memory pressure
+                # Periodic garbage collection - optimize frequency based on memory
+                # pressure.
                 if self.processed_count % 10000 == 0:
                     pressure = self.memory_monitor.check_memory_pressure()
                     if pressure in ["high", "critical"]:
@@ -414,7 +416,10 @@ class StreamingGridProcessor:
                             del sub_chunk
                 else:
                     warnings.warn(
-                        f"Skipping small problematic chunk of size {len(current_chunk)}",
+                        (
+                            "Skipping small problematic chunk of size "
+                            f"{len(current_chunk)}"
+                        ),
                         stacklevel=2,
                     )
 

@@ -3,17 +3,15 @@ Base classes and interfaces for spatial grids.
 """
 
 from abc import ABC, abstractmethod
-from typing import List
+from functools import cached_property
+from typing import Any
 
 import geopandas as gpd
 import pyproj
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Point, Polygon, mapping
 from shapely.ops import transform
 
-from .cache import (
-    cached_property,
-    get_spatial_cache,
-)
+from .cache import get_spatial_cache
 
 
 class GridCell:
@@ -23,6 +21,8 @@ class GridCell:
     A GridCell contains an identifier, geometric polygon representation,
     and precision level for spatial indexing systems.
     """
+
+    __slots__ = ('identifier', 'polygon', 'precision', '__dict__')
 
     def __init__(self, identifier: str, polygon: Polygon, precision: int):
         self.identifier = identifier
@@ -65,7 +65,10 @@ class GridCell:
                 # Determine UTM zone
                 utm_zone = int((lon + 180) / 6) + 1
                 hemisphere = "north" if lat >= 0 else "south"
-                utm_crs = f"+proj=utm +zone={utm_zone} +{hemisphere} +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+                utm_crs = (
+                    f"+proj=utm +zone={utm_zone} +{hemisphere} "
+                    f"+ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+                )
                 cache.put_utm_zone(lat, lon, utm_crs)
 
             # Transform from WGS84 to UTM
@@ -109,7 +112,10 @@ class GridCell:
             return area_km2
 
     def __repr__(self):
-        return f"GridCell(id={self.identifier}, precision={self.precision}, area={self.area_km2:.2f}km²)"
+        return (
+            f"GridCell(id={self.identifier}, precision={self.precision}, "
+            f"area={self.area_km2:.2f}km²)"
+        )
 
     def __eq__(self, other):
         if not isinstance(other, GridCell):
@@ -118,6 +124,94 @@ class GridCell:
 
     def __hash__(self) -> int:
         return hash(self.identifier)
+
+    # Convenience properties for new API
+
+    @property
+    def id(self) -> str:
+        """
+        Alias for identifier.
+
+        Returns
+        -------
+        str
+            Cell identifier
+        """
+        return self.identifier
+
+    @property
+    def bounds(self) -> tuple[float, float, float, float]:
+        """
+        Bounding box of the cell.
+
+        Returns
+        -------
+        tuple[float, float, float, float]
+            (min_lon, min_lat, max_lon, max_lat)
+        """
+        return self.polygon.bounds
+
+    @property
+    def centroid(self) -> tuple[float, float]:
+        """
+        Centroid of the cell.
+
+        Returns
+        -------
+        tuple[float, float]
+            (lat, lon) of centroid
+        """
+        c = self.polygon.centroid
+        return (c.y, c.x)
+
+    @property
+    def geometry(self) -> Polygon:
+        """
+        Alias for polygon.
+
+        Returns
+        -------
+        Polygon
+            Cell polygon geometry
+        """
+        return self.polygon
+
+    def to_dict(self) -> dict[str, Any]:
+        """
+        Convert to dictionary.
+
+        Returns
+        -------
+        dict[str, Any]
+            Dictionary with cell properties
+        """
+        return {
+            "id": self.identifier,
+            "precision": self.precision,
+            "area_km2": self.area_km2,
+            "centroid": self.centroid,
+            "bounds": self.bounds,
+            "wkt": self.polygon.wkt,
+        }
+
+    def to_geojson(self) -> dict[str, Any]:
+        """
+        Convert to GeoJSON feature.
+
+        Returns
+        -------
+        dict[str, Any]
+            GeoJSON feature with geometry and properties
+        """
+        return {
+            "type": "Feature",
+            "geometry": mapping(self.polygon),
+            "properties": {
+                "id": self.identifier,
+                "precision": self.precision,
+                "area_km2": self.area_km2,
+            },
+        }
 
 
 class BaseGrid(ABC):
@@ -168,7 +262,7 @@ class BaseGrid(ABC):
         pass
 
     @abstractmethod
-    def get_neighbors(self, cell: GridCell) -> List[GridCell]:
+    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
         """
         Get neighboring cells of the given cell.
 
@@ -179,7 +273,7 @@ class BaseGrid(ABC):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of neighboring grid cells
         """
         pass
@@ -187,7 +281,7 @@ class BaseGrid(ABC):
     @abstractmethod
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> List[GridCell]:
+    ) -> list[GridCell]:
         """
         Get all grid cells within the given bounding box.
 
@@ -204,7 +298,7 @@ class BaseGrid(ABC):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of grid cells that intersect the bounding box
         """
         pass
@@ -230,14 +324,33 @@ class BaseGrid(ABC):
         point = Point(lon, lat)
         return polygon.contains(point)
 
+    def _get_additional_columns(self, cell: GridCell) -> dict[str, Any]:
+        """
+        Get additional grid-specific columns for a cell.
+
+        Parameters
+        ----------
+        cell : GridCell
+            The grid cell to extract additional data from
+
+        Returns
+        -------
+        dict
+            Dictionary of additional column names and values
+        """
+        return {}
+
     def intersects(
-        self, gdf: gpd.GeoDataFrame, target_crs: str = "EPSG:4326"
+        self,
+        gdf: gpd.GeoDataFrame,
+        target_crs: str = "EPSG:4326",
+        use_spatial_index: bool = False,
     ) -> gpd.GeoDataFrame:
         """
         Get all grid cells that intersect with geometries in a GeoDataFrame.
 
-        Automatically handles CRS transformation to WGS84 (EPSG:4326) for grid operations,
-        then transforms results back to the original CRS if different.
+        Automatically handles CRS transformation to WGS84 (EPSG:4326) for grid
+        operations, then transforms results back to the original CRS if different.
 
         Parameters
         ----------
@@ -245,15 +358,22 @@ class BaseGrid(ABC):
             A GeoDataFrame containing geometries to intersect with grid cells
         target_crs : str, optional
             Target CRS for grid operations (default: "EPSG:4326")
+        use_spatial_index : bool, optional
+            Use GeoPandas spatial index for intersection checks when available
 
         Returns
         -------
         gpd.GeoDataFrame
             GeoDataFrame with grid cell identifiers, geometries, and original data
         """
+        # Get additional column names from hook
+        additional_cols = list(
+            self._get_additional_columns(GridCell("", Polygon(), 0)).keys()
+        )
+
         if gdf.empty:
             # Create columns without duplicating 'geometry'
-            result_columns = ["cell_id", "precision", "geometry"]
+            result_columns = ["cell_id", "precision"] + additional_cols + ["geometry"]
             result_columns.extend([col for col in gdf.columns if col != "geometry"])
             return gpd.GeoDataFrame(columns=result_columns, crs=gdf.crs)
 
@@ -279,24 +399,23 @@ class BaseGrid(ABC):
                 candidate_cells = self.get_cells_in_bbox(
                     min_lat, min_lon, max_lat, max_lon
                 )
-                intersecting_cells = [
-                    cell
-                    for cell in candidate_cells
-                    if cell.polygon.intersects(geometry)
-                ]
+                intersecting_cells = self._filter_intersecting_cells(
+                    candidate_cells, geometry, use_spatial_index
+                )
                 for cell in intersecting_cells:
-                    all_cells.append(
-                        {
-                            "cell_id": cell.identifier,
-                            "precision": cell.precision,
-                            "geometry": cell.polygon,
-                        }
-                    )
+                    cell_data = {
+                        "cell_id": cell.identifier,
+                        "precision": cell.precision,
+                        "geometry": cell.polygon,
+                    }
+                    # Add grid-specific columns from hook
+                    cell_data.update(self._get_additional_columns(cell))
+                    all_cells.append(cell_data)
                     source_indices.append(idx)
 
         if not all_cells:
             # Create columns without duplicating 'geometry'
-            result_columns = ["cell_id", "precision", "geometry"]
+            result_columns = ["cell_id", "precision"] + additional_cols + ["geometry"]
             result_columns.extend([col for col in gdf.columns if col != "geometry"])
             return gpd.GeoDataFrame(columns=result_columns, crs=target_crs)
 
@@ -313,3 +432,43 @@ class BaseGrid(ABC):
             result_gdf = result_gdf.to_crs(original_crs)
 
         return result_gdf
+
+    def _filter_intersecting_cells(
+        self,
+        candidate_cells: list[GridCell],
+        geometry: Polygon,
+        use_spatial_index: bool,
+    ) -> list[GridCell]:
+        """
+        Filter candidate cells by true geometry intersection.
+
+        Uses spatial index when enabled and available.
+        """
+        if not candidate_cells:
+            return []
+
+        if not use_spatial_index:
+            return [
+                cell for cell in candidate_cells if cell.polygon.intersects(geometry)
+            ]
+
+        try:
+            cells_gdf = gpd.GeoDataFrame(
+                {"geometry": [cell.polygon for cell in candidate_cells]},
+                geometry="geometry",
+                crs="EPSG:4326",
+            )
+            sindex = cells_gdf.sindex
+            matches = list(sindex.query(geometry, predicate="intersects"))
+            if not matches:
+                return []
+
+            intersecting = []
+            for idx in matches:
+                if cells_gdf.geometry.iloc[idx].intersects(geometry):
+                    intersecting.append(candidate_cells[idx])
+            return intersecting
+        except Exception:
+            return [
+                cell for cell in candidate_cells if cell.polygon.intersects(geometry)
+            ]

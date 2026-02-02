@@ -3,9 +3,8 @@ MGRS (Military Grid Reference System) grid implementation.
 """
 
 import math
-from typing import List
+from typing import Any, override
 
-import geopandas as gpd
 import mgrs
 from pyproj import Transformer
 from shapely.geometry import Polygon
@@ -63,11 +62,13 @@ class MGRSGrid(BaseGrid):
         area_m2 = grid_size_m * grid_size_m  # Square area
         return area_m2 / 1_000_000  # Convert to km²
 
+    @override
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
         """Get the MGRS cell containing the given point."""
         mgrs_str = self.mgrs_converter.toMGRS(lat, lon, MGRSPrecision=self.precision)
         return self.get_cell_from_identifier(mgrs_str)
 
+    @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """Get an MGRS cell from its identifier."""
         try:
@@ -125,7 +126,8 @@ class MGRSGrid(BaseGrid):
         sizes = {0: 100000, 1: 10000, 2: 1000, 3: 100, 4: 10, 5: 1}
         return sizes[self.precision]
 
-    def get_neighbors(self, cell: GridCell) -> List[GridCell]:
+    @override
+    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
         """Get neighboring MGRS cells."""
         try:
             lat, lon = self.mgrs_converter.toLatLon(cell.identifier)
@@ -149,11 +151,13 @@ class MGRSGrid(BaseGrid):
                         neighbor_cell = self.get_cell_from_point(n_lat, n_lon)
                         if neighbor_cell.identifier != cell.identifier:
                             neighbors.append(neighbor_cell)
-                except:
+                except Exception:
+                    # Skip invalid neighbor coordinates
                     pass
 
             return list(set(neighbors))
-        except:
+        except Exception:
+            # Return empty list if cell lookup fails
             return []
 
     def _grid_size_to_degrees(self, lat: float) -> float:
@@ -169,13 +173,12 @@ class MGRSGrid(BaseGrid):
         # Ensure cos_lat is not zero (additional safety)
         cos_lat = max(0.001, cos_lat)
 
-        1.0 / (111320.0 * cos_lat)
-
         return grid_size_m * lat_deg_per_m
 
+    @override
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> List[GridCell]:
+    ) -> list[GridCell]:
         """Get all MGRS cells within the given bounding box."""
         cells = set()  # Use set to avoid duplicates
 
@@ -230,88 +233,23 @@ class MGRSGrid(BaseGrid):
 
         return list(cells)
 
-    def intersects(
-        self, gdf: gpd.GeoDataFrame, target_crs: str = "EPSG:4326"
-    ) -> gpd.GeoDataFrame:
+    @override
+    def _get_additional_columns(self, cell: GridCell) -> dict[str, Any]:
         """
-        Get all grid cells that intersect with geometries in a GeoDataFrame.
-
-        For MGRS grids, includes an additional 'utm' column with the best UTM CRS
-        for each MGRS cell.
+        Add UTM zone column for MGRS cells.
 
         Parameters
         ----------
-        gdf : gpd.GeoDataFrame
-            A GeoDataFrame containing geometries to intersect with grid cells
-        target_crs : str, optional
-            Target CRS for grid operations (default: "EPSG:4326")
+        cell : GridCell
+            The grid cell to extract UTM data from
 
         Returns
         -------
-        gpd.GeoDataFrame
-            GeoDataFrame with grid cell identifiers, UTM codes, geometries, and original data
+        dict
+            Dictionary with 'utm' column
         """
-        if gdf.empty:
-            empty_columns = ["cell_id", "precision", "utm", "geometry"] + [
-                col for col in gdf.columns if col != "geometry"
-            ]
-            return gpd.GeoDataFrame(columns=empty_columns)
+        if not cell.identifier:
+            return {}
 
-        original_crs = gdf.crs
-
-        # Transform to target CRS if needed
-        if original_crs is None:
-            raise ValueError("GeoDataFrame CRS must be defined")
-
-        if original_crs != target_crs:
-            gdf_transformed = gdf.to_crs(target_crs)
-        else:
-            gdf_transformed = gdf.copy()
-
-        # Collect all intersecting cells with source geometry indices
-        all_cells = []
-        source_indices = []
-
-        for idx, geometry in enumerate(gdf_transformed.geometry):
-            if geometry is not None and not geometry.is_empty:
-                bounds = geometry.bounds
-                min_lon, min_lat, max_lon, max_lat = bounds
-                candidate_cells = self.get_cells_in_bbox(
-                    min_lat, min_lon, max_lat, max_lon
-                )
-                intersecting_cells = [
-                    cell
-                    for cell in candidate_cells
-                    if cell.polygon.intersects(geometry)
-                ]
-                for cell in intersecting_cells:
-                    utm_epsg = self._get_utm_zone_from_mgrs(cell.identifier)
-                    all_cells.append(
-                        {
-                            "cell_id": cell.identifier,
-                            "precision": cell.precision,
-                            "utm": utm_epsg,
-                            "geometry": cell.polygon,
-                        }
-                    )
-                    source_indices.append(idx)
-
-        if not all_cells:
-            empty_columns = ["cell_id", "precision", "utm", "geometry"] + [
-                col for col in gdf.columns if col != "geometry"
-            ]
-            return gpd.GeoDataFrame(columns=empty_columns)
-
-        # Create result GeoDataFrame
-        result_gdf = gpd.GeoDataFrame(all_cells, crs=target_crs)
-
-        # Add original data for each intersecting cell
-        for col in gdf.columns:
-            if col != "geometry":
-                result_gdf[col] = [gdf.iloc[idx][col] for idx in source_indices]
-
-        # Transform back to original CRS if different
-        if original_crs != target_crs:
-            result_gdf = result_gdf.to_crs(original_crs)
-
-        return result_gdf
+        utm_epsg = self._get_utm_zone_from_mgrs(cell.identifier)
+        return {"utm": utm_epsg}

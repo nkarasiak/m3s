@@ -7,7 +7,8 @@ string of digits (0, 1, 2, 3) representing the quadrant path from root.
 """
 
 import math
-from typing import List, Tuple
+import warnings
+from typing import override
 
 from shapely.geometry import Polygon
 
@@ -29,21 +30,38 @@ class QuadkeyGrid(BaseGrid):
         Zoom level (precision) of the quadkey tiles (1-23)
     """
 
-    def __init__(self, level: int):
+    def __init__(self, precision: int | None = None, level: int | None = None):
         """
         Initialize Quadkey grid.
 
         Parameters
         ----------
-        level : int
-            Zoom level for quadkey tiles (1-23)
-            Higher levels provide smaller, more precise tiles
+        precision : int, optional
+            Precision level for quadkey tiles (1-23).
+            This is the standardized parameter name across all grid systems.
+        level : int, optional
+            Deprecated alias for precision. Use 'precision' instead.
         """
-        if not 1 <= level <= 23:
-            raise ValueError("Quadkey level must be between 1 and 23")
+        # Handle parameter aliases with deprecation warning
+        if precision is None and level is None:
+            raise ValueError("Must specify either 'precision' or 'level' parameter")
+        elif precision is not None and level is not None:
+            raise ValueError(
+                "Cannot specify both 'precision' and 'level'. Use 'precision' instead."
+            )
+        elif level is not None:
+            warnings.warn(
+                "The 'level' parameter is deprecated. Use 'precision' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            precision = level
 
-        super().__init__(level)
-        self.level = level
+        if not 1 <= precision <= 23:
+            raise ValueError("Quadkey precision must be between 1 and 23")
+
+        super().__init__(precision)
+        self.level = precision  # Keep for backwards compatibility
 
     @property
     def area_km2(self) -> float:
@@ -71,7 +89,7 @@ class QuadkeyGrid(BaseGrid):
         # Area (square)
         return tile_size_km * tile_size_km
 
-    def _lat_lon_to_pixel_xy(self, lat: float, lon: float) -> Tuple[int, int]:
+    def _lat_lon_to_pixel_xy(self, lat: float, lon: float) -> tuple[int, int]:
         """
         Convert latitude/longitude to pixel XY coordinates.
 
@@ -110,7 +128,7 @@ class QuadkeyGrid(BaseGrid):
 
         return pixel_x, pixel_y
 
-    def _pixel_xy_to_tile_xy(self, pixel_x: int, pixel_y: int) -> Tuple[int, int]:
+    def _pixel_xy_to_tile_xy(self, pixel_x: int, pixel_y: int) -> tuple[int, int]:
         """
         Convert pixel XY coordinates to tile XY coordinates.
 
@@ -129,6 +147,32 @@ class QuadkeyGrid(BaseGrid):
         tile_x = pixel_x // 256
         tile_y = pixel_y // 256
         return tile_x, tile_y
+
+    def _pixel_to_lat_lon(self, px: int, py: int, map_size: int) -> tuple[float, float]:
+        """
+        Convert pixel coordinates to latitude/longitude.
+
+        Parameters
+        ----------
+        px : int
+            Pixel X coordinate
+        py : int
+            Pixel Y coordinate
+        map_size : int
+            Map size at current zoom level (256 << level)
+
+        Returns
+        -------
+        tuple
+            (latitude, longitude) in degrees
+        """
+        x = px / map_size - 0.5
+        y = 0.5 - py / map_size
+
+        lon = x * 360
+        lat = 90 - 360 * math.atan(math.exp(-y * 2 * math.pi)) / math.pi
+
+        return lat, lon
 
     def _tile_xy_to_quadkey(self, tile_x: int, tile_y: int) -> str:
         """
@@ -161,7 +205,7 @@ class QuadkeyGrid(BaseGrid):
 
         return "".join(quadkey)
 
-    def _quadkey_to_tile_xy(self, quadkey: str) -> Tuple[int, int]:
+    def _quadkey_to_tile_xy(self, quadkey: str) -> tuple[int, int]:
         """
         Convert quadkey to tile XY coordinates.
 
@@ -192,7 +236,7 @@ class QuadkeyGrid(BaseGrid):
 
     def _tile_xy_to_lat_lon_bounds(
         self, tile_x: int, tile_y: int
-    ) -> Tuple[float, float, float, float]:
+    ) -> tuple[float, float, float, float]:
         """
         Convert tile XY coordinates to latitude/longitude bounds.
 
@@ -216,18 +260,9 @@ class QuadkeyGrid(BaseGrid):
         min_pixel_y = tile_y * 256
         max_pixel_y = (tile_y + 1) * 256
 
-        # Convert to lat/lon
-        def pixel_to_lat_lon(px: int, py: int) -> Tuple[float, float]:
-            x = px / map_size - 0.5
-            y = 0.5 - py / map_size
-
-            lon = x * 360
-            lat = 90 - 360 * math.atan(math.exp(-y * 2 * math.pi)) / math.pi
-
-            return lat, lon
-
-        min_lat, min_lon = pixel_to_lat_lon(min_pixel_x, max_pixel_y)
-        max_lat, max_lon = pixel_to_lat_lon(max_pixel_x, min_pixel_y)
+        # Convert to lat/lon using class method
+        min_lat, min_lon = self._pixel_to_lat_lon(min_pixel_x, max_pixel_y, map_size)
+        max_lat, max_lon = self._pixel_to_lat_lon(max_pixel_x, min_pixel_y, map_size)
 
         return min_lat, min_lon, max_lat, max_lon
 
@@ -261,6 +296,7 @@ class QuadkeyGrid(BaseGrid):
             ]
         )
 
+    @override
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
         """
         Get the quadkey cell containing the given point.
@@ -284,6 +320,7 @@ class QuadkeyGrid(BaseGrid):
 
         return GridCell(quadkey, polygon, self.level)
 
+    @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """
         Get a grid cell from its quadkey identifier.
@@ -300,7 +337,8 @@ class QuadkeyGrid(BaseGrid):
         """
         if len(identifier) != self.level:
             raise ValueError(
-                f"Quadkey length {len(identifier)} does not match grid level {self.level}"
+                "Quadkey length "
+                f"{len(identifier)} does not match grid level {self.level}"
             )
 
         # Validate quadkey contains only digits 0-3
@@ -312,7 +350,8 @@ class QuadkeyGrid(BaseGrid):
 
         return GridCell(identifier, polygon, self.level)
 
-    def get_neighbors(self, cell: GridCell) -> List[GridCell]:
+    @override
+    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
         """
         Get neighboring cells of the given cell.
 
@@ -323,7 +362,7 @@ class QuadkeyGrid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of neighboring grid cells (up to 8 neighbors)
         """
         tile_x, tile_y = self._quadkey_to_tile_xy(cell.identifier)
@@ -349,7 +388,7 @@ class QuadkeyGrid(BaseGrid):
 
         return neighbors
 
-    def get_children(self, cell: GridCell) -> List[GridCell]:
+    def get_children(self, cell: GridCell) -> list[GridCell]:
         """
         Get child cells at the next zoom level.
 
@@ -360,7 +399,7 @@ class QuadkeyGrid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of 4 child cells
         """
         if self.level >= 23:
@@ -406,18 +445,9 @@ class QuadkeyGrid(BaseGrid):
         min_pixel_y = tile_y * 256
         max_pixel_y = (tile_y + 1) * 256
 
-        # Convert to lat/lon
-        def pixel_to_lat_lon(px: int, py: int) -> Tuple[float, float]:
-            x = px / map_size - 0.5
-            y = 0.5 - py / map_size
-
-            lon = x * 360
-            lat = 90 - 360 * math.atan(math.exp(-y * 2 * math.pi)) / math.pi
-
-            return lat, lon
-
-        min_lat, min_lon = pixel_to_lat_lon(min_pixel_x, max_pixel_y)
-        max_lat, max_lon = pixel_to_lat_lon(max_pixel_x, min_pixel_y)
+        # Convert to lat/lon using class method
+        min_lat, min_lon = self._pixel_to_lat_lon(min_pixel_x, max_pixel_y, map_size)
+        max_lat, max_lon = self._pixel_to_lat_lon(max_pixel_x, min_pixel_y, map_size)
 
         return Polygon(
             [
@@ -454,9 +484,10 @@ class QuadkeyGrid(BaseGrid):
 
         return GridCell(parent_quadkey, parent_polygon, len(parent_quadkey))
 
+    @override
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> List[GridCell]:
+    ) -> list[GridCell]:
         """
         Get all grid cells within the given bounding box.
 
@@ -473,7 +504,7 @@ class QuadkeyGrid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of grid cells that intersect the bounding box
         """
         # Convert corners to tile coordinates
@@ -496,7 +527,7 @@ class QuadkeyGrid(BaseGrid):
 
         return cells
 
-    def get_quadkey_bounds(self, quadkey: str) -> Tuple[float, float, float, float]:
+    def get_quadkey_bounds(self, quadkey: str) -> tuple[float, float, float, float]:
         """
         Get the latitude/longitude bounds of a quadkey.
 
@@ -521,18 +552,9 @@ class QuadkeyGrid(BaseGrid):
         min_pixel_y = tile_y * 256
         max_pixel_y = (tile_y + 1) * 256
 
-        # Convert to lat/lon
-        def pixel_to_lat_lon(px: int, py: int) -> Tuple[float, float]:
-            x = px / map_size - 0.5
-            y = 0.5 - py / map_size
-
-            lon = x * 360
-            lat = 90 - 360 * math.atan(math.exp(-y * 2 * math.pi)) / math.pi
-
-            return lat, lon
-
-        min_lat, min_lon = pixel_to_lat_lon(min_pixel_x, max_pixel_y)
-        max_lat, max_lon = pixel_to_lat_lon(max_pixel_x, min_pixel_y)
+        # Convert to lat/lon using class method
+        min_lat, min_lon = self._pixel_to_lat_lon(min_pixel_x, max_pixel_y, map_size)
+        max_lat, max_lon = self._pixel_to_lat_lon(max_pixel_x, min_pixel_y, map_size)
 
         return min_lat, min_lon, max_lat, max_lon
 

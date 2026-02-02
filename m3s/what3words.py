@@ -9,13 +9,13 @@ use the official What3Words API.
 
 import hashlib
 import math
-from typing import List
+from typing import Any, override
 
-import geopandas as gpd
 from shapely.geometry import Polygon
 
 from .base import BaseGrid, GridCell
 from .cache import cached_method, cell_cache_key, geo_cache_key
+from .projection_utils import get_utm_epsg_code
 
 
 class What3WordsGrid(BaseGrid):
@@ -172,6 +172,7 @@ class What3WordsGrid(BaseGrid):
         return f"w3w.{'.'.join(word_parts[:3])}"
 
     @cached_method(cache_key_func=geo_cache_key)
+    @override
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
         """
         Get the grid cell containing the given point.
@@ -210,6 +211,7 @@ class What3WordsGrid(BaseGrid):
         return GridCell(identifier, polygon, self.precision)
 
     @cached_method(cache_key_func=cell_cache_key)
+    @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """
         Get a grid cell from its identifier.
@@ -224,19 +226,15 @@ class What3WordsGrid(BaseGrid):
         GridCell
             The grid cell corresponding to the identifier
         """
-        # For this implementation, we'll need to reverse-engineer from identifier
-        # In a real What3Words integration, this would use their API
-
-        # Extract coordinates from our hash-based identifier
-        # This is a simplified approach - real What3Words would need their API
         if not identifier.startswith("w3w."):
             raise ValueError(f"Invalid What3Words identifier: {identifier}")
 
-        # For demo purposes, we'll create a cell at 0,0
-        # In reality, you'd need What3Words API to convert words to coordinates
-        return self.get_cell_from_point(0.0, 0.0)
+        raise ValueError(
+            "What3Words identifiers require the official What3Words API for decoding."
+        )
 
-    def get_neighbors(self, cell: GridCell) -> List[GridCell]:
+    @override
+    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
         """
         Get neighboring cells of the given cell.
 
@@ -247,7 +245,7 @@ class What3WordsGrid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of neighboring grid cells (8 neighbors for square grid)
         """
         # Get center point of the cell
@@ -289,9 +287,10 @@ class What3WordsGrid(BaseGrid):
 
         return neighbors
 
+    @override
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> List[GridCell]:
+    ) -> list[GridCell]:
         """
         Get all grid cells within the given bounding box.
 
@@ -308,7 +307,7 @@ class What3WordsGrid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of grid cells within the bounding box
         """
         cells = []
@@ -349,58 +348,24 @@ class What3WordsGrid(BaseGrid):
 
         return cells
 
-    def intersects(
-        self, gdf: gpd.GeoDataFrame, target_crs: str = "EPSG:4326"
-    ) -> gpd.GeoDataFrame:
+    @override
+    def _get_additional_columns(self, cell: GridCell) -> dict[str, Any]:
         """
-        Find grid cells that intersect with geometries in a GeoDataFrame.
+        Add UTM zone column for What3Words cells.
 
         Parameters
         ----------
-        gdf : gpd.GeoDataFrame
-            GeoDataFrame containing geometries to intersect with
-        target_crs : str, optional
-            Target coordinate reference system, by default "EPSG:4326"
+        cell : GridCell
+            The grid cell to extract UTM data from
 
         Returns
         -------
-        gpd.GeoDataFrame
-            GeoDataFrame with intersecting grid cells and original data
+        dict
+            Dictionary with 'utm' column
         """
-        # Convert GeoDataFrame to target CRS if needed
-        if gdf.crs != target_crs:
-            gdf = gdf.to_crs(target_crs)
+        if not cell.identifier or cell.polygon.is_empty:
+            return {}
 
-        results = []
-
-        for _idx, row in gdf.iterrows():
-            geom = row.geometry
-            bounds = geom.bounds
-
-            # Get cells in bounding box
-            cells = self.get_cells_in_bbox(bounds[1], bounds[0], bounds[3], bounds[2])
-
-            # Check actual intersection
-            for cell in cells:
-                if cell.polygon.intersects(geom):
-                    result_row = row.copy()
-                    result_row["cell_id"] = cell.identifier
-                    result_row["geometry"] = cell.polygon
-
-                    # Add UTM zone information
-                    centroid = cell.polygon.centroid
-                    lat, lon = centroid.y, centroid.x
-                    utm_zone = int((lon + 180) / 6) + 1
-                    utm_code = 32600 + utm_zone if lat >= 0 else 32700 + utm_zone
-                    result_row["utm"] = utm_code
-
-                    results.append(result_row)
-
-        if not results:
-            # Return empty GeoDataFrame with expected columns
-            empty_gdf = gpd.GeoDataFrame(columns=list(gdf.columns) + ["cell_id", "utm"])
-            empty_gdf = empty_gdf.set_geometry("geometry")
-            return empty_gdf
-
-        result_gdf = gpd.GeoDataFrame(results)
-        return result_gdf.reset_index(drop=True)
+        centroid = cell.polygon.centroid
+        utm_epsg = get_utm_epsg_code(centroid.y, centroid.x)
+        return {"utm": utm_epsg}

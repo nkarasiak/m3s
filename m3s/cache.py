@@ -8,7 +8,7 @@ including area calculations, coordinate transformations, and grid operations.
 import functools
 import hashlib
 import weakref
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable
 
 
 class LRUCache:
@@ -18,6 +18,8 @@ class LRUCache:
     Provides efficient caching with automatic eviction of least recently
     used items when the cache reaches its maximum size.
     """
+
+    __slots__ = ('maxsize', 'cache', 'access_order')
 
     def __init__(self, maxsize: int = 256):
         """
@@ -29,10 +31,10 @@ class LRUCache:
             Maximum number of items to store in cache, by default 256
         """
         self.maxsize = maxsize
-        self.cache: Dict[str, Any] = {}
+        self.cache: dict[str, Any] = {}
         self.access_order: list = []
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get item from cache and update access order."""
         if key in self.cache:
             # Move to end (most recently used)
@@ -73,6 +75,8 @@ class SpatialCache:
     Specialized cache for spatial operations with geographic-aware key generation.
     """
 
+    __slots__ = ('_cache',)
+
     def __init__(self, maxsize: int = 512):
         """
         Initialize spatial cache.
@@ -102,7 +106,7 @@ class SpatialCache:
         wkt_hash = hashlib.md5(polygon_wkt.encode()).hexdigest()[:16]
         return f"poly_{wkt_hash}_{precision}"
 
-    def get_cell(self, lat: float, lon: float, precision: int) -> Optional[Any]:
+    def get_cell(self, lat: float, lon: float, precision: int) -> Any | None:
         """Get cached grid cell for coordinates."""
         key = self._make_geo_key(lat, lon, precision)
         return self._cache.get(key)
@@ -112,7 +116,7 @@ class SpatialCache:
         key = self._make_geo_key(lat, lon, precision)
         self._cache.put(key, cell)
 
-    def get_area(self, cell_id: str) -> Optional[float]:
+    def get_area(self, cell_id: str) -> float | None:
         """Get cached area for cell."""
         key = f"area_{cell_id}"
         return self._cache.get(key)
@@ -122,7 +126,7 @@ class SpatialCache:
         key = f"area_{cell_id}"
         self._cache.put(key, area)
 
-    def get_neighbors(self, cell_id: str) -> Optional[list]:
+    def get_neighbors(self, cell_id: str) -> list | None:
         """Get cached neighbors for cell."""
         key = f"neighbors_{cell_id}"
         return self._cache.get(key)
@@ -132,7 +136,7 @@ class SpatialCache:
         key = f"neighbors_{cell_id}"
         self._cache.put(key, neighbors)
 
-    def get_utm_zone(self, lat: float, lon: float) -> Optional[str]:
+    def get_utm_zone(self, lat: float, lon: float) -> str | None:
         """Get cached UTM zone for coordinates."""
         # Round to 1 decimal place for UTM zone caching (zones are large)
         lat_rounded = round(lat, 1)
@@ -178,10 +182,10 @@ def get_grid_cache(grid_instance: Any) -> SpatialCache:
 
 
 def cached_method(
-    cache_key_func: Optional[Callable] = None, use_global_cache: bool = True
+    cache_key_func: Callable | None = None, use_global_cache: bool = True
 ):
     """
-    Decorator for caching method results.
+    Cache method results.
 
     Parameters
     ----------
@@ -238,7 +242,7 @@ def cached_method(
 
 def cached_property(func: Callable) -> property:
     """
-    Decorator for caching property results on the instance.
+    Cache property results on the instance.
 
     Similar to functools.cached_property but with explicit cache management.
     """
@@ -291,6 +295,9 @@ def bbox_cache_key(
     """Generate cache key for bounding box operations."""
     precision = getattr(grid_instance, "precision", 0)
     # Round to reasonable precision for bbox caching
-    bbox_key = f"{round(min_lat, 4)}_{round(min_lon, 4)}_{round(max_lat, 4)}_{round(max_lon, 4)}"
+    bbox_key = (
+        f"{round(min_lat, 4)}_{round(min_lon, 4)}_"
+        f"{round(max_lat, 4)}_{round(max_lon, 4)}"
+    )
     extra = "_".join(f"{k}={v}" for k, v in sorted(kwargs.items()))
     return f"bbox_{bbox_key}_{precision}_{extra}"

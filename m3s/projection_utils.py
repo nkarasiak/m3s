@@ -7,7 +7,6 @@ grid system implementations.
 
 import functools
 import logging
-from typing import Optional
 
 import pyproj
 from shapely.geometry import Polygon
@@ -111,7 +110,7 @@ def get_utm_transformer(lat: float, lon: float) -> pyproj.Transformer:
 
 
 def calculate_polygon_area_km2(
-    polygon: Polygon, cache_key: Optional[str] = None, use_cache: bool = True
+    polygon: Polygon, cache_key: str | None = None, use_cache: bool = True
 ) -> float:
     """
     Calculate polygon area in square kilometers using equal-area projection.
@@ -123,7 +122,7 @@ def calculate_polygon_area_km2(
     ----------
     polygon : Polygon
         Shapely polygon to measure
-    cache_key : str, optional
+    cache_key : str | None, optional
         Key for caching the result
     use_cache : bool, optional
         Whether to use caching, by default True
@@ -297,7 +296,10 @@ def format_utm_crs_string(lat: float, lon: float) -> str:
     """
     zone = get_utm_zone_number(lon)
     hemisphere = get_utm_hemisphere(lat)
-    return f"+proj=utm +zone={zone} +{hemisphere} +ellps=WGS84 +datum=WGS84 +units=m +no_defs"
+    return (
+        f"+proj=utm +zone={zone} +{hemisphere} +ellps=WGS84 +datum=WGS84 "
+        "+units=m +no_defs"
+    )
 
 
 # Export commonly used functions

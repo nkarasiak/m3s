@@ -5,8 +5,9 @@ Provides functionality for working with multiple resolution levels simultaneousl
 including hierarchical operations, level-of-detail analysis, and adaptive gridding.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import geopandas as gpd
 import numpy as np
@@ -30,25 +31,26 @@ class ResolutionLevel:
         Grid precision/resolution parameter
     area_km2 : float
         Typical cell area at this level
-    cells : List[GridCell]
+    cells : list[GridCell]
         Grid cells at this resolution level
     """
 
     level: int
     precision: int
     area_km2: float
-    cells: List[GridCell]
+    cells: list[GridCell]
 
 
 class MultiResolutionGrid:
     """
-    Multi-resolution grid supporting hierarchical operations across different detail levels.
+    Multi-resolution grid supporting hierarchical operations.
 
+    Supports hierarchical operations across different detail levels.
     Enables analysis and operations that span multiple resolution levels,
     including adaptive gridding and level-of-detail processing.
     """
 
-    def __init__(self, grid_system: BaseGrid, resolution_levels: List[int]):
+    def __init__(self, grid_system: BaseGrid, resolution_levels: list[int]):
         """
         Initialize multi-resolution grid.
 
@@ -56,7 +58,7 @@ class MultiResolutionGrid:
         ----------
         grid_system : BaseGrid
             Base grid system to use
-        resolution_levels : List[int]
+        resolution_levels : list[int]
             List of precision/resolution levels to support
         """
         self.grid_system = grid_system
@@ -80,25 +82,25 @@ class MultiResolutionGrid:
 
     def populate_region(
         self,
-        bounds: Tuple[float, float, float, float],
+        bounds: tuple[float, float, float, float],
         adaptive: bool = False,
-        density_threshold: Optional[float] = None,
-    ) -> Dict[int, List[GridCell]]:
+        density_threshold: float | None = None,
+    ) -> dict[int, list[GridCell]]:
         """
         Populate all resolution levels with cells for a given region.
 
         Parameters
         ----------
-        bounds : Tuple[float, float, float, float]
+        bounds : tuple[float, float, float, float]
             Bounding box as (min_lon, min_lat, max_lon, max_lat)
         adaptive : bool, optional
             Whether to use adaptive resolution selection, by default False
-        density_threshold : float, optional
+        density_threshold : float | None, optional
             Density threshold for adaptive gridding, by default None
 
         Returns
         -------
-        Dict[int, List[GridCell]]
+        dict[int, list[GridCell]]
             Dictionary mapping resolution levels to cell lists
         """
         min_lon, min_lat, max_lon, max_lat = bounds
@@ -119,24 +121,25 @@ class MultiResolutionGrid:
         return result
 
     def _apply_adaptive_filtering(
-        self, cells: List[GridCell], density_threshold: float
-    ) -> List[GridCell]:
+        self, cells: list[GridCell], density_threshold: float
+    ) -> list[GridCell]:
         """
         Apply adaptive filtering based on density threshold.
 
         Parameters
         ----------
-        cells : List[GridCell]
+        cells : list[GridCell]
             Input cells
         density_threshold : float
             Density threshold
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             Filtered cells
         """
-        # Simple density-based filtering - can be enhanced with more sophisticated methods
+        # Simple density-based filtering - can be enhanced with more
+        # sophisticated methods
         if len(cells) <= density_threshold:
             return cells
 
@@ -145,8 +148,8 @@ class MultiResolutionGrid:
         return cells[::step]
 
     def get_hierarchical_cells(
-        self, point: Point, max_levels: Optional[int] = None
-    ) -> Dict[int, GridCell]:
+        self, point: Point, max_levels: int | None = None
+    ) -> dict[int, GridCell]:
         """
         Get cells containing a point at all resolution levels.
 
@@ -154,12 +157,12 @@ class MultiResolutionGrid:
         ----------
         point : Point
             Point to query
-        max_levels : int, optional
+        max_levels : int | None, optional
             Maximum number of levels to return
 
         Returns
         -------
-        Dict[int, GridCell]
+        dict[int, GridCell]
             Dictionary mapping resolution levels to cells
         """
         lat, lon = point.y, point.x
@@ -177,19 +180,19 @@ class MultiResolutionGrid:
         return result
 
     def get_parent_child_relationships(
-        self, bounds: Tuple[float, float, float, float]
-    ) -> Dict[str, List[str]]:
+        self, bounds: tuple[float, float, float, float]
+    ) -> dict[str, list[str]]:
         """
         Analyze parent-child relationships between resolution levels.
 
         Parameters
         ----------
-        bounds : Tuple[float, float, float, float]
+        bounds : tuple[float, float, float, float]
             Bounding box to analyze
 
         Returns
         -------
-        Dict[str, List[str]]
+        dict[str, list[str]]
             Dictionary mapping parent cell IDs to lists of child cell IDs
         """
         relationships = {}
@@ -217,17 +220,17 @@ class MultiResolutionGrid:
 
     def create_level_of_detail_view(
         self,
-        bounds: Tuple[float, float, float, float],
-        detail_function: callable = None,
+        bounds: tuple[float, float, float, float],
+        detail_function: Callable | None = None,
     ) -> gpd.GeoDataFrame:
         """
         Create a level-of-detail view with adaptive resolution selection.
 
         Parameters
         ----------
-        bounds : Tuple[float, float, float, float]
+        bounds : tuple[float, float, float, float]
             Bounding box
-        detail_function : callable, optional
+        detail_function : Callable | None, optional
             Function to determine appropriate detail level for each area
 
         Returns
@@ -286,7 +289,7 @@ class MultiResolutionGrid:
 
     def _default_detail_function(self, cell: GridCell) -> int:
         """
-        Default function for determining detail level.
+        Get default detail level for a cell.
 
         Parameters
         ----------
@@ -309,14 +312,14 @@ class MultiResolutionGrid:
             return len(self.resolution_levels) - 1
 
     def analyze_scale_transitions(
-        self, bounds: Tuple[float, float, float, float]
+        self, bounds: tuple[float, float, float, float]
     ) -> pd.DataFrame:
         """
         Analyze how data transitions between different scale levels.
 
         Parameters
         ----------
-        bounds : Tuple[float, float, float, float]
+        bounds : tuple[float, float, float, float]
             Bounding box to analyze
 
         Returns
@@ -395,7 +398,6 @@ class MultiResolutionGrid:
         )
 
         aggregated_data = []
-        GridRelationshipAnalyzer()
 
         for target_cell in target_cells:
             # Find data cells that intersect with this target cell
@@ -415,18 +417,19 @@ class MultiResolutionGrid:
                 }
 
                 for col in numeric_columns:
-                    if aggregation_func == "sum":
-                        aggregated_row[col] = intersecting_data[col].sum()
-                    elif aggregation_func == "mean":
-                        aggregated_row[col] = intersecting_data[col].mean()
-                    elif aggregation_func == "max":
-                        aggregated_row[col] = intersecting_data[col].max()
-                    elif aggregation_func == "min":
-                        aggregated_row[col] = intersecting_data[col].min()
-                    else:
-                        aggregated_row[col] = intersecting_data[
-                            col
-                        ].sum()  # Default to sum
+                    match aggregation_func:
+                        case "sum":
+                            aggregated_row[col] = intersecting_data[col].sum()
+                        case "mean":
+                            aggregated_row[col] = intersecting_data[col].mean()
+                        case "max":
+                            aggregated_row[col] = intersecting_data[col].max()
+                        case "min":
+                            aggregated_row[col] = intersecting_data[col].min()
+                        case _:
+                            aggregated_row[col] = intersecting_data[
+                                col
+                            ].sum()  # Default to sum
 
                 # Add count of contributing cells
                 aggregated_row["contributing_cells"] = len(intersecting_data)
@@ -466,21 +469,21 @@ class MultiResolutionGrid:
         return pd.DataFrame(stats_data)
 
     def create_quad_tree_structure(
-        self, bounds: Tuple[float, float, float, float], max_depth: Optional[int] = None
-    ) -> Dict[str, Any]:
+        self, bounds: tuple[float, float, float, float], max_depth: int | None = None
+    ) -> dict[str, Any]:
         """
         Create a quad-tree-like hierarchical structure.
 
         Parameters
         ----------
-        bounds : Tuple[float, float, float, float]
+        bounds : tuple[float, float, float, float]
             Bounding box
-        max_depth : int, optional
+        max_depth : int | None, optional
             Maximum tree depth
 
         Returns
         -------
-        Dict[str, Any]
+        dict[str, Any]
             Hierarchical tree structure
         """
         if max_depth is None:
@@ -495,10 +498,10 @@ class MultiResolutionGrid:
         analyzer = GridRelationshipAnalyzer()
 
         def build_subtree(
-            parent_cells: List[GridCell],
+            parent_cells: list[GridCell],
             current_level: int,
-            parent_node: Dict[str, Any],
-        ):
+            parent_node: dict[str, Any],
+        ) -> None:
             if (
                 current_level >= max_depth
                 or current_level >= len(self.resolution_levels) - 1
@@ -544,24 +547,24 @@ class MultiResolutionGrid:
 
 # Convenience functions
 def create_multiresolution_grid(
-    grid_system: BaseGrid, levels: List[int]
+    grid_system: BaseGrid, levels: list[int]
 ) -> MultiResolutionGrid:
     """Create a multi-resolution grid."""
     return MultiResolutionGrid(grid_system, levels)
 
 
 def get_hierarchical_cells(
-    grid: MultiResolutionGrid, point: Point, max_levels: Optional[int] = None
-) -> Dict[int, GridCell]:
+    grid: MultiResolutionGrid, point: Point, max_levels: int | None = None
+) -> dict[int, GridCell]:
     """Get cells containing a point at all resolution levels."""
     return grid.get_hierarchical_cells(point, max_levels)
 
 
 def create_adaptive_grid(
     grid_system: BaseGrid,
-    bounds: Tuple[float, float, float, float],
-    levels: List[int],
-    detail_function: callable = None,
+    bounds: tuple[float, float, float, float],
+    levels: list[int],
+    detail_function: Callable | None = None,
 ) -> gpd.GeoDataFrame:
     """Create an adaptive resolution grid."""
     multi_grid = MultiResolutionGrid(grid_system, levels)

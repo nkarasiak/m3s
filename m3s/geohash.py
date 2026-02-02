@@ -2,14 +2,14 @@
 Geohash grid implementation.
 """
 
-from typing import List
+from typing import Any, override
 
-import geopandas as gpd
 from shapely.geometry import Polygon
 
 from . import _geohash as geohash
 from .base import BaseGrid, GridCell
 from .cache import cached_method, cell_cache_key, geo_cache_key
+from .projection_utils import get_utm_epsg_code
 
 
 class GeohashGrid(BaseGrid):
@@ -42,7 +42,7 @@ class GeohashGrid(BaseGrid):
     @property
     def area_km2(self) -> float:
         """
-        Get the theoretical area of Geohash cells at this precision in square kilometers.
+        Get the theoretical area of Geohash cells at this precision.
 
         Returns
         -------
@@ -69,6 +69,7 @@ class GeohashGrid(BaseGrid):
         return areas.get(self.precision, 4892.0)  # Default to precision 5
 
     @cached_method(cache_key_func=geo_cache_key)
+    @override
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
         """
         Get the geohash cell containing the given point.
@@ -88,6 +89,7 @@ class GeohashGrid(BaseGrid):
         geohash_str = geohash.encode(lat, lon, precision=self.precision)
         return self.get_cell_from_identifier(geohash_str)
 
+    @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """
         Get a geohash cell from its identifier.
@@ -118,7 +120,8 @@ class GeohashGrid(BaseGrid):
         return GridCell(identifier, polygon, len(identifier))
 
     @cached_method(cache_key_func=cell_cache_key)
-    def get_neighbors(self, cell: GridCell) -> List[GridCell]:
+    @override
+    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
         """
         Get neighboring geohash cells.
 
@@ -129,7 +132,7 @@ class GeohashGrid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of neighboring geohash cells
         """
         neighbor_hashes = geohash.neighbors(cell.identifier)
@@ -138,9 +141,10 @@ class GeohashGrid(BaseGrid):
             for neighbor_hash in neighbor_hashes
         ]
 
+    @override
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> List[GridCell]:
+    ) -> list[GridCell]:
         """Get all geohash cells within the given bounding box."""
         cells = set()  # Use set to avoid duplicates
 
@@ -179,7 +183,8 @@ class GeohashGrid(BaseGrid):
                     )
                     if cell.polygon.intersects(bbox_polygon):
                         cells.add(cell)
-                except:
+                except Exception:
+                    # Skip invalid geohash cells at boundary conditions
                     pass
                 lon += dense_lon_step
             lat += dense_lat_step
@@ -196,7 +201,7 @@ class GeohashGrid(BaseGrid):
         lon_bits = (self.precision * 5) // 2
         return 360.0 / (2**lon_bits)
 
-    def expand_cell(self, cell: GridCell) -> List[GridCell]:
+    def expand_cell(self, cell: GridCell) -> list[GridCell]:
         """
         Expand a geohash cell to higher precision cells contained within it.
 
@@ -217,134 +222,30 @@ class GeohashGrid(BaseGrid):
             new_identifier = cell.identifier + char
             try:
                 expanded_cells.append(self.get_cell_from_identifier(new_identifier))
-            except:
+            except Exception:
+                # Skip invalid geohash identifiers
                 pass
 
         return expanded_cells
 
-    def _get_utm_epsg_from_coords(self, lat: float, lon: float) -> int:
+    @override
+    def _get_additional_columns(self, cell: GridCell) -> dict[str, Any]:
         """
-        Get the best UTM EPSG code for given coordinates.
+        Add UTM zone column for Geohash cells.
 
         Parameters
         ----------
-        lat : float
-            Latitude coordinate
-        lon : float
-            Longitude coordinate
+        cell : GridCell
+            The grid cell to extract UTM data from
 
         Returns
         -------
-        int
-            EPSG code for the appropriate UTM zone
+        dict
+            Dictionary with 'utm' column
         """
-        # Calculate UTM zone number
-        zone_number = int((lon + 180) / 6) + 1
+        if not cell.identifier or cell.polygon.is_empty:
+            return {}
 
-        # Handle special cases for Norway and Svalbard
-        if 56 <= lat < 64 and 3 <= lon < 12:
-            zone_number = 32
-        elif 72 <= lat < 84 and lon >= 0:
-            if lon < 9:
-                zone_number = 31
-            elif lon < 21:
-                zone_number = 33
-            elif lon < 33:
-                zone_number = 35
-            elif lon < 42:
-                zone_number = 37
-
-        # Determine hemisphere and construct EPSG code
-        if lat >= 0:
-            return 32600 + zone_number  # Northern hemisphere
-        else:
-            return 32700 + zone_number  # Southern hemisphere
-
-    def intersects(
-        self, gdf: gpd.GeoDataFrame, target_crs: str = "EPSG:4326"
-    ) -> gpd.GeoDataFrame:
-        """
-        Get all grid cells that intersect with geometries in a GeoDataFrame.
-
-        For Geohash grids, includes an additional 'utm' column with the best UTM CRS
-        for each geohash cell based on its centroid.
-
-        Parameters
-        ----------
-        gdf : gpd.GeoDataFrame
-            A GeoDataFrame containing geometries to intersect with grid cells
-        target_crs : str, optional
-            Target CRS for grid operations (default: "EPSG:4326")
-
-        Returns
-        -------
-        gpd.GeoDataFrame
-            GeoDataFrame with grid cell identifiers, UTM codes, geometries, and original data
-        """
-        if gdf.empty:
-            empty_columns = ["cell_id", "precision", "utm", "geometry"] + [
-                col for col in gdf.columns if col != "geometry"
-            ]
-            return gpd.GeoDataFrame(columns=empty_columns)
-
-        original_crs = gdf.crs
-
-        # Transform to target CRS if needed
-        if original_crs is None:
-            raise ValueError("GeoDataFrame CRS must be defined")
-
-        if original_crs != target_crs:
-            gdf_transformed = gdf.to_crs(target_crs)
-        else:
-            gdf_transformed = gdf.copy()
-
-        # Collect all intersecting cells with source geometry indices
-        all_cells = []
-        source_indices = []
-
-        for idx, geometry in enumerate(gdf_transformed.geometry):
-            if geometry is not None and not geometry.is_empty:
-                bounds = geometry.bounds
-                min_lon, min_lat, max_lon, max_lat = bounds
-                candidate_cells = self.get_cells_in_bbox(
-                    min_lat, min_lon, max_lat, max_lon
-                )
-                intersecting_cells = [
-                    cell
-                    for cell in candidate_cells
-                    if cell.polygon.intersects(geometry)
-                ]
-                for cell in intersecting_cells:
-                    # Get cell centroid for UTM calculation
-                    centroid = cell.polygon.centroid
-                    utm_epsg = self._get_utm_epsg_from_coords(centroid.y, centroid.x)
-
-                    all_cells.append(
-                        {
-                            "cell_id": cell.identifier,
-                            "precision": cell.precision,
-                            "utm": utm_epsg,
-                            "geometry": cell.polygon,
-                        }
-                    )
-                    source_indices.append(idx)
-
-        if not all_cells:
-            empty_columns = ["cell_id", "precision", "utm", "geometry"] + [
-                col for col in gdf.columns if col != "geometry"
-            ]
-            return gpd.GeoDataFrame(columns=empty_columns)
-
-        # Create result GeoDataFrame
-        result_gdf = gpd.GeoDataFrame(all_cells, crs=target_crs)
-
-        # Add original data for each intersecting cell
-        for col in gdf.columns:
-            if col != "geometry":
-                result_gdf[col] = [gdf.iloc[idx][col] for idx in source_indices]
-
-        # Transform back to original CRS if different
-        if original_crs != target_crs:
-            result_gdf = result_gdf.to_crs(original_crs)
-
-        return result_gdf
+        centroid = cell.polygon.centroid
+        utm_epsg = get_utm_epsg_code(centroid.y, centroid.x)
+        return {"utm": utm_epsg}

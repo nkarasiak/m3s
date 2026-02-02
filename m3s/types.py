@@ -7,7 +7,7 @@ consistency and type checking throughout the codebase.
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Optional, Tuple
+from typing import Self
 
 
 class ConversionMethod(Enum):
@@ -75,7 +75,7 @@ class GridSystemType(Enum):
     A5 = "a5"
 
     @classmethod
-    def from_string(cls, value: str) -> "GridSystemType":
+    def from_string(cls, value: str) -> Self:
         """
         Convert string to GridSystemType enum.
 
@@ -103,32 +103,7 @@ class GridSystemType(Enum):
         )
 
 
-class RelationshipType(Enum):
-    """
-    Spatial relationships between grid cells.
-
-    Attributes
-    ----------
-    ADJACENT : str
-        Cells share a border
-    CONTAINS : str
-        First cell contains second cell
-    CONTAINED_BY : str
-        First cell is contained by second cell
-    OVERLAPS : str
-        Cells overlap but neither contains the other
-    DISJOINT : str
-        Cells do not touch or overlap
-    """
-
-    ADJACENT = "adjacent"
-    CONTAINS = "contains"
-    CONTAINED_BY = "contained_by"
-    OVERLAPS = "overlaps"
-    DISJOINT = "disjoint"
-
-
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class PrecisionSpec:
     """
     Specification for grid precision/resolution.
@@ -147,8 +122,8 @@ class PrecisionSpec:
 
     system: GridSystemType
     precision: int
-    area_km2: Optional[float] = None
-    edge_length_km: Optional[float] = None
+    area_km2: float | None = None
+    edge_length_km: float | None = None
 
     def __post_init__(self):
         """Validate precision after initialization."""
@@ -166,7 +141,7 @@ class PrecisionSpec:
                 )
 
 
-@dataclass
+@dataclass(slots=True)
 class BoundingBox:
     """
     Geographic bounding box.
@@ -228,13 +203,13 @@ class BoundingBox:
             )
 
     @property
-    def center(self) -> Tuple[float, float]:
+    def center(self) -> tuple[float, float]:
         """
         Calculate the center point of the bounding box.
 
         Returns
         -------
-        Tuple[float, float]
+        tuple[float, float]
             (latitude, longitude) of center point
         """
         center_lat = (self.min_lat + self.max_lat) / 2
@@ -265,19 +240,19 @@ class BoundingBox:
         """
         return self.max_lat - self.min_lat
 
-    def to_tuple(self) -> Tuple[float, float, float, float]:
+    def to_tuple(self) -> tuple[float, float, float, float]:
         """
         Convert to tuple format.
 
         Returns
         -------
-        Tuple[float, float, float, float]
+        tuple[float, float, float, float]
             (min_lat, min_lon, max_lat, max_lon)
         """
         return (self.min_lat, self.min_lon, self.max_lat, self.max_lon)
 
 
-# Type aliases for common patterns
-Coordinate = Tuple[float, float]  # (latitude, longitude)
-CellIdentifier = str  # Grid cell identifier string
-Bounds = Tuple[float, float, float, float]  # (min_lat, min_lon, max_lat, max_lon)
+# Type aliases for common patterns (PEP 695 syntax)
+type Coordinate = tuple[float, float]  # (latitude, longitude)
+type CellIdentifier = str  # Grid cell identifier string
+type Bounds = tuple[float, float, float, float]  # (min_lat, min_lon, max_lat, max_lon)

@@ -2,12 +2,12 @@
 GARS (Global Area Reference System) grid implementation.
 """
 
-from typing import List
+from typing import override
 
 from shapely.geometry import Polygon
 
 from .base import BaseGrid, GridCell
-from .cache import cached_property
+from functools import cached_property
 
 
 class GARSGrid(BaseGrid):
@@ -222,6 +222,7 @@ class GARSGrid(BaseGrid):
 
         return (south, west, north, east)
 
+    @override
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
         """
         Get the grid cell containing the given point.
@@ -241,6 +242,7 @@ class GARSGrid(BaseGrid):
         gars_id = self.encode(lat, lon)
         return self.get_cell_from_identifier(gars_id)
 
+    @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """
         Get a grid cell from its identifier.
@@ -263,7 +265,8 @@ class GARSGrid(BaseGrid):
 
         return GridCell(identifier, polygon, self.precision)
 
-    def get_neighbors(self, cell: GridCell) -> List[GridCell]:
+    @override
+    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
         """
         Get neighboring cells of the given cell.
 
@@ -274,7 +277,7 @@ class GARSGrid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of neighboring grid cells
         """
         south, west, north, east = self.decode(cell.identifier)
@@ -308,14 +311,16 @@ class GARSGrid(BaseGrid):
                     neighbor_cell = self.get_cell_from_point(neighbor_lat, neighbor_lon)
                     if neighbor_cell.identifier != cell.identifier:
                         neighbors.append(neighbor_cell)
-                except:
+                except Exception:
+                    # Skip invalid neighbor coordinates
                     continue
 
         return neighbors
 
+    @override
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> List[GridCell]:
+    ) -> list[GridCell]:
         """
         Get all grid cells within the given bounding box.
 
@@ -332,7 +337,7 @@ class GARSGrid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of grid cells that intersect the bounding box
         """
         cells = []
@@ -357,7 +362,8 @@ class GARSGrid(BaseGrid):
                         if cell.identifier not in seen:
                             cells.append(cell)
                             seen.add(cell.identifier)
-                    except:
+                    except Exception:
+                        # Skip invalid coordinates
                         pass
                 lon += lon_step
             lat += lat_step

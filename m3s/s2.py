@@ -8,7 +8,7 @@ optimal spatial locality.
 """
 
 import warnings
-from typing import List, Optional
+from typing import override
 
 import s2sphere
 from shapely.geometry import Polygon
@@ -31,24 +31,42 @@ class S2Grid(BaseGrid):
         S2 cell level (0-30), where higher levels provide smaller cells
     """
 
-    def __init__(self, level: int):
+    def __init__(self, precision: int | None = None, level: int | None = None):
         """
         Initialize S2 grid.
 
         Parameters
         ----------
-        level : int
-            S2 cell level (0-30)
+        precision : int, optional
+            S2 cell precision level (0-30).
+            This is the standardized parameter name across all grid systems.
+        level : int, optional
+            Deprecated alias for precision. Use 'precision' instead.
             Level 0: ~85,000 km edge length
             Level 10: ~1,300 km edge length
             Level 20: ~20 m edge length
             Level 30: ~1 cm edge length
         """
-        if not 0 <= level <= 30:
-            raise ValueError("S2 level must be between 0 and 30")
+        # Handle parameter aliases with deprecation warning
+        if precision is None and level is None:
+            raise ValueError("Must specify either 'precision' or 'level' parameter")
+        elif precision is not None and level is not None:
+            raise ValueError(
+                "Cannot specify both 'precision' and 'level'. Use 'precision' instead."
+            )
+        elif level is not None:
+            warnings.warn(
+                "The 'level' parameter is deprecated. Use 'precision' instead.",
+                DeprecationWarning,
+                stacklevel=2
+            )
+            precision = level
 
-        super().__init__(level)
-        self.level = level
+        if not 0 <= precision <= 30:
+            raise ValueError("S2 precision must be between 0 and 30")
+
+        super().__init__(precision)
+        self.level = precision  # Keep for backwards compatibility
 
     @property
     def area_km2(self) -> float:
@@ -100,6 +118,7 @@ class S2Grid(BaseGrid):
         vertices.append(vertices[0])
         return Polygon(vertices)
 
+    @override
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
         """
         Get the S2 cell containing the given point.
@@ -126,6 +145,7 @@ class S2Grid(BaseGrid):
 
         return GridCell(identifier, polygon, self.level)
 
+    @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """
         Get a grid cell from its S2 cell token.
@@ -149,7 +169,8 @@ class S2Grid(BaseGrid):
         except Exception as e:
             raise ValueError(f"Invalid S2 cell token: {identifier}") from e
 
-    def get_neighbors(self, cell: GridCell) -> List[GridCell]:
+    @override
+    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
         """
         Get neighboring cells of the given cell.
 
@@ -160,7 +181,7 @@ class S2Grid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of neighboring grid cells
         """
         try:
@@ -200,7 +221,7 @@ class S2Grid(BaseGrid):
             warnings.warn(f"Failed to get neighbors: {e}", stacklevel=2)
             return []
 
-    def get_children(self, cell: GridCell) -> List[GridCell]:
+    def get_children(self, cell: GridCell) -> list[GridCell]:
         """
         Get child cells at the next level.
 
@@ -211,7 +232,7 @@ class S2Grid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of 4 child cells
         """
         if self.level >= 30:
@@ -233,7 +254,7 @@ class S2Grid(BaseGrid):
             warnings.warn(f"Failed to get children: {e}", stacklevel=2)
             return []
 
-    def get_parent(self, cell: GridCell) -> Optional[GridCell]:
+    def get_parent(self, cell: GridCell) -> GridCell | None:
         """
         Get parent cell at the previous level.
 
@@ -244,7 +265,7 @@ class S2Grid(BaseGrid):
 
         Returns
         -------
-        GridCell or None
+        GridCell | None
             Parent cell, or None if already at level 0
         """
         if self.level <= 0:
@@ -262,9 +283,10 @@ class S2Grid(BaseGrid):
             warnings.warn(f"Failed to get parent: {e}", stacklevel=2)
             return None
 
+    @override
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> List[GridCell]:
+    ) -> list[GridCell]:
         """
         Get all grid cells within the given bounding box.
 
@@ -281,7 +303,7 @@ class S2Grid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of grid cells that intersect the bounding box
         """
         try:
@@ -315,7 +337,7 @@ class S2Grid(BaseGrid):
 
     def get_covering_cells(
         self, polygon: Polygon, max_cells: int = 100
-    ) -> List[GridCell]:
+    ) -> list[GridCell]:
         """
         Get S2 cells that cover the given polygon.
 
@@ -328,7 +350,7 @@ class S2Grid(BaseGrid):
 
         Returns
         -------
-        List[GridCell]
+        list[GridCell]
             List of cells covering the polygon
         """
         if not hasattr(s2sphere, "Loop") or not hasattr(s2sphere, "Polygon"):
@@ -366,7 +388,7 @@ class S2Grid(BaseGrid):
             warnings.warn(f"Failed to get covering cells: {e}", stacklevel=2)
             return self._covering_from_bbox(polygon, max_cells)
 
-    def _covering_from_bbox(self, polygon: Polygon, max_cells: int) -> List[GridCell]:
+    def _covering_from_bbox(self, polygon: Polygon, max_cells: int) -> list[GridCell]:
         bounds = polygon.bounds
         cells = self.get_cells_in_bbox(bounds[1], bounds[0], bounds[3], bounds[2])
         if max_cells > 0 and len(cells) > max_cells:
