@@ -33,10 +33,10 @@ Get Cell at a Point
    print(f"Area: {cell.area_km2:.2f} km²")
    print(f"Centroid: {cell.centroid}")
 
-   # Works with all 12 grid systems!
+   # Works with all 11 grid systems!
    h3_cell = m3s.H3.from_geometry((40.7128, -74.0060))
    mgrs_cell = m3s.MGRS.from_geometry((40.7128, -74.0060))
-   a5_cell = m3s.A5.from_geometry((40.7128, -74.0060))
+   s2_cell = m3s.S2.from_geometry((40.7128, -74.0060))
 
 Generate Cells for an Area
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -96,8 +96,8 @@ Convert Between Grid Systems
    # Convert to Geohash
    geohash_cells = h3_cells.to_geohash()
 
-   # Convert to A5
-   a5_cells = h3_cells.to_a5()
+   # Convert to S2
+   s2_cells = h3_cells.to_s2()
 
    print(f"H3: {len(h3_cells)} cells")
    print(f"Geohash: {len(geohash_cells)} cells")

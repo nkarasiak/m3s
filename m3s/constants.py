@@ -39,7 +39,6 @@ DEFAULT_PRECISIONS = {
     "maidenhead": 3,  # ~12km resolution (fields/squares)
     "pluscode": 4,  # ~12.5m resolution in this implementation
     "what3words": 3,  # 3m resolution
-    "a5": 5,  # Varies by resolution
 }
 
 # Precision/resolution limits for grid systems
@@ -55,7 +54,6 @@ PRECISION_LIMITS = {
     "maidenhead": {"min": 1, "max": 4},
     "pluscode": {"min": 1, "max": 7},
     "what3words": {"min": 3, "max": 3},
-    "a5": {"min": 0, "max": 30},
 }
 
 # Cache configuration
@@ -92,7 +90,6 @@ GRID_SYSTEMS = [
     "maidenhead",
     "pluscode",
     "what3words",
-    "a5",
 ]
 
 # CRS/EPSG codes

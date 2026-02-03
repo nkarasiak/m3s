@@ -57,8 +57,6 @@ class GridSystemType(Enum):
         Open Location Codes (Plus Codes)
     WHAT3WORDS : str
         What3Words-style 3-meter precision squares
-    A5 : str
-        A5 pentagonal DGGS (dodecahedral projection)
     """
 
     GEOHASH = "geohash"
@@ -72,7 +70,6 @@ class GridSystemType(Enum):
     MAIDENHEAD = "maidenhead"
     PLUSCODE = "pluscode"
     WHAT3WORDS = "what3words"
-    A5 = "a5"
 
     @classmethod
     def from_string(cls, value: str) -> Self:

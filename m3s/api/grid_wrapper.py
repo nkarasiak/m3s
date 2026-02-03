@@ -38,7 +38,7 @@ class GridWrapper:
     >>> cells = m3s.H3.from_geometry(polygon)
     >>>
     >>> # With specific precision
-    >>> cells = m3s.A5.with_precision(8).from_geometry(bbox)
+    >>> cells = m3s.H3.with_precision(8).from_geometry(bbox)
     >>>
     >>> # Auto-precision selection
     >>> precision = m3s.MGRS.find_precision(geometries, method='auto')
@@ -448,7 +448,6 @@ class GridWrapper:
             "QuadkeyGrid": (1, 23),
             "SlippyGrid": (0, 20),
             "MGRSGrid": (1, 5),
-            "A5Grid": (0, 29),
             "CSquaresGrid": (1, 10),
             "GARSGrid": (1, 5),
             "MaidenheadGrid": (1, 6),

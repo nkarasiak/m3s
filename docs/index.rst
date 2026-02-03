@@ -10,7 +10,7 @@ M3S: Multi Spatial Subdivision System
        </p>
    </div>
 
-M3S (Multi Spatial Subdivision System) is a powerful Python library that provides an intuitive interface for working with 12 spatial grid systems including **H3**, **Geohash**, **S2**, **MGRS**, **A5**, and more.
+M3S (Multi Spatial Subdivision System) is a powerful Python library that provides an intuitive interface for working with 11 spatial grid systems including **H3**, **Geohash**, **S2**, **MGRS**, and more.
 
 **New in v0.5.1**: Simplified API with direct grid access, universal geometry handling, and intelligent auto-precision selection. No instantiation required—just ``import m3s`` and start working!
 
@@ -130,7 +130,7 @@ Compare same location across multiple grid systems:
 Supported Grid Systems
 ======================
 
-M3S supports **12 spatial grid systems** with unified precision parameters:
+M3S supports **11 spatial grid systems** with unified precision parameters:
 
 .. list-table::
    :header-rows: 1
@@ -164,10 +164,6 @@ M3S supports **12 spatial grid systems** with unified precision parameters:
      - OpenStreetMap standard tiles
      - Web maps, tile servers, caching
      - 0-20
-   * - **A5**
-     - Pentagonal DGGS (dodecahedral)
-     - Climate modeling, global analysis
-     - 0-30
    * - **C-squares**
      - Marine data indexing
      - Oceanography, marine biology
@@ -202,7 +198,7 @@ Key Features
    Auto-select optimal precision with 5 strategies: minimize variance, fewer/more cells, balanced, or target count. Use case presets for common scenarios (building, neighborhood, city, etc.).
 
 🔄 **Easy Grid Conversion**
-   Convert between any grid systems with ``.to_h3()``, ``.to_geohash()``, ``.to_a5()``, etc.
+   Convert between any grid systems with ``.to_h3()``, ``.to_geohash()``, ``.to_s2()``, etc.
 
 📦 **Powerful Collections**
    ``GridCellCollection`` provides filtering, mapping, hierarchical operations, and easy exports.

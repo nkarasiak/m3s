@@ -85,7 +85,7 @@ class GridBuilder:
         ----------
         system : str
             Grid system name: 'geohash', 'h3', 's2', 'quadkey', 'slippy',
-            'mgrs', 'a5', 'csquares', 'gars', 'maidenhead', 'pluscode',
+            'mgrs', 'csquares', 'gars', 'maidenhead', 'pluscode',
             'what3words', 'geohash_int'
 
         Returns
@@ -634,7 +634,6 @@ class GridBuilder:
             If grid system is unknown
         """
         # Import grid classes (lazy to avoid circular imports)
-        from ..a5 import A5Grid
         from ..csquares import CSquaresGrid
         from ..gars import GARSGrid
         from ..geohash import GeohashGrid
@@ -654,7 +653,6 @@ class GridBuilder:
             "quadkey": QuadkeyGrid,
             "slippy": SlippyGrid,
             "mgrs": MGRSGrid,
-            "a5": A5Grid,
             "csquares": CSquaresGrid,
             "gars": GARSGrid,
             "maidenhead": MaidenheadGrid,

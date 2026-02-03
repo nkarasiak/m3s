@@ -6,23 +6,6 @@ including grid conversion utilities, relationship analysis, and multi-resolution
 operations.
 """
 
-# A5 Grid System
-from .a5 import (
-    A5Cell,
-    A5Grid,
-    cell_area,
-    cell_to_boundary,
-    cell_to_children,
-    cell_to_lonlat,
-    cell_to_parent,
-    get_num_cells,
-    get_res0_cells,
-    get_resolution,
-    hex_to_u64,
-    lonlat_to_cell,
-    u64_to_hex,
-)
-
 # Modern API
 from .api import (
     AreaCalculator,
@@ -95,7 +78,6 @@ from .slippy import SlippyGrid
 from .what3words import What3WordsGrid
 
 # Simplified API: Grid system singletons for direct access
-A5 = GridWrapper(A5Grid, default_precision=8)  # Uses 'precision' parameter
 Geohash = GridWrapper(GeohashGrid, default_precision=5)
 # Max precision is 5, use 3 as default.
 MGRS = GridWrapper(MGRSGrid, default_precision=3)
@@ -115,7 +97,6 @@ What3Words = GridWrapper(What3WordsGrid, default_precision=1)
 __version__ = "0.5.2"
 __all__ = [
     # Simplified API: Grid singletons
-    "A5",
     "Geohash",
     "MGRS",
     "H3",
@@ -140,7 +121,6 @@ __all__ = [
     "S2Grid",
     "SlippyGrid",
     "What3WordsGrid",
-    "A5Grid",
     # Modern API
     "GridBuilder",
     "GridWrapper",
@@ -152,19 +132,6 @@ __all__ = [
     "PerformanceProfiler",
     "GridQueryResult",
     "MultiGridComparator",
-    # A5 API functions
-    "A5Cell",
-    "lonlat_to_cell",
-    "cell_to_lonlat",
-    "cell_to_boundary",
-    "cell_to_parent",
-    "cell_to_children",
-    "get_resolution",
-    "get_res0_cells",
-    "get_num_cells",
-    "cell_area",
-    "hex_to_u64",
-    "u64_to_hex",
     # Parallel processing
     "ParallelConfig",
     "ParallelGridEngine",

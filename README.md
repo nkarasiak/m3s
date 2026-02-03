@@ -1,6 +1,6 @@
 # M3S - Multi Spatial Subdivision System
 
-A unified Python package for working with hierarchical spatial grid systems. M3S (Multi Spatial Subdivision System) provides a consistent interface for working with different spatial indexing systems including Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, A5, C-squares, GARS, Maidenhead, Plus Codes, and What3Words.
+A unified Python package for working with hierarchical spatial grid systems. M3S (Multi Spatial Subdivision System) provides a consistent interface for working with different spatial indexing systems including Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, C-squares, GARS, Maidenhead, Plus Codes, and What3Words.
 
 ## Features
 
@@ -13,7 +13,7 @@ A unified Python package for working with hierarchical spatial grid systems. M3S
 - **🔙 Fully Compatible**: Existing code works unchanged
 
 ### Core Capabilities
-- **12 Grid Systems**: Geohash, MGRS, H3, Quadkey, S2, Slippy, A5, C-squares, GARS, Maidenhead, Plus Codes, What3Words
+- **11 Grid Systems**: Geohash, MGRS, H3, Quadkey, S2, Slippy, C-squares, GARS, Maidenhead, Plus Codes, What3Words
 - **Area Calculations**: All grids support `area_km2` property
 - **GeoPandas Integration**: Native GeoDataFrame support with automatic CRS transformation
 - **UTM Zone Integration**: Automatic UTM zone detection and inclusion
@@ -67,9 +67,6 @@ neighbors = m3s.Geohash.neighbors(cell, depth=1)
 print(f"Cell has {len(neighbors)} neighbors (including itself)")
 # Output: Cell has 9 neighbors (including itself)
 
-# Specific precision when needed
-cells = m3s.A5.with_precision(8).from_geometry(polygon)
-
 # Or find optimal precision
 precision = m3s.H3.find_precision(polygon, method='auto')  # Minimizes coverage variance
 cells = m3s.H3.from_geometry(polygon, precision=precision)
@@ -89,7 +86,6 @@ precision = m3s.Geohash.find_precision_for_use_case('neighborhood')  # ~1-10 km�
 ```
 
 **Available grid systems:**
-- `m3s.A5` - Pentagonal DGGS (dodecahedral)
 - `m3s.Geohash` - Base32-encoded spatial index
 - `m3s.MGRS` - Military Grid Reference System
 - `m3s.H3` - Uber's hexagonal grid
@@ -124,7 +120,7 @@ Both APIs work together seamlessly—choose what fits your workflow!
 ```python
 from m3s import (
     GeohashGrid, MGRSGrid, H3Grid, QuadkeyGrid, S2Grid, SlippyGrid,
-    A5Grid, CSquaresGrid, GARSGrid, MaidenheadGrid, PlusCodeGrid, What3WordsGrid
+    CSquaresGrid, GARSGrid, MaidenheadGrid, PlusCodeGrid, What3WordsGrid
 )
 from shapely.geometry import Point, box
 import geopandas as gpd
@@ -137,7 +133,6 @@ grids = {
     'Quadkey': QuadkeyGrid(level=12),           # ~95.73 km² cells
     'S2': S2Grid(level=10),                     # ~81.07 km² cells
     'Slippy': SlippyGrid(zoom=12),              # ~95.73 km² cells
-    'A5': A5Grid(resolution=5),                 # Pentagonal DGGS
     'C-squares': CSquaresGrid(precision=3),     # Marine data indexing
     'GARS': GARSGrid(precision=2),              # Global Area Reference System
     'Maidenhead': MaidenheadGrid(precision=3),  # Amateur radio locator

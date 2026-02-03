@@ -230,24 +230,6 @@ class AreaCalculator:
         "what3words": [  # 3m × 3m fixed
             0.000009,  # 3m × 3m
         ],
-        "a5": [  # A5 pentagonal DGGS resolution 0-15
-            73800000.0,  # res 0
-            10540000.0,  # res 1
-            1506000.0,  # res 2
-            215000.0,  # res 3
-            30700.0,  # res 4
-            4390.0,  # res 5
-            627.0,  # res 6
-            89.6,  # res 7
-            12.8,  # res 8
-            1.83,  # res 9
-            0.261,  # res 10
-            0.0373,  # res 11
-            0.00533,  # res 12
-            0.000762,  # res 13
-            0.000109,  # res 14
-            0.0000155,  # res 15
-        ],
     }
 
     # Valid precision ranges for each grid system
@@ -264,7 +246,6 @@ class AreaCalculator:
         "maidenhead": (1, 6),
         "pluscode": (2, 15),
         "what3words": (1, 1),
-        "a5": (0, 15),
     }
 
     def __init__(self, grid_system: str):
@@ -427,7 +408,6 @@ class PerformanceProfiler:
             "quadkey": 1.1,  # Fast
             "slippy": 1.1,  # Fast
             "mgrs": 1.5,  # UTM conversions add overhead
-            "a5": 2.0,  # Python implementation, slower
             "what3words": 3.0,  # API calls required
         }
         multiplier = system_multipliers.get(grid_system, 1.3)
@@ -502,17 +482,6 @@ USE_CASE_PRESETS = {
         "street": 6,
         "building": 6,
         "room": 6,
-    },
-    "a5": {
-        "global": 0,
-        "continental": 2,
-        "country": 4,
-        "region": 6,
-        "city": 8,
-        "neighborhood": 10,
-        "street": 12,
-        "building": 14,
-        "room": 15,
     },
     "csquares": {
         "global": 1,
@@ -794,9 +763,6 @@ class PrecisionSelector:
         elif self.grid_system in ["s2", "quadkey", "slippy", "csquares"]:
             # Square-ish cells
             target_area_km2 = edge_length_km**2
-        elif self.grid_system == "a5":
-            # Pentagons: area ≈ (edge_length^2) * 1.72
-            target_area_km2 = (edge_length_km**2) * 1.72
         else:
             # Conservative estimate for other systems
             target_area_km2 = (edge_length_km**2) * 1.5
@@ -809,8 +775,6 @@ class PrecisionSelector:
         # Estimate actual edge length from area
         if self.grid_system == "h3":
             actual_edge_km = (actual_area / 2.598) ** 0.5
-        elif self.grid_system == "a5":
-            actual_edge_km = (actual_area / 1.72) ** 0.5
         else:
             actual_edge_km = actual_area**0.5
 

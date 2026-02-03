@@ -11,7 +11,6 @@ from typing import Any
 
 import pandas as pd
 
-from .a5 import A5Grid
 from .base import BaseGrid, GridCell
 from .csquares import CSquaresGrid
 from .gars import GARSGrid
@@ -47,7 +46,6 @@ class GridConverter:
         "maidenhead": MaidenheadGrid,
         "pluscode": PlusCodeGrid,
         "what3words": What3WordsGrid,
-        "a5": A5Grid,
     }
 
     # Default precision/resolution mappings for equivalent area coverage
@@ -63,7 +61,6 @@ class GridConverter:
         "maidenhead": 4,  # ~232 km²
         "pluscode": 4,  # ~12.5m resolution in this implementation
         "what3words": 1,  # ~9 m²
-        "a5": 8,  # ~1,247 km²
     }
 
     def __init__(self) -> None:

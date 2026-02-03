@@ -297,10 +297,6 @@ class GridCellCollection:
         """Convert to Geohash grid system."""
         return self._convert_to("geohash", method)
 
-    def to_a5(self, method: str = "centroid") -> "GridCellCollection":
-        """Convert to A5 grid system."""
-        return self._convert_to("a5", method)
-
     def to_mgrs(self, method: str = "centroid") -> "GridCellCollection":
         """Convert to MGRS grid system."""
         return self._convert_to("mgrs", method)
