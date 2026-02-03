@@ -1,0 +1,1372 @@
+{
+ "GeohashGrid": [
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.geohash",
+   "module_short": "m3s",
+   "name": "GeohashGrid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GeohashGrid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s",
+   "name": "BaseGrid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GeohashGrid"
+  }
+ ],
+ "Polygon": [
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely.geometry.polygon",
+   "module_short": "shapely",
+   "name": "Polygon"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Polygon"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Polygon"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely.geometry.base",
+   "module_short": "shapely.geometry.base",
+   "name": "BaseGeometry"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely.geometry",
+   "name": "BaseGeometry"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "BaseGeometry"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely.lib",
+   "module_short": "shapely",
+   "name": "Geometry"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Geometry"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Polygon"
+  }
+ ],
+ "building_precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "cell": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell"
+  }
+ ],
+ "cell.area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "cell.bounds": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell.bounds"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell.bounds"
+  }
+ ],
+ "cell.centroid": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell.centroid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell.centroid"
+  }
+ ],
+ "cell.id": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell.id"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell.id"
+  }
+ ],
+ "cells": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_collection",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  }
+ ],
+ "cells.filter": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_collection",
+   "module_short": "m3s",
+   "name": "GridCellCollection.filter"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridCellCollection.filter"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCellCollection.filter"
+  }
+ ],
+ "cells.to_gdf": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_collection",
+   "module_short": "m3s",
+   "name": "GridCellCollection.to_gdf"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridCellCollection.to_gdf"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCellCollection.to_gdf"
+  }
+ ],
+ "cells.to_ids": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_collection",
+   "module_short": "m3s",
+   "name": "GridCellCollection.to_ids"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridCellCollection.to_ids"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCellCollection.to_ids"
+  }
+ ],
+ "cells.to_polygons": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_collection",
+   "module_short": "m3s",
+   "name": "GridCellCollection.to_polygons"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridCellCollection.to_polygons"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCellCollection.to_polygons"
+  }
+ ],
+ "cells.total_area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_collection",
+   "module_short": "m3s",
+   "name": "GridCellCollection.total_area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridCellCollection.total_area_km2"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCellCollection.total_area_km2"
+  }
+ ],
+ "cells_auto": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_collection",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  }
+ ],
+ "city_precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "gdf": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "geopandas.geodataframe",
+   "module_short": "geopandas",
+   "name": "GeoDataFrame"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "geopandas",
+   "module_short": "geopandas",
+   "name": "GeoDataFrame"
+  }
+ ],
+ "geohash_cells": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell"
+  }
+ ],
+ "gpd.GeoDataFrame": [
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "geopandas.geodataframe",
+   "module_short": "geopandas",
+   "name": "GeoDataFrame"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "geopandas",
+   "module_short": "geopandas",
+   "name": "GeoDataFrame"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "geopandas.base",
+   "module_short": "geopandas.base",
+   "name": "GeoPandasBase"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "geopandas",
+   "module_short": "geopandas",
+   "name": "GeoPandasBase"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core.frame",
+   "module_short": "pandas.core.frame",
+   "name": "DataFrame"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "DataFrame"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "DataFrame"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core.generic",
+   "module_short": "pandas.core.generic",
+   "name": "NDFrame"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "NDFrame"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "NDFrame"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core.arraylike",
+   "module_short": "pandas.core.arraylike",
+   "name": "OpsMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "OpsMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "OpsMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core.base",
+   "module_short": "pandas.core.base",
+   "name": "PandasObject"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "PandasObject"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "PandasObject"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core.indexing",
+   "module_short": "pandas.core.indexing",
+   "name": "IndexingMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "IndexingMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "IndexingMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core.accessor",
+   "module_short": "pandas.core.accessor",
+   "name": "DirNamesMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "DirNamesMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "DirNamesMixin"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "geopandas",
+   "module_short": "geopandas",
+   "name": "GeoDataFrame"
+  }
+ ],
+ "grid": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.geohash",
+   "module_short": "m3s",
+   "name": "GeohashGrid"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GeohashGrid"
+  }
+ ],
+ "grid.get_cell_from_point": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.geohash",
+   "module_short": "m3s",
+   "name": "GeohashGrid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GeohashGrid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "BaseGrid.get_cell_from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "abc",
+   "module_short": "abc",
+   "name": "ABC.get_cell_from_point"
+  }
+ ],
+ "h3_cells": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_collection",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  }
+ ],
+ "h3_cells_overlap": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_collection",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  }
+ ],
+ "ids_list": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "large_cells": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_collection",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  }
+ ],
+ "m3s.Geohash.find_precision_for_use_case": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_wrapper",
+   "module_short": "m3s",
+   "name": "GridWrapper.find_precision_for_use_case"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridWrapper.find_precision_for_use_case"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridWrapper.find_precision_for_use_case"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.Geohash",
+   "module_short": "m3s.Geohash",
+   "name": "find_precision_for_use_case"
+  }
+ ],
+ "m3s.Geohash.from_geometry": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_wrapper",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_geometry"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_geometry"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_geometry"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.Geohash",
+   "module_short": "m3s.Geohash",
+   "name": "from_geometry"
+  }
+ ],
+ "m3s.Geohash.neighbors": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_wrapper",
+   "module_short": "m3s",
+   "name": "GridWrapper.neighbors"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridWrapper.neighbors"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridWrapper.neighbors"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.Geohash",
+   "module_short": "m3s.Geohash",
+   "name": "neighbors"
+  }
+ ],
+ "m3s.H3.find_precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_wrapper",
+   "module_short": "m3s",
+   "name": "GridWrapper.find_precision"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridWrapper.find_precision"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridWrapper.find_precision"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.H3",
+   "module_short": "m3s.H3",
+   "name": "find_precision"
+  }
+ ],
+ "m3s.H3.find_precision_for_use_case": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_wrapper",
+   "module_short": "m3s",
+   "name": "GridWrapper.find_precision_for_use_case"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridWrapper.find_precision_for_use_case"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridWrapper.find_precision_for_use_case"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.H3",
+   "module_short": "m3s.H3",
+   "name": "find_precision_for_use_case"
+  }
+ ],
+ "m3s.H3.from_geometry": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_wrapper",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_geometry"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_geometry"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_geometry"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.H3",
+   "module_short": "m3s.H3",
+   "name": "from_geometry"
+  }
+ ],
+ "m3s.H3.with_precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_wrapper",
+   "module_short": "m3s",
+   "name": "GridWrapper.with_precision"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridWrapper.with_precision"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridWrapper.with_precision"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.H3",
+   "module_short": "m3s.H3",
+   "name": "with_precision"
+  }
+ ],
+ "m3s.MGRS.from_point": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_wrapper",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_point"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.MGRS",
+   "module_short": "m3s.MGRS",
+   "name": "from_point"
+  }
+ ],
+ "m3s.MGRS.with_precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_wrapper",
+   "module_short": "m3s",
+   "name": "GridWrapper.with_precision"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridWrapper.with_precision"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridWrapper.with_precision"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.MGRS",
+   "module_short": "m3s.MGRS",
+   "name": "with_precision"
+  }
+ ],
+ "m3s.Quadkey.from_polygon": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_wrapper",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_polygon"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_polygon"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_polygon"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.Quadkey",
+   "module_short": "m3s.Quadkey",
+   "name": "from_polygon"
+  }
+ ],
+ "m3s.S2.find_precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_wrapper",
+   "module_short": "m3s",
+   "name": "GridWrapper.find_precision"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridWrapper.find_precision"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridWrapper.find_precision"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.S2",
+   "module_short": "m3s.S2",
+   "name": "find_precision"
+  }
+ ],
+ "m3s.S2.find_precision_for_use_case": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_wrapper",
+   "module_short": "m3s",
+   "name": "GridWrapper.find_precision_for_use_case"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridWrapper.find_precision_for_use_case"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridWrapper.find_precision_for_use_case"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.S2",
+   "module_short": "m3s.S2",
+   "name": "find_precision_for_use_case"
+  }
+ ],
+ "m3s.S2.from_bbox": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_wrapper",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_bbox"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.S2",
+   "module_short": "m3s.S2",
+   "name": "from_bbox"
+  }
+ ],
+ "m3s.S2.from_geometry": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_wrapper",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_geometry"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_geometry"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridWrapper.from_geometry"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.S2",
+   "module_short": "m3s.S2",
+   "name": "from_geometry"
+  }
+ ],
+ "m3s.S2.neighbors": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_wrapper",
+   "module_short": "m3s",
+   "name": "GridWrapper.neighbors"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridWrapper.neighbors"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridWrapper.neighbors"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.S2",
+   "module_short": "m3s.S2",
+   "name": "neighbors"
+  }
+ ],
+ "neighbors": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_collection",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  }
+ ],
+ "neighbors_with_origin": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_collection",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  }
+ ],
+ "neighbors_with_origin.to_h3": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_collection",
+   "module_short": "m3s",
+   "name": "GridCellCollection.to_h3"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridCellCollection.to_h3"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCellCollection.to_h3"
+  }
+ ],
+ "new_cell": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell"
+  }
+ ],
+ "new_cell.id": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell.id"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell.id"
+  }
+ ],
+ "old_cell": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell"
+  }
+ ],
+ "old_cell.identifier": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "str"
+  }
+ ],
+ "polygon": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry.polygon",
+   "module_short": "shapely",
+   "name": "Polygon"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely.geometry",
+   "module_short": "shapely",
+   "name": "Polygon"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "shapely",
+   "module_short": "shapely",
+   "name": "Polygon"
+  }
+ ],
+ "polygons_list": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "precision_auto": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "precision_less": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "precision_more": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "result": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.grid_collection",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCellCollection"
+  }
+ ],
+ "result_gdf": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "geopandas.geodataframe",
+   "module_short": "geopandas",
+   "name": "GeoDataFrame"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "geopandas",
+   "module_short": "geopandas",
+   "name": "GeoDataFrame"
+  }
+ ]
+}

@@ -52,18 +52,35 @@ Run any example by downloading the Python file and executing it in your environm
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example shows how to generate different grid types (MGRS, H3, Geohash, Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS, A5) from a GeoDataFrame and visualize them clearly.">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates the new simplified API for quick start.">
 
 .. only:: html
 
-  .. image:: /auto_examples/images/thumb/sphx_glr_grid_generation_example_thumb.png
+  .. image:: /auto_examples/images/thumb/sphx_glr_quickstart_new_api_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_grid_generation_example.py`
+  :ref:`sphx_glr_auto_examples_quickstart_new_api.py`
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">Generate and visualize grids from GeoDataFrame geometry.</div>
+      <div class="sphx-glr-thumbnail-title">M3S Quick Start - New Simplified API</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates the GridBuilder fluent interface and intelligent precision selection.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_quickstart_thumb.png
+    :alt:
+
+  :ref:`sphx_glr_auto_examples_quickstart.py`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Quickstart Guide for M3S - GridBuilder API</div>
     </div>
 
 
@@ -86,18 +103,18 @@ Run any example by downloading the Python file and executing it in your environm
 
 .. raw:: html
 
-    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates the A5 pentagonal grid system, a Discrete Global Grid System (DGGS) that divides the Earth&#x27;s surface into pentagonal cells derived from a dodecahedral projection.">
+    <div class="sphx-glr-thumbcontainer" tooltip="This example demonstrates all 5 intelligent precision selection strategies in M3S v0.6.0+, helping you choose the optimal precision level for any use case.">
 
 .. only:: html
 
-  .. image:: /auto_examples/images/thumb/sphx_glr_a5_example_thumb.png
+  .. image:: /auto_examples/images/thumb/sphx_glr_precision_selection_example_thumb.png
     :alt:
 
-  :ref:`sphx_glr_auto_examples_a5_example.py`
+  :ref:`sphx_glr_auto_examples_precision_selection_example.py`
 
 .. raw:: html
 
-      <div class="sphx-glr-thumbnail-title">A5 Pentagonal Grid System Example.</div>
+      <div class="sphx-glr-thumbnail-title">Precision Selection Strategies - Complete Guide</div>
     </div>
 
 
@@ -146,9 +163,10 @@ Run any example by downloading the Python file and executing it in your environm
    :hidden:
 
    /auto_examples/utm_reprojection_example
-   /auto_examples/grid_generation_example
+   /auto_examples/quickstart_new_api
+   /auto_examples/quickstart
    /auto_examples/quadkey_s2_example
-   /auto_examples/a5_example
+   /auto_examples/precision_selection_example
    /auto_examples/grid_enhancements_example
    /auto_examples/new_grids_example
 

@@ -1,0 +1,1291 @@
+{
+ "GridBuilder.for_system": [
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.api.builder",
+   "module_short": "m3s",
+   "name": "GridBuilder.for_system"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridBuilder.for_system"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridBuilder.for_system"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.GridBuilder",
+   "module_short": "m3s.GridBuilder",
+   "name": "for_system"
+  }
+ ],
+ "PrecisionSelector": [
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.api.precision",
+   "module_short": "m3s",
+   "name": "PrecisionSelector"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "PrecisionSelector"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionSelector"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionSelector"
+  }
+ ],
+ "best_rec": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.precision",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  }
+ ],
+ "best_rec.precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "cell": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.base",
+   "module_short": "m3s.base",
+   "name": "GridCell"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridCell"
+  }
+ ],
+ "cell.area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "cell.identifier": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "str"
+  }
+ ],
+ "city_recs": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "city_recs.append": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "builtin_function_or_method"
+  }
+ ],
+ "comparison": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core.frame",
+   "module_short": "pandas.core.frame",
+   "name": "DataFrame"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "DataFrame"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "DataFrame"
+  }
+ ],
+ "comparison.to_string": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core.frame",
+   "module_short": "pandas.core.frame",
+   "name": "DataFrame.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "DataFrame.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "DataFrame.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core.generic",
+   "module_short": "pandas.core.generic",
+   "name": "NDFrame.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "NDFrame.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "NDFrame.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core.arraylike",
+   "module_short": "pandas.core.arraylike",
+   "name": "OpsMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "OpsMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "OpsMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core.base",
+   "module_short": "pandas.core.base",
+   "name": "PandasObject.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "PandasObject.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "PandasObject.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core.indexing",
+   "module_short": "pandas.core.indexing",
+   "name": "IndexingMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "IndexingMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "IndexingMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core.accessor",
+   "module_short": "pandas.core.accessor",
+   "name": "DirNamesMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "DirNamesMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "DirNamesMixin.to_string"
+  }
+ ],
+ "deviation": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "df": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core.frame",
+   "module_short": "pandas.core.frame",
+   "name": "DataFrame"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "DataFrame"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "DataFrame"
+  }
+ ],
+ "df.to_string": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core.frame",
+   "module_short": "pandas.core.frame",
+   "name": "DataFrame.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "DataFrame.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "DataFrame.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core.generic",
+   "module_short": "pandas.core.generic",
+   "name": "NDFrame.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "NDFrame.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "NDFrame.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core.arraylike",
+   "module_short": "pandas.core.arraylike",
+   "name": "OpsMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "OpsMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "OpsMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core.base",
+   "module_short": "pandas.core.base",
+   "name": "PandasObject.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "PandasObject.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "PandasObject.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core.indexing",
+   "module_short": "pandas.core.indexing",
+   "name": "IndexingMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "IndexingMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "IndexingMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core.accessor",
+   "module_short": "pandas.core.accessor",
+   "name": "DirNamesMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "DirNamesMixin.to_string"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "DirNamesMixin.to_string"
+  }
+ ],
+ "manhattan_bounds": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "tuple"
+  }
+ ],
+ "op_type": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "str"
+  }
+ ],
+ "pd.DataFrame": [
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core.frame",
+   "module_short": "pandas.core.frame",
+   "name": "DataFrame"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "DataFrame"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "DataFrame"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core.generic",
+   "module_short": "pandas.core.generic",
+   "name": "NDFrame"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "NDFrame"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "NDFrame"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core.arraylike",
+   "module_short": "pandas.core.arraylike",
+   "name": "OpsMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "OpsMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "OpsMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core.base",
+   "module_short": "pandas.core.base",
+   "name": "PandasObject"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "PandasObject"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "PandasObject"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core.indexing",
+   "module_short": "pandas.core.indexing",
+   "name": "IndexingMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "IndexingMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "IndexingMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core.accessor",
+   "module_short": "pandas.core.accessor",
+   "name": "DirNamesMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas.core",
+   "module_short": "pandas.core",
+   "name": "DirNamesMixin"
+  },
+  {
+   "is_class": true,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "DirNamesMixin"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "DataFrame"
+  }
+ ],
+ "pd.set_option": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas._config.config",
+   "module_short": "pandas._config.config",
+   "name": "CallableDynamicDoc"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas._config",
+   "module_short": "pandas._config",
+   "name": "CallableDynamicDoc"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "CallableDynamicDoc"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "pandas",
+   "module_short": "pandas",
+   "name": "set_option"
+  }
+ ],
+ "rec": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.precision",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  }
+ ],
+ "rec.actual_area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "NoneType"
+  }
+ ],
+ "rec.actual_cell_count": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "NoneType"
+  }
+ ],
+ "rec.confidence": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "rec.edge_length_m": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "NoneType"
+  }
+ ],
+ "rec.metadata": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "dict"
+  }
+ ],
+ "rec.precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "rec1": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.precision",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  }
+ ],
+ "rec1.actual_area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "rec1.confidence": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "rec1.explanation": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "str"
+  }
+ ],
+ "rec1.precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "rec2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.precision",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  }
+ ],
+ "rec2.actual_area_km2": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "rec2.confidence": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "rec2.precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "rec3": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.precision",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  }
+ ],
+ "rec3.actual_cell_count": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "rec3.confidence": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "rec3.metadata.get": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "builtin_function_or_method"
+  }
+ ],
+ "rec3.precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "rec4": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.precision",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionRecommendation"
+  }
+ ],
+ "rec4.confidence": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "rec4.edge_length_m": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "rec4.precision": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "region_size": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "result": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.results",
+   "module_short": "m3s",
+   "name": "GridQueryResult"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridQueryResult"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridQueryResult"
+  }
+ ],
+ "result.many": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.results",
+   "module_short": "m3s",
+   "name": "GridQueryResult.many"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "GridQueryResult.many"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "GridQueryResult.many"
+  }
+ ],
+ "scenarios": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "sel": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.precision",
+   "module_short": "m3s",
+   "name": "PrecisionSelector"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "PrecisionSelector"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionSelector"
+  }
+ ],
+ "sel.for_use_case": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.precision",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_use_case"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_use_case"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_use_case"
+  }
+ ],
+ "selector": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.precision",
+   "module_short": "m3s",
+   "name": "PrecisionSelector"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "PrecisionSelector"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionSelector"
+  }
+ ],
+ "selector.for_area": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.precision",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_area"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_area"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_area"
+  }
+ ],
+ "selector.for_distance": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.precision",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_distance"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_distance"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_distance"
+  }
+ ],
+ "selector.for_performance": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.precision",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_performance"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_performance"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_performance"
+  }
+ ],
+ "selector.for_region_count": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.precision",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_region_count"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_region_count"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_region_count"
+  }
+ ],
+ "selector.for_use_case": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api.precision",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_use_case"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s.api",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_use_case"
+  },
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "m3s",
+   "module_short": "m3s",
+   "name": "PrecisionSelector.for_use_case"
+  }
+ ],
+ "sf_bounds": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "tuple"
+  }
+ ],
+ "system": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "str"
+  }
+ ],
+ "systems": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "target_area": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "target_areas": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "target_count": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "target_counts": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "target_dist": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "int"
+  }
+ ],
+ "target_distances": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ],
+ "time_budget": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "float"
+  }
+ ],
+ "use_case": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "str"
+  }
+ ],
+ "use_cases": [
+  {
+   "is_class": false,
+   "is_explicit": false,
+   "module": "builtins",
+   "module_short": "builtins",
+   "name": "list"
+  }
+ ]
+}

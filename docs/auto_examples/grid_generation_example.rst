@@ -24,131 +24,17 @@ Generate and visualize grids from GeoDataFrame geometry.
 This example shows how to generate different grid types (MGRS, H3, Geohash,
 Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS, A5) from a GeoDataFrame and visualize them clearly.
 
-.. GENERATED FROM PYTHON SOURCE LINES 8-202
-
-
-
-.. image-sg:: /auto_examples/images/sphx_glr_grid_generation_example_001.png
-   :alt: Grid Systems Comparison - Paris Area, MGRS Grid 10km precision (5 cells), H3 Hexagonal Grid Resolution 6 (9 cells), Geohash Grid Precision 5 (15 cells), Quadkey Grid Level 12 (6 cells), S2 Grid Level 9 (4 cells), Slippy Map Tiles Zoom 12 (6 cells), Plus Codes Precision 3 (8 cells), Maidenhead Locator Precision 3 (9 cells), GARS Grid Precision 3 (6 cells), A5 Pentagon Grid Precision 7 (1 cells)
-   :srcset: /auto_examples/images/sphx_glr_grid_generation_example_001.png
-   :class: sphx-glr-single-img
+.. GENERATED FROM PYTHON SOURCE LINES 8-208
 
 
 .. rst-class:: sphx-glr-script-out
 
- .. code-block:: none
+.. code-block:: pytb
 
-    Test area: Small box around Paris
-    Bounds: (2.25, 48.82, 2.42, 48.9)
-
-    Generating grids...
-      Processing MGRS...
-      Processing H3...
-      Processing Geohash...
-      Processing Quadkey...
-      Processing S2...
-      Processing Slippy...
-      Processing Plus codes...
-      Processing Maidenhead...
-      Processing GARS...
-      Processing A5...
-    Generated:
-      MGRS (10km):        5 cells
-      H3 (res 6):         9 cells
-      Geohash (p5):       15 cells
-      Quadkey (l12):      6 cells
-      S2 (l9):            4 cells
-      Slippy (z12):       6 cells
-      Plus codes (p3):    8 cells
-      Maidenhead (p3):    9 cells
-      GARS (p3):          6 cells
-      A5 (p7):            1 cells
-
-    Detailed Grid Information:
-    ======================================================================
-
-    1. MGRS Grid (10km precision):
-       Cells generated: 5
-       Sample cell IDs: ['31UDQ62', '31UDQ52', '31UDQ41']
-       UTM zones: [np.int64(32631)]
-
-    2. H3 Grid (resolution 6):
-       Cells generated: 9
-       Sample cell IDs: ['861fb4297ffffff', '861fb460fffffff', '861fb462fffffff']
-       UTM zones: [np.int64(32631)]
-
-    3. Geohash Grid (precision 5):
-       Cells generated: 15
-       Sample cell IDs: ['u09tt', 'u09tw', 'u09wj']
-       UTM zones: [np.int64(32631)]
-
-    4. Quadkey Grid (level 12):
-       Cells generated: 6
-       Sample cell IDs: ['120220011001', '120220011003', '120220011010']
-       UTM zones: Not available for this grid system
-
-    5. S2 Grid (level 9):
-       Cells generated: 4
-       Sample cell IDs: ['47e664', '47e66c', '47e674']
-       UTM zones: Not available for this grid system
-
-    6. Slippy Map Tiles (zoom 12):
-       Cells generated: 6
-       Sample cell IDs: ['12/2073/1408', '12/2073/1409', '12/2074/1408']
-       UTM zones: Not available for this grid system
-
-    7. Plus Codes (precision 3):
-       Cells generated: 8
-       Sample cell IDs: ['F84W+7R', 'F84W+CR', 'F84W+8R']
-       UTM zones: Not available for this grid system
-
-    8. Maidenhead Locator (precision 3):
-       Cells generated: 9
-       Sample cell IDs: ['JN18DT', 'JN18ET', 'JN18FT']
-       UTM zones: Not available for this grid system
-
-    9. GARS Grid (precision 3):
-       Cells generated: 6
-       Sample cell IDs: ['365KR47', '365KR48', '365KR49']
-       UTM zones: Not available for this grid system
-
-    10. A5 Pentagon Grid (precision 7):
-       Cells generated: 1
-       Sample cell IDs: ['a5_3_6360000000000000']
-       UTM zones: Not available for this grid system
-
-    Note: The red outline shows our test area (Paris bounding box)
-    Each grid system tessellates the space differently:
-    - MGRS: Square UTM-based military grid reference system
-    - H3: Hexagonal hierarchical grid (Uber's system)
-    - Geohash: Base32-encoded rectangular grid
-    - Quadkey: Microsoft Bing Maps quadtree-based square tiles
-    - S2: Google's spherical geometry cells using Hilbert curve
-    - Slippy: Standard web map tiles used by OpenStreetMap and others
-    - Plus Codes: Google's open-source alternative to addresses
-    - Maidenhead: Ham radio grid system with alternating letter/number pairs
-    - GARS: Military/aviation Global Area Reference System
-    - A5: Discrete Global Grid System (DGGS) using pentagonal cells
-
-    Grid System Characteristics:
-    - MGRS:       Military standard, UTM-based, square cells
-    - H3:         Uniform hexagons, good for analysis, minimal distortion
-    - Geohash:    Simple encoding, rectangular, good for databases
-    - Quadkey:    Web mapping standard, hierarchical, efficient for tiles
-    - S2:         Spherical geometry, curved cells, excellent spatial locality
-    - Slippy:     Web standard, z/x/y tiles, excellent for web mapping
-    - Plus Codes: Google's address alternative, base-20 encoding
-    - Maidenhead: Ham radio standard, hierarchical letter/number system
-    - GARS:       Aviation/military standard, longitude bands + latitude zones
-    - A5:         Pentagonal DGGS, dodecahedral projection, minimal distortion
-
-    Performance Notes:
-    - MGRS and Geohash: Fast, simple algorithms
-    - H3: Fast with good spatial properties
-    - Quadkey and Slippy: Fast, optimized for web mapping
-    - S2: More complex but excellent for large-scale applications
-    - Plus Codes, Maidenhead, GARS: Fast encoding/decoding, specialized use cases
-    - A5: Complex geometric algorithms, excellent spatial properties for analysis
+    Traceback (most recent call last):
+      File "C:\Users\nicar\git\m3s\examples\grid_generation_example.py", line 15, in <module>
+        from m3s import (
+    ImportError: cannot import name 'A5Grid' from 'm3s' (C:\Users\nicar\git\m3s\m3s\__init__.py). Did you mean: 'H3Grid'?
 
 
 
@@ -267,7 +153,13 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS, A5) from a GeoDataFrame and v
             axes[2, 1],
         ),
         (gars_result, "GARS Grid\nPrecision 3", "lavender", "mediumorchid", axes[2, 2]),
-        (a5_result, "A5 Pentagon Grid\nPrecision 7", "lightsalmon", "darkorange", axes[3, 0]),
+        (
+            a5_result,
+            "A5 Pentagon Grid\nPrecision 7",
+            "lightsalmon",
+            "darkorange",
+            axes[3, 0],
+        ),
     ]
 
     # Plot each grid system
@@ -357,7 +249,7 @@ Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS, A5) from a GeoDataFrame and v
 
 .. rst-class:: sphx-glr-timing
 
-   **Total running time of the script:** (0 minutes 11.635 seconds)
+   **Total running time of the script:** (0 minutes 0.005 seconds)
 
 
 .. _sphx_glr_download_auto_examples_grid_generation_example.py:
