@@ -31,15 +31,6 @@ jobs:
         wait-interval: 20
         allowed-conclusions: success
 
-    - name: Wait for docs to build
-      uses: lewagon/wait-on-check-action@v1.3.4
-      with:
-        ref: ${{ github.ref }}
-        check-name: 'build'
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        wait-interval: 20
-        allowed-conclusions: success
-
     # Build and publish steps
     - uses: actions/checkout@v4
     
