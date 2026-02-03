@@ -3,7 +3,7 @@ Generate and visualize grids from GeoDataFrame geometry.
 ========================================================
 
 This example shows how to generate different grid types (MGRS, H3, Geohash,
-Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS, A5) from a GeoDataFrame and visualize them clearly.
+Quadkey, S2, Slippy, Plus codes, Maidenhead, GARS) from a GeoDataFrame and visualize them clearly.
 """
 
 import warnings
@@ -13,7 +13,6 @@ import matplotlib.pyplot as plt
 from shapely.geometry import box
 
 from m3s import (
-    A5Grid,
     GARSGrid,
     GeohashGrid,
     H3Grid,

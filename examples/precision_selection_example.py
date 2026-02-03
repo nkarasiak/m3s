@@ -131,7 +131,7 @@ print()
 print("Same use case ('city') across different grid systems:")
 print("-" * 80)
 
-systems = ["geohash", "h3", "s2", "quadkey", "a5"]
+systems = ["geohash", "h3", "s2", "quadkey"]
 city_recs = []
 
 for system in systems:
