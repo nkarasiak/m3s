@@ -13,13 +13,23 @@ jobs:
       id-token: write
 
     steps:
-    - name: Wait for tests to complete
+    - name: Wait for test Python 3.12
       uses: lewagon/wait-on-check-action@v1.3.4
       with:
         ref: ${{ github.ref }}
-        check-name: 'tests-complete'
+        check-name: 'test (3.12)'
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         wait-interval: 20
+        allowed-conclusions: success
+
+    - name: Wait for test Python 3.13
+      uses: lewagon/wait-on-check-action@v1.3.4
+      with:
+        ref: ${{ github.ref }}
+        check-name: 'test (3.13)'
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        wait-interval: 20
+        allowed-conclusions: success
 
     - name: Wait for docs to build
       uses: lewagon/wait-on-check-action@v1.3.4
@@ -28,6 +38,7 @@ jobs:
         check-name: 'build'
         repo-token: ${{ secrets.GITHUB_TOKEN }}
         wait-interval: 20
+        allowed-conclusions: success
 
     # Build and publish steps
     - uses: actions/checkout@v4
