@@ -5,7 +5,7 @@ M3S Quick Start - New Simplified API
 This example demonstrates the new simplified API for quick start.
 
 The new API provides:
-- Direct access to grid systems via m3s.A5, m3s.Geohash, etc.
+- Direct access to grid systems via m3s.H3, m3s.Geohash, etc.
 - Universal from_geometry() method handling any geometry type
 - Auto-precision selection for optimal coverage
 - Easy conversions between grid systems
@@ -46,8 +46,8 @@ print(f"Total area: {cells.total_area_km2:.2f} km²")
 # ---------------------------------------------
 
 gdf = gpd.GeoDataFrame({"geometry": [polygon]}, crs="EPSG:4326")
-cells = m3s.A5.from_geometry(gdf)
-print(f"\nA5 cells from GeoDataFrame: {len(cells)} cells")
+cells = m3s.S2.from_geometry(gdf)
+print(f"\nS2 cells from GeoDataFrame: {len(cells)} cells")
 
 # %%
 # Example 4: Find optimal precision for your data
@@ -55,8 +55,8 @@ print(f"\nA5 cells from GeoDataFrame: {len(cells)} cells")
 # For best results with large areas, find precision explicitly first
 
 # Target ~100 cells
-precision = m3s.A5.find_precision(polygon, method=100)
-cells = m3s.A5.from_geometry(polygon, precision=precision)
+precision = m3s.S2.find_precision(polygon, method=100)
+cells = m3s.S2.from_geometry(polygon, precision=precision)
 print(f"\nUsing precision {precision}: {len(cells)} cells")
 
 # Minimize coverage variance ('auto' method - recommended for quality)
@@ -119,7 +119,7 @@ print(f"\nNeighborhood-level precision {precision}: {len(cells)} cells")
 
 # Other use cases: 'building', 'block', 'city', 'region', 'country'
 building_precision = m3s.Geohash.find_precision_for_use_case("building")
-city_precision = m3s.A5.find_precision_for_use_case("city")
+city_precision = m3s.S2.find_precision_for_use_case("city")
 print(f"Building precision: {building_precision}")
 print(f"City precision: {city_precision}")
 
@@ -201,7 +201,7 @@ print(f"\nChained workflow result: {len(result)} cells")
 # Summary
 # -------
 # The new API provides:
-# 1. Direct access: m3s.A5, m3s.Geohash, etc. (no instantiation needed)
+# 1. Direct access: m3s.H3, m3s.Geohash, m3s.S2, etc. (no instantiation needed)
 # 2. Universal from_geometry(): handles any geometry type
 # 3. Auto-precision: intelligent defaults based on coverage optimization
 # 4. Easy conversions: .to_h3(), .to_geohash(), etc.
