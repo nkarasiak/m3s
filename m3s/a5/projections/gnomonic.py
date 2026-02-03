@@ -11,10 +11,11 @@ from typing import Tuple
 
 class GnomonicProjection:
     """
-    Gnomonic projection implementation that converts between spherical and polar coordinates.
+    Gnomonic projection implementation.
 
-    The gnomonic projection projects points from a sphere onto a tangent plane,
-    preserving straight lines (great circles appear as straight lines).
+    Converts between spherical and polar coordinates. The gnomonic projection
+    projects points from a sphere onto a tangent plane, preserving straight
+    lines (great circles appear as straight lines).
     """
 
     def forward(self, spherical: Tuple[float, float]) -> Tuple[float, float]:

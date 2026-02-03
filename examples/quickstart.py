@@ -1,9 +1,18 @@
 """
-Quickstart Guide for M3S v0.6.0+ Modern API
+Quickstart Guide for M3S - GridBuilder API
 ==========================================
 
-This example demonstrates the new fluent interface and intelligent
-precision selection introduced in M3S v0.6.0.
+This example demonstrates the GridBuilder fluent interface and intelligent
+precision selection.
+
+**Note**: M3S v0.5.1+ also provides a simpler API for quick start:
+See examples/quickstart_new_api.py for the simplified direct access API.
+
+For most use cases, the simplified API is recommended:
+    import m3s
+    cell = m3s.Geohash.from_geometry((40.7, -74.0))
+
+This example shows the advanced GridBuilder API for complex workflows.
 """
 
 from m3s import GridBuilder, PrecisionSelector

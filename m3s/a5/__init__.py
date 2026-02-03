@@ -194,7 +194,8 @@ def get_res0_cells() -> List[A5Cell]:
                     seen_cells.add(cell_id)
                     if len(base_cells) >= 12:
                         return base_cells
-            except:
+            except Exception:
+                # Skip invalid cells
                 pass
 
     # If we still don't have 12, add poles
@@ -208,7 +209,8 @@ def get_res0_cells() -> List[A5Cell]:
                         seen_cells.add(cell_id)
                         if len(base_cells) >= 12:
                             return base_cells
-                except:
+                except Exception:
+                    # Skip invalid cells
                     pass
 
     return base_cells

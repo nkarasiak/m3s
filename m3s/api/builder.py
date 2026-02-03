@@ -74,6 +74,7 @@ class GridBuilder:
         self._precision_recommendation: Optional[PrecisionRecommendation] = None
         self._operations: List[Tuple[str, Dict[str, Any]]] = []
         self._metadata: Dict[str, Any] = {}
+        self._use_spatial_index = False
 
     @classmethod
     def for_system(cls, system: str) -> "GridBuilder":
@@ -141,6 +142,24 @@ class GridBuilder:
             "confidence": recommendation.confidence,
             "explanation": recommendation.explanation,
         }
+        return self
+
+    def with_spatial_index(self, enabled: bool = True) -> "GridBuilder":
+        """
+        Enable spatial index usage for intersects operations.
+
+        Parameters
+        ----------
+        enabled : bool, optional
+            Use GeoPandas spatial index when available (default: True)
+
+        Returns
+        -------
+        GridBuilder
+            Builder instance for method chaining
+        """
+        self._use_spatial_index = enabled
+        self._metadata["spatial_index"] = enabled
         return self
 
     def at_point(self, latitude: float, longitude: float) -> "GridBuilder":
@@ -246,7 +265,8 @@ class GridBuilder:
         Parameters
         ----------
         depth : int, optional
-            Neighbor ring depth (1 = immediate neighbors, 2 = neighbors + their neighbors, etc.)
+            Neighbor ring depth (1 = immediate neighbors, 2 = neighbors + their
+            neighbors, etc.)
 
         Returns
         -------
@@ -299,7 +319,8 @@ class GridBuilder:
         target_system : str
             Target grid system name
         method : str, optional
-            Conversion method: 'centroid', 'overlap', or 'containment' (default: 'centroid')
+            Conversion method: 'centroid', 'overlap', or 'containment'
+            (default: 'centroid')
 
         Returns
         -------
@@ -363,7 +384,8 @@ class GridBuilder:
             raise ValueError("Grid system not set. Call .for_system() first.")
         if self._precision is None:
             raise ValueError(
-                "Precision not set. Call .with_precision() or .with_auto_precision() first."
+                "Precision not set. Call .with_precision() or "
+                ".with_auto_precision() first."
             )
         if not self._operations:
             raise ValueError(
@@ -405,7 +427,9 @@ class GridBuilder:
                 import geopandas as gpd
 
                 bbox_gdf = gpd.GeoDataFrame({"geometry": [bbox_geom]}, crs="EPSG:4326")
-                result_gdf = grid.intersects(bbox_gdf)
+                result_gdf = grid.intersects(
+                    bbox_gdf, use_spatial_index=self._use_spatial_index
+                )
                 # Convert GeoDataFrame to list of GridCell objects
                 cells = self._gdf_to_cells(result_gdf, grid)
 
@@ -416,7 +440,9 @@ class GridBuilder:
                 polygon_gdf = gpd.GeoDataFrame(
                     {"geometry": [op_params["polygon"]]}, crs="EPSG:4326"
                 )
-                result_gdf = grid.intersects(polygon_gdf)
+                result_gdf = grid.intersects(
+                    polygon_gdf, use_spatial_index=self._use_spatial_index
+                )
                 # Convert GeoDataFrame to list of GridCell objects
                 cells = self._gdf_to_cells(result_gdf, grid)
 
@@ -454,7 +480,9 @@ class GridBuilder:
 
                 all_children = []
                 for cell in cells:
-                    children = grid.get_children(cell, child_precision)  # type: ignore[attr-defined]
+                    children = self._get_children_to_precision(
+                        grid, cell, child_precision
+                    )
                     all_children.extend(children)
                 cells = all_children
 
@@ -468,7 +496,9 @@ class GridBuilder:
 
                 parents: List[GridCell] = []
                 for cell in cells:
-                    parent = grid.get_parent(cell, parent_precision)  # type: ignore[attr-defined]
+                    parent = self._get_parent_to_precision(
+                        grid, cell, parent_precision
+                    )
                     if parent and parent.identifier not in [
                         p.identifier for p in parents
                     ]:
@@ -526,8 +556,61 @@ class GridBuilder:
             cell = GridCell(
                 identifier=row.cell_id, polygon=row.geometry, precision=row.precision
             )
+            if hasattr(row, "utm"):
+                cell.utm_zone = row.utm
             cells.append(cell)
         return cells
+
+    def _get_children_to_precision(
+        self, grid: BaseGrid, cell: GridCell, target_precision: int
+    ) -> List[GridCell]:
+        """
+        Expand a cell to a target child precision using repeated child expansion.
+        """
+        if target_precision <= cell.precision:
+            return [cell]
+        if target_precision == cell.precision + 1:
+            return grid.get_children(cell)  # type: ignore[attr-defined]
+
+        current_cells = [cell]
+        current_precision = cell.precision
+
+        if self._grid_system is None:
+            raise ValueError("Grid system not set. Call .for_system() first.")
+
+        while current_precision < target_precision:
+            step_grid = self._create_grid(self._grid_system, current_precision)
+            next_cells: List[GridCell] = []
+            for current_cell in current_cells:
+                next_cells.extend(step_grid.get_children(current_cell))  # type: ignore[attr-defined]
+            current_cells = next_cells
+            current_precision += 1
+
+        return current_cells
+
+    def _get_parent_to_precision(
+        self, grid: BaseGrid, cell: GridCell, target_precision: int
+    ) -> Optional[GridCell]:
+        """
+        Ascend a cell to a target parent precision using repeated parent lookup.
+        """
+        if target_precision >= cell.precision:
+            return cell
+        if target_precision == cell.precision - 1:
+            return grid.get_parent(cell)  # type: ignore[attr-defined]
+
+        current_cell: Optional[GridCell] = cell
+        current_precision = cell.precision
+
+        if self._grid_system is None:
+            raise ValueError("Grid system not set. Call .for_system() first.")
+
+        while current_cell is not None and current_precision > target_precision:
+            step_grid = self._create_grid(self._grid_system, current_precision)
+            current_cell = step_grid.get_parent(current_cell)  # type: ignore[attr-defined]
+            current_precision -= 1
+
+        return current_cell
 
     def _create_grid(self, system: str, precision: int) -> BaseGrid:
         """

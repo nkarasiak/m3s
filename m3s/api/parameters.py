@@ -41,7 +41,7 @@ class ParameterNormalizer:
         "quadkey": (1, 23),
         "slippy": (0, 20),
         "mgrs": (1, 6),  # 100km, 10km, 1km, 100m, 10m, 1m
-        "a5": (0, 15),  # Can support 0-30 but 0-15 is practical
+        "a5": (0, 15),  # Can support 0-29 but 0-15 is practical
         "csquares": (1, 5),  # 10°, 1°, 0.1°, 0.01°, 0.001°
         "gars": (1, 3),  # 30', 15', 5'
         "maidenhead": (1, 6),  # 2-12 characters (pairs)

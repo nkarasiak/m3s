@@ -322,7 +322,7 @@ class MultiGridComparator:
         rows = []
 
         # Get all unique grid systems from configs
-        systems = list(set(system for system, _ in self.grid_configs))
+        systems = list({system for system, _ in self.grid_configs})
 
         for system in systems:
             selector = PrecisionSelector(system)

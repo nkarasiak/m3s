@@ -630,7 +630,8 @@ class PrecisionSelector:
 
         explanation = (
             f"{self.grid_system.upper()} precision {precision} provides "
-            f"{actual_area:.2f} km² cells ({deviation * 100:.1f}% diff from target {target_area_km2:.2f} km²)"
+            f"{actual_area:.2f} km² cells "
+            f"({deviation * 100:.1f}% diff from target {target_area_km2:.2f} km²)"
         )
 
         return PrecisionRecommendation(
@@ -692,8 +693,9 @@ class PrecisionSelector:
         confidence = max(0.0, 1.0 - (deviation / tolerance))
 
         explanation = (
-            f"{self.grid_system.upper()} precision {precision} yields ~{estimated_count} cells "
-            f"in region ({deviation * 100:.1f}% diff from target {target_count})"
+            f"{self.grid_system.upper()} precision {precision} yields "
+            f"~{estimated_count} cells in region "
+            f"({deviation * 100:.1f}% diff from target {target_count})"
         )
 
         return PrecisionRecommendation(
@@ -730,7 +732,8 @@ class PrecisionSelector:
         valid_use_cases = list(USE_CASE_PRESETS.get(self.grid_system, {}).keys())
         if use_case not in valid_use_cases:
             raise ValueError(
-                f"Unknown use case '{use_case}'. Valid options: {', '.join(valid_use_cases)}"
+                f"Unknown use case '{use_case}'. Valid options: "
+                f"{', '.join(valid_use_cases)}"
             )
 
         precision = USE_CASE_PRESETS[self.grid_system][use_case]
@@ -744,8 +747,8 @@ class PrecisionSelector:
         actual_area = self.area_calculator.get_area(precision, latitude)
 
         explanation = (
-            f"{self.grid_system.upper()} precision {precision} optimized for '{use_case}' use case "
-            f"(avg cell area: {actual_area:.2f} km²)"
+            f"{self.grid_system.upper()} precision {precision} optimized for "
+            f"'{use_case}' use case (avg cell area: {actual_area:.2f} km²)"
         )
 
         return PrecisionRecommendation(
@@ -817,7 +820,8 @@ class PrecisionSelector:
         confidence = max(0.0, 1.0 - (deviation / tolerance))
 
         explanation = (
-            f"{self.grid_system.upper()} precision {precision} provides ~{actual_edge_m:.1f}m edges "
+            f"{self.grid_system.upper()} precision {precision} provides "
+            f"~{actual_edge_m:.1f}m edges "
             f"({deviation * 100:.1f}% diff from target {edge_length_m:.1f}m)"
         )
 
@@ -884,8 +888,10 @@ class PrecisionSelector:
         )
 
         explanation = (
-            f"{self.grid_system.upper()} precision {best_precision} balances detail vs performance "
-            f"(~{estimated_cells} cells, est. {estimated_time:.1f}ms for {operation_type})"
+            f"{self.grid_system.upper()} precision {best_precision} balances "
+            "detail vs performance "
+            f"(~{estimated_cells} cells, est. {estimated_time:.1f}ms for "
+            f"{operation_type})"
         )
 
         return PrecisionRecommendation(

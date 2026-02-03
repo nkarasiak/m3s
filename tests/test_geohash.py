@@ -9,17 +9,22 @@ from m3s import GeohashGrid
 
 
 class TestGeohashGrid:
+    """Test GeohashGrid behavior."""
+
     def test_grid_initialization(self):
+        """Initialize grid with valid precision."""
         grid = GeohashGrid(precision=5)
         assert grid.precision == 5
 
     def test_invalid_precision(self):
+        """Reject invalid precision values."""
         with pytest.raises(ValueError):
             GeohashGrid(precision=0)
         with pytest.raises(ValueError):
             GeohashGrid(precision=13)
 
     def test_get_cell_from_point(self):
+        """Return a cell for a point."""
         grid = GeohashGrid(precision=5)
         cell = grid.get_cell_from_point(40.7128, -74.0060)
 
@@ -29,6 +34,7 @@ class TestGeohashGrid:
         assert isinstance(cell.polygon, Polygon)
 
     def test_get_cell_from_identifier(self):
+        """Return a cell for a geohash identifier."""
         grid = GeohashGrid(precision=5)
         cell = grid.get_cell_from_identifier("dr5ru")
 
@@ -37,6 +43,7 @@ class TestGeohashGrid:
         assert isinstance(cell.polygon, Polygon)
 
     def test_polygon_intersection(self):
+        """Find cells intersecting a polygon."""
         grid = GeohashGrid(precision=3)
 
         test_polygon = Polygon(
@@ -56,6 +63,7 @@ class TestGeohashGrid:
             assert cell.polygon.intersects(test_polygon)
 
     def test_get_neighbors(self):
+        """Return neighbor cells."""
         grid = GeohashGrid(precision=3)
         cell = grid.get_cell_from_point(40.7128, -74.0060)
         neighbors = grid.get_neighbors(cell)
@@ -65,6 +73,7 @@ class TestGeohashGrid:
             assert neighbor.identifier != cell.identifier
 
     def test_expand_cell(self):
+        """Expand a cell into subcells."""
         grid = GeohashGrid(precision=3)
         cell = grid.get_cell_from_identifier("dr5")
         expanded = grid.expand_cell(cell)

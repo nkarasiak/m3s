@@ -271,17 +271,19 @@ def cached_property(func: Callable) -> property:
 # Utility functions for common cache key patterns
 def geo_cache_key(grid_instance, lat: float, lon: float, **kwargs) -> str:
     """Generate cache key for geographic coordinate operations."""
+    grid_name = grid_instance.__class__.__name__
     precision = getattr(grid_instance, "precision", 0)
     lat_rounded = round(lat, 6)
     lon_rounded = round(lon, 6)
     extra = "_".join(f"{k}={v}" for k, v in sorted(kwargs.items()))
-    return f"geo_{lat_rounded}_{lon_rounded}_{precision}_{extra}"
+    return f"geo_{grid_name}_{lat_rounded}_{lon_rounded}_{precision}_{extra}"
 
 
 def cell_cache_key(grid_instance, cell_id: str, **kwargs) -> str:
     """Generate cache key for cell-based operations."""
+    grid_name = grid_instance.__class__.__name__
     extra = "_".join(f"{k}={v}" for k, v in sorted(kwargs.items()))
-    return f"cell_{cell_id}_{extra}"
+    return f"cell_{grid_name}_{cell_id}_{extra}"
 
 
 def bbox_cache_key(
@@ -293,6 +295,7 @@ def bbox_cache_key(
     **kwargs,
 ) -> str:
     """Generate cache key for bounding box operations."""
+    grid_name = grid_instance.__class__.__name__
     precision = getattr(grid_instance, "precision", 0)
     # Round to reasonable precision for bbox caching
     bbox_key = (
@@ -300,4 +303,4 @@ def bbox_cache_key(
         f"{round(max_lat, 4)}_{round(max_lon, 4)}"
     )
     extra = "_".join(f"{k}={v}" for k, v in sorted(kwargs.items()))
-    return f"bbox_{bbox_key}_{precision}_{extra}"
+    return f"bbox_{grid_name}_{bbox_key}_{precision}_{extra}"

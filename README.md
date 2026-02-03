@@ -1,20 +1,27 @@
 # M3S - Multi Spatial Subdivision System
 
-A unified Python package for working with hierarchical spatial grid systems. M3S (Multi Spatial Subdivision System) provides a consistent interface for working with different spatial indexing systems including Geohash, MGRS, H3, Quadkey, S2, and Slippy Map tiles.
+A unified Python package for working with hierarchical spatial grid systems. M3S (Multi Spatial Subdivision System) provides a consistent interface for working with different spatial indexing systems including Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, A5, C-squares, GARS, Maidenhead, Plus Codes, and What3Words.
 
 ## Features
 
-- **6 Grid Systems**: Support for Geohash, MGRS, H3, Quadkey, S2, and Slippy Map tiles
-- **Area Calculations**: All grids support `area_km2` property for theoretical cell areas
-- **GeoPandas Integration**: Native support for GeoDataFrames with automatic CRS transformation
-- **UTM Zone Integration**: Automatic UTM zone detection and inclusion for optimal spatial analysis
-- **Polygon Intersection**: Find grid cells that intersect with any Shapely polygon or GeoDataFrame
-- **Hierarchical Operations**: Work with different precision levels and resolutions
-- **Neighbor Finding**: Get neighboring grid cells across all supported systems
-- **Parallel Processing**: Threaded parallelism and streaming support
-- **Unified Interface**: Consistent API across all grid systems
-- **Modern Python**: Built with modern Python packaging and comprehensive type hints
-- **Comprehensive Testing**: Full test coverage with pytest
+### ✨ New Simplified API (v0.5.1+)
+- **🎯 Direct Grid Access**: No instantiation needed—just `m3s.H3`, `m3s.Geohash`, etc.
+- **🌐 Universal Geometry**: Single `from_geometry()` handles points, polygons, bboxes, GeoDataFrames
+- **🔍 Smart Precision**: Auto-select optimal precision or choose by use case, area, or cell count
+- **🔄 Easy Conversion**: Convert between grids with `.to_h3()`, `.to_geohash()`, etc.
+- **📦 Powerful Collections**: Filter, map, export with `GridCellCollection`
+- **🔙 Fully Compatible**: Existing code works unchanged
+
+### Core Capabilities
+- **12 Grid Systems**: Geohash, MGRS, H3, Quadkey, S2, Slippy, A5, C-squares, GARS, Maidenhead, Plus Codes, What3Words
+- **Area Calculations**: All grids support `area_km2` property
+- **GeoPandas Integration**: Native GeoDataFrame support with automatic CRS transformation
+- **UTM Zone Integration**: Automatic UTM zone detection and inclusion
+- **Polygon Intersection**: Find grid cells intersecting any Shapely polygon or GeoDataFrame
+- **Hierarchical Operations**: Parent/child relationships and multi-resolution analysis
+- **Neighbor Finding**: Get neighboring cells across all grid systems
+- **Parallel Processing**: Threaded parallelism and streaming for large datasets
+- **Modern Python**: Type hints, comprehensive documentation, full test coverage
 
 ## Installation
 
@@ -32,21 +39,110 @@ uv pip install -e ".[dev]"
 
 ## Quick Start
 
-### All Grid Systems
+### ✨ New Simplified API (v0.5.1+)
+
+The new simplified API makes M3S easier to use with direct access to grid systems, auto-precision selection, and universal geometry handling:
 
 ```python
-from m3s import GeohashGrid, MGRSGrid, H3Grid, QuadkeyGrid, S2Grid, SlippyGrid
+import m3s
+from shapely.geometry import Polygon
+
+# Direct access to grid systems (no instantiation needed!)
+cell = m3s.Geohash.from_geometry((40.7128, -74.0060))  # Point tuple (lat, lon)
+print(f"Cell: {cell.id}, Area: {cell.area_km2:.2f} km²")
+# Output: Cell: dr5rs, Area: 18.11 km²
+
+# Works with any geometry type: points, polygons, GeoDataFrames, bbox tuples
+polygon = Polygon([(-74.1, 40.7), (-73.9, 40.7), (-73.9, 40.8), (-74.1, 40.8)])
+cells = m3s.H3.from_geometry(polygon)  # Uses default precision (7)
+print(f"Found {len(cells)} H3 cells with total area {cells.total_area_km2:.2f} km²")
+# Output: Found 3 H3 cells with total area 763.44 km²
+
+# For optimal precision with large areas, find it explicitly first:
+precision = m3s.H3.find_precision(polygon, method='auto')  # Minimizes coverage variance
+cells = m3s.H3.from_geometry(polygon, precision=precision)
+
+# Get neighbors
+neighbors = m3s.Geohash.neighbors(cell, depth=1)
+print(f"Cell has {len(neighbors)} neighbors (including itself)")
+# Output: Cell has 9 neighbors (including itself)
+
+# Specific precision when needed
+cells = m3s.A5.with_precision(8).from_geometry(polygon)
+
+# Or find optimal precision
+precision = m3s.H3.find_precision(polygon, method='auto')  # Minimizes coverage variance
+cells = m3s.H3.from_geometry(polygon, precision=precision)
+
+# Easy conversions between grid systems
+h3_cells = cells.to_geohash()  # Convert H3 → Geohash
+gdf = h3_cells.to_gdf()        # Convert to GeoDataFrame
+
+# Collection operations
+large_cells = cells.filter(lambda c: c.area_km2 > 10.0)
+ids = cells.to_ids()
+polygons = cells.to_polygons()
+
+# Find precision by use case
+precision = m3s.Geohash.find_precision_for_use_case('neighborhood')  # ~1-10 km²
+# Other use cases: 'building', 'block', 'city', 'region', 'country'
+```
+
+**Available grid systems:**
+- `m3s.A5` - Pentagonal DGGS (dodecahedral)
+- `m3s.Geohash` - Base32-encoded spatial index
+- `m3s.MGRS` - Military Grid Reference System
+- `m3s.H3` - Uber's hexagonal grid
+- `m3s.S2` - Google's spherical geometry
+- `m3s.Quadkey` - Microsoft Bing Maps tiles
+- `m3s.Slippy` - OpenStreetMap tiles
+- `m3s.CSquares` - Marine data indexing
+- `m3s.GARS` - Global Area Reference System
+- `m3s.Maidenhead` - Amateur radio locator
+- `m3s.PlusCode` - Open Location Codes
+- `m3s.What3Words` - 3-meter precision squares
+
+### 🆚 API Comparison
+
+| Task | New Simplified API | Classic API |
+|------|-------------------|-------------|
+| **Get cell at point** | `m3s.Geohash.from_geometry((40.7, -74.0))` | `GeohashGrid(precision=5).get_cell_from_point(40.7, -74.0)` |
+| **Get cells in area** | `m3s.H3.from_geometry(polygon)` | `H3Grid(resolution=7).intersects(gdf)` |
+| **Get neighbors** | `m3s.Geohash.neighbors(cell)` | `grid.get_neighbors(cell)` |
+| **Find precision** | `m3s.H3.find_precision_for_use_case('city')` | Manual selection |
+| **Convert grids** | `cells.to_h3()` | Use conversion utilities |
+| **Export** | `cells.to_gdf()` | Multiple steps |
+
+**When to use each:**
+- **Simplified API**: Quick start, exploratory analysis, standard workflows
+- **Classic API**: Fine-grained control, advanced customization, existing codebases
+
+Both APIs work together seamlessly—choose what fits your workflow!
+
+### All Grid Systems (Classic API)
+
+```python
+from m3s import (
+    GeohashGrid, MGRSGrid, H3Grid, QuadkeyGrid, S2Grid, SlippyGrid,
+    A5Grid, CSquaresGrid, GARSGrid, MaidenheadGrid, PlusCodeGrid, What3WordsGrid
+)
 from shapely.geometry import Point, box
 import geopandas as gpd
 
 # Create grids with different systems
 grids = {
     'Geohash': GeohashGrid(precision=5),        # ~4,892 km² cells
-    'MGRS': MGRSGrid(precision=1),              # 100 km² cells  
+    'MGRS': MGRSGrid(precision=1),              # 100 km² cells
     'H3': H3Grid(resolution=7),                 # ~5.16 km² cells
     'Quadkey': QuadkeyGrid(level=12),           # ~95.73 km² cells
     'S2': S2Grid(level=10),                     # ~81.07 km² cells
-    'Slippy': SlippyGrid(zoom=12)               # ~95.73 km² cells
+    'Slippy': SlippyGrid(zoom=12),              # ~95.73 km² cells
+    'A5': A5Grid(resolution=5),                 # Pentagonal DGGS
+    'C-squares': CSquaresGrid(precision=3),     # Marine data indexing
+    'GARS': GARSGrid(precision=2),              # Global Area Reference System
+    'Maidenhead': MaidenheadGrid(precision=3),  # Amateur radio locator
+    'Plus Codes': PlusCodeGrid(precision=10),   # Open Location Codes
+    'What3Words': What3WordsGrid(precision=3)   # 3-meter precision squares
 }
 
 # Get cell areas
@@ -128,7 +224,7 @@ cell = grid.get_cell_from_point(40.7128, -74.0060)
 print(f"MGRS: {cell.identifier}")
 
 # Intersect with GeoDataFrame - automatically includes UTM zone
-result = grid.intersect_geodataframe(gdf)
+result = grid.intersects(gdf)
 print(result[['cell_id', 'utm']].head())
 # Output shows MGRS cells with their corresponding UTM zones:
 #   cell_id    utm
@@ -156,7 +252,7 @@ children = grid.get_children(cell)
 print(f"Children: {len(children)}")  # Always 7 for H3
 
 # Find intersecting cells with UTM zone information
-result = grid.intersect_geodataframe(gdf)
+result = grid.intersects(gdf)
 print(result[['cell_id', 'utm', 'city']].head())
 ```
 
@@ -242,7 +338,7 @@ result = engine.intersect_parallel(grid, large_gdf)
 
 ### UTM Zone Integration
 
-All grid systems now automatically include a `utm` column in their `intersect_geodataframe()` results:
+All grid systems now automatically include a `utm` column in their `intersects()` results:
 
 - **MGRS**: UTM zone extracted directly from MGRS identifier
 - **Geohash**: UTM zone calculated from cell centroid coordinates  

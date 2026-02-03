@@ -14,7 +14,7 @@ IMPORTANT: This implementation includes critical fixes ported from Felix Palmer'
 
 Source: https://github.com/felixpalmer/a5-py (Apache 2.0 License)
 
-Supports resolutions 0-30 with Hilbert curves.
+Supports resolutions 0-29 with Hilbert curves.
 """
 
 from collections import OrderedDict
@@ -22,7 +22,12 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 
-from m3s.a5.constants import validate_latitude, validate_longitude, validate_resolution
+from m3s.a5.constants import (
+    MAX_RESOLUTION,
+    validate_latitude,
+    validate_longitude,
+    validate_resolution,
+)
 from m3s.a5.coordinates import CoordinateTransformer
 from m3s.a5.geometry import Dodecahedron, Pentagon
 from m3s.a5.serialization import A5Serializer
@@ -149,7 +154,8 @@ class A5CellOperations:
         """
         Check if a point is contained within a cell using geographic containment.
 
-        Uses Shapely polygon containment test on the cell boundary in lon/lat coordinates.
+        Uses Shapely polygon containment test on the cell boundary in lon/lat
+        coordinates.
 
         Parameters
         ----------
@@ -211,7 +217,7 @@ class A5CellOperations:
         lat : float
             Latitude in degrees [-90, 90]
         resolution : int
-            Resolution level (0-30)
+            Resolution level (0-29)
 
         Returns
         -------
@@ -312,7 +318,8 @@ class A5CellOperations:
         quintant = self.transformer.determine_quintant(i, j)
 
         # Step 7: Convert quintant to segment using origin's layout
-        # Returns (segment, orientation) where orientation is the Hilbert curve orientation
+        # Returns (segment, orientation) where orientation is the Hilbert curve
+        # orientation.
         from m3s.a5.projections.origin_data import origins, quintant_to_segment
 
         origin = origins[origin_id]
@@ -524,7 +531,7 @@ class A5CellOperations:
         """
         origin_id, segment, s, resolution = self.serializer.decode(cell_id)
 
-        if resolution >= 30:
+        if resolution >= MAX_RESOLUTION:
             raise ValueError("Cell at maximum resolution has no children")
 
         child_resolution = resolution + 1
@@ -622,7 +629,7 @@ class A5CellOperations:
         self, vertices: List[Tuple[float, float]]
     ) -> List[Tuple[float, float]]:
         """
-        Special handling for cells containing poles.
+        Handle cells containing poles.
 
         Parameters
         ----------
@@ -668,7 +675,7 @@ def lonlat_to_cell(lon: float, lat: float, resolution: int) -> int:
     lat : float
         Latitude in degrees [-90, 90]
     resolution : int
-        Resolution level (0-30)
+        Resolution level (0-29)
 
     Returns
     -------

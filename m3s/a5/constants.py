@@ -122,7 +122,8 @@ _QUINTANT_FIRST_NATURAL: List[int] = [
 ]
 
 # IMPORTANT: QUINTANT_FIRST must be reordered along with origins
-# When origins are reordered for Hilbert curve, each origin keeps its first_quintant value
+# When origins are reordered for Hilbert curve, each origin keeps its
+# first_quintant value.
 # So we reorder QUINTANT_FIRST to match the origin reordering
 QUINTANT_FIRST: List[int] = [
     _QUINTANT_FIRST_NATURAL[old_id] for old_id in _ORIGIN_ORDER
@@ -142,7 +143,7 @@ LONGITUDE_OFFSET = math.radians(93.0)
 
 # 64-bit cell ID structure
 HILBERT_START_BIT = 58  # Bits 63-58 store origin and segment info
-MAX_RESOLUTION = 30  # Maximum supported resolution
+MAX_RESOLUTION = 29  # Maximum supported resolution (bit layout limits)
 FIRST_HILBERT_RESOLUTION = 2  # Hilbert curves used for res >= 2
 
 # ============================================================================
@@ -257,7 +258,8 @@ _face_centers = [
     (-_D, _F),  # [-cos36, sin36]
     (-_D, -_F),  # [-cos36, -sin36]
     (_B, -_A),  # [cos72, -sin72]
-    # Second ring: the same five vertices but negated (180deg rotation), multiplied by cosAlpha
+    # Second ring: the same five vertices but negated (180deg rotation),
+    # multiplied by cosAlpha.
     (-_cos_alpha, 0),  # [-cos0, -sin0]
     (-_E, -_G),  # [-cos72, -sin72]
     (_C, -_A),  # [cos36, -sin36]

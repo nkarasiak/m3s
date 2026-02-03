@@ -103,7 +103,7 @@ class TestParallelGridEngine:
         lats = [40.7 + i * 0.01 for i in range(100)]
         lons = [-74.0 + i * 0.01 for i in range(100)]
 
-        geometries = [Point(lon, lat) for lat, lon in zip(lats, lons)]
+        geometries = [Point(lon, lat) for lat, lon in zip(lats, lons, strict=True)]
         data = {
             "id": range(len(geometries)),
             "value": [i * 10 for i in range(len(geometries))],

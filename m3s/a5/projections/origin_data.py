@@ -92,7 +92,8 @@ def quintant_to_segment(quintant: int, origin: Origin) -> Tuple[int, str]:
     """
     Convert a quintant (0-4) to a segment number and orientation string.
 
-    This function accounts for the different winding directions of each dodecahedron face
+    This function accounts for the different winding directions of each
+    dodecahedron face
     and returns the Hilbert curve orientation for the specific quintant.
 
     Parameters

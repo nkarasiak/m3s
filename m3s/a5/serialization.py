@@ -58,7 +58,7 @@ class A5Serializer:
         s : int
             Hilbert S-value (0 for res 0-1, computed for res >= 2)
         resolution : int
-            Resolution level (0-30)
+            Resolution level (0-29)
 
         Returns
         -------
@@ -83,7 +83,8 @@ class A5Serializer:
 
         # Calculate resolution marker position
         if resolution < FIRST_HILBERT_RESOLUTION:
-            # For non-Hilbert resolutions, resolution marker moves by 1 bit per resolution
+            # For non-Hilbert resolutions, resolution marker moves by 1 bit per
+            # resolution
             R = resolution + 1
         else:
             # For Hilbert resolutions, resolution marker moves by 2 bits per resolution
@@ -134,7 +135,8 @@ class A5Serializer:
         2. Extract top 6 bits to get origin and segment
         3. For res 0: origin = top_6_bits, segment = 0
         4. For res >= 1: origin = top_6_bits // 5, segment_n = top_6_bits % 5
-        5. Denormalize segment using first_quintant: segment = (segment_n + first_quintant) % 5
+        5. Denormalize segment using first_quintant:
+           segment = (segment_n + first_quintant) % 5
         6. For res >= 2: extract Hilbert S-value
 
         Parameters
@@ -213,10 +215,10 @@ class A5Serializer:
         Returns
         -------
         int
-            Resolution level (-1 for world cell, 0-30 for normal cells)
+            Resolution level (-1 for world cell, 0-29 for normal cells)
         """
         # Start at maximum resolution
-        resolution = MAX_RESOLUTION - 1
+        resolution = MAX_RESOLUTION
 
         # Mask to get bottom 58 bits only
         index = cell_id & A5Serializer.REMOVAL_MASK
@@ -228,7 +230,8 @@ class A5Serializer:
         while resolution > -1 and (shifted & 1) == 0:
             resolution -= 1
 
-            # For non-Hilbert resolutions, resolution marker moves by 1 bit per resolution
+            # For non-Hilbert resolutions, resolution marker moves by 1 bit per
+            # resolution
             # For Hilbert resolutions, resolution marker moves by 2 bits per resolution
             if resolution < FIRST_HILBERT_RESOLUTION:
                 shifted >>= 1

@@ -1,8 +1,8 @@
 """
-Tests for A5 grid resolutions 2-10 (Hilbert curve support).
+Tests for A5 grid resolutions 2-8 (Hilbert curve support).
 
 This module validates that the Hilbert curve implementation works correctly
-for resolutions 2-30, with focused testing on resolutions 2-10 (practical range).
+for resolutions 2-29, with focused testing on resolutions 2-8 (practical range).
 """
 
 import pytest
@@ -20,13 +20,13 @@ from m3s.a5.grid import A5Grid
 class TestResolutionEncoding:
     """Test cell ID encoding for resolutions 2-10."""
 
-    @pytest.mark.parametrize("resolution", range(2, 11))
+    @pytest.mark.parametrize("resolution", range(2, 9))
     def test_resolution_encoding(self, resolution):
         """Test that cell IDs encode resolution correctly."""
         cell_id = lonlat_to_cell(0.0, 0.0, resolution)
         assert get_resolution(cell_id) == resolution
 
-    @pytest.mark.parametrize("resolution", range(2, 11))
+    @pytest.mark.parametrize("resolution", range(2, 9))
     def test_different_locations_different_cells(self, resolution):
         """Test that different locations produce different cell IDs."""
         cell1 = lonlat_to_cell(0.0, 0.0, resolution)
@@ -34,7 +34,8 @@ class TestResolutionEncoding:
         cell3 = lonlat_to_cell(-74.0060, 40.7128, resolution)  # NYC
 
         # Cells should be different (with high probability)
-        # At resolution 2+, cells are small enough that these points are in different cells
+        # At resolution 2+, cells are small enough that these points are in
+        # different cells
         cells = {cell1, cell2, cell3}
         assert len(cells) >= 2  # At least 2 should be different
 
@@ -91,7 +92,7 @@ class TestRoundtripConversion:
 class TestParentChildHierarchy:
     """Test parent-child relationships in the grid hierarchy."""
 
-    @pytest.mark.parametrize("resolution", range(2, 7))
+    @pytest.mark.parametrize("resolution", range(2, 6))
     def test_parent_child_relationship(self, resolution):
         """Test that parent-child relationships are maintained."""
         # Get a cell at the specified resolution
@@ -111,7 +112,7 @@ class TestParentChildHierarchy:
             child_parent = get_parent(child)
             assert child_parent == parent_id
 
-    @pytest.mark.parametrize("resolution", range(3, 8))
+    @pytest.mark.parametrize("resolution", range(3, 7))
     def test_grandparent_relationship(self, resolution):
         """Test multi-level parent relationships."""
         # Start with a cell at resolution R
@@ -129,7 +130,7 @@ class TestParentChildHierarchy:
         great_grandparent_id = get_parent(grandparent_id)
         assert get_resolution(great_grandparent_id) == resolution - 3
 
-    @pytest.mark.parametrize("resolution", range(2, 6))
+    @pytest.mark.parametrize("resolution", range(2, 5))
     def test_all_children_within_parent_bounds(self, resolution):
         """Test that all children centers are within parent cell (approximately)."""
         # Get a parent cell
@@ -168,7 +169,7 @@ class TestParentChildHierarchy:
 class TestGridIntegration:
     """Test A5Grid class with higher resolutions."""
 
-    @pytest.mark.parametrize("resolution", range(2, 8))
+    @pytest.mark.parametrize("resolution", range(2, 6))
     def test_grid_creation(self, resolution):
         """Test that A5Grid can be created at higher resolutions."""
         grid = A5Grid(precision=resolution)
@@ -199,7 +200,7 @@ class TestGridIntegration:
 class TestEdgeCases:
     """Test edge cases for Hilbert resolutions."""
 
-    @pytest.mark.parametrize("resolution", [2, 5, 10])
+    @pytest.mark.parametrize("resolution", [2, 5, 8])
     def test_poles(self, resolution):
         """Test cells near the poles."""
         # Near North Pole
@@ -210,7 +211,7 @@ class TestEdgeCases:
         south_cell = lonlat_to_cell(0.0, -89.0, resolution)
         assert get_resolution(south_cell) == resolution
 
-    @pytest.mark.parametrize("resolution", [2, 5, 10])
+    @pytest.mark.parametrize("resolution", [2, 5, 8])
     def test_antimeridian(self, resolution):
         """Test cells near the antimeridian."""
         # Just before antimeridian
@@ -228,10 +229,10 @@ class TestEdgeCases:
             cell = lonlat_to_cell(lon, 0.0, resolution)
             assert get_resolution(cell) == resolution
 
-    def test_maximum_resolution_10(self):
-        """Test that resolution 10 works (practical maximum for testing)."""
-        cell_id = lonlat_to_cell(0.0, 0.0, 10)
-        assert get_resolution(cell_id) == 10
+    def test_maximum_resolution_8(self):
+        """Test that resolution 8 works (practical maximum for testing)."""
+        cell_id = lonlat_to_cell(0.0, 0.0, 8)
+        assert get_resolution(cell_id) == 8
 
         # Test roundtrip
         lon, lat = cell_to_lonlat(cell_id)

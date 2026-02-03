@@ -134,7 +134,8 @@ class GridQueryResult:
         >>> result = builder.in_bbox(40.7, -74.1, 40.8, -73.9).execute()
         >>> gdf = result.to_geodataframe()
         >>> print(gdf.columns)
-        Index(['identifier', 'precision', 'area_km2', 'utm_zone', 'geometry'], dtype='object')
+        Index(['identifier', 'precision', 'area_km2', 'utm_zone', 'geometry'],
+              dtype='object')
         """
         if not self._cells:
             # Return empty GeoDataFrame with expected schema

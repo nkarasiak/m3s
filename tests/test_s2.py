@@ -36,7 +36,9 @@ class TestS2Grid:
         """Test grid initialization with invalid levels."""
         invalid_levels = [-1, 31, 100]
         for level in invalid_levels:
-            with pytest.raises(ValueError, match="S2 level must be between 0 and 30"):
+            with pytest.raises(
+                ValueError, match="S2 precision must be between 0 and 30"
+            ):
                 S2Grid(level=level)
 
     def test_get_cell_from_point_nyc(self, grid_level_10):

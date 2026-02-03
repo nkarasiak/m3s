@@ -172,7 +172,8 @@ def _shift_digits(
     first = True
 
     # The value of F which cells need to be shifted
-    # The rule is flipped depending on the orientation, specifically on the value of invert_j
+    # The rule is flipped depending on the orientation, specifically on the
+    # value of invert_j.
     if invert_j != (F == 0):
         needs_shift = parent_k in (1, 2)  # Second & third pentagons only
         first = parent_k == 1  # Second pentagon is first
@@ -246,7 +247,7 @@ def s_to_anchor(
 
 
 def _s_to_anchor(s: int, resolution: int, invert_j: bool, flip_ij: bool) -> Anchor:
-    """Internal function to convert s-value to anchor."""
+    """Convert s-value to anchor."""
     offset = [0.0, 0.0]
     flips = [NO, NO]
 
@@ -395,7 +396,7 @@ def ij_to_s(input_ij: IJ, resolution: int, orientation: Orientation = "uv") -> i
 
 
 def _ij_to_s(input_ij: IJ, invert_j: bool, flip_ij: bool, resolution: int) -> int:
-    """Internal function to convert IJ coordinates to s-value."""
+    """Convert IJ coordinates to s-value."""
     # Get number of digits we need to process
     num_digits = resolution
     digits = [0] * num_digits

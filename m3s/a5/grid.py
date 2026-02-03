@@ -26,7 +26,7 @@ class A5Grid(BaseGrid):
     Parameters
     ----------
     precision : int
-        Resolution level (0-30)
+        Resolution level (0-29)
         - 0: 12 pentagonal faces (coarsest)
         - 1: 60 cells (5 per face)
         - 2+: Hierarchical subdivision with Hilbert curves
@@ -48,7 +48,7 @@ class A5Grid(BaseGrid):
 
     Notes
     -----
-    Phase 2 implementation supports all resolutions 0-30 with Hilbert curves.
+    Phase 2 implementation supports all resolutions 0-29 with Hilbert curves.
     """
 
     def __init__(self, precision: int):
@@ -58,7 +58,7 @@ class A5Grid(BaseGrid):
         Parameters
         ----------
         precision : int
-            Resolution level (0-30)
+            Resolution level (0-29)
 
         Raises
         ------

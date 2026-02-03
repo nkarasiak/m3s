@@ -178,7 +178,8 @@ class TestPrecisionSelector:
             assert rec.actual_area_km2 is not None
 
             # Actual area should be in a reasonable range
-            # Grid systems have discrete precision levels, so exact matches are impossible
+            # Grid systems have discrete precision levels, so exact matches are
+            # impossible
             # Allow wider tolerance to account for this
             deviation = abs(rec.actual_area_km2 - 10.0) / 10.0
             assert deviation < 2.0  # Within 200% (allows 3.33-30 km² range)
@@ -218,7 +219,8 @@ class TestPrecisionSelector:
             assert rec.actual_cell_count is not None
 
             # Should be in a reasonable range
-            # Grid systems have discrete precision levels, so exact matches are impossible
+            # Grid systems have discrete precision levels, so exact matches are
+            # impossible
             deviation = abs(rec.actual_cell_count - 100) / 100
             assert deviation < 2.0  # Within 200% (allows 33-300 cell range)
 

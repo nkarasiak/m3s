@@ -37,17 +37,17 @@ class TestA5Grid:
 
     def test_init_valid_precision(self):
         """Test initialization with valid precision values."""
-        for precision in range(0, 31):
+        for precision in range(0, 30):
             grid = A5Grid(precision)
             assert grid.precision == precision
 
     def test_init_invalid_precision(self):
         """Test initialization with invalid precision values."""
-        with pytest.raises(ValueError, match="A5 precision must be between 0 and 30"):
+        with pytest.raises(ValueError, match="A5 precision must be between 0 and 29"):
             A5Grid(-1)
 
-        with pytest.raises(ValueError, match="A5 precision must be between 0 and 30"):
-            A5Grid(31)
+        with pytest.raises(ValueError, match="A5 precision must be between 0 and 29"):
+            A5Grid(30)
 
     def test_get_cell_from_point_basic(self):
         """Test basic cell retrieval from coordinates."""
@@ -863,11 +863,11 @@ class TestA5M3SIntegration:
     def test_a5_error_handling(self):
         """Test A5 grid error handling matches M3S standards."""
         # Test invalid precision
-        with pytest.raises(ValueError, match="A5 precision must be between 0 and 30"):
+        with pytest.raises(ValueError, match="A5 precision must be between 0 and 29"):
             A5Grid(-1)
 
-        with pytest.raises(ValueError, match="A5 precision must be between 0 and 30"):
-            A5Grid(31)
+        with pytest.raises(ValueError, match="A5 precision must be between 0 and 29"):
+            A5Grid(30)
 
         # Test invalid identifiers
         grid = A5Grid(5)
@@ -997,7 +997,8 @@ class TestA5API:
     def test_cell_to_children_invalid_resolution(self):
         """Test error handling for invalid children resolution."""
         # Test that get_children raises error for maximum resolution
-        # Note: We can't actually create a resolution 30 cell due to serialization limits,
+        # Note: We can't actually create a resolution 30 cell due to serialization
+        # limits,
         # so we'll test with a mock approach or skip this specific test
         # For now, test that the API validates resolution properly
 
@@ -1095,7 +1096,8 @@ class TestA5API:
 
             # Should be reasonably close (within cell size)
             # A5 uses pentagon approximations so tolerance is higher
-            # Using 45.0 base to account for dodecahedral projection and pentagon geometry
+            # Using 45.0 base to account for dodecahedral projection and pentagon
+            # geometry
             cell_size = 45.0 / (2**resolution)
 
             # Normalize longitude difference to handle wrapping around antimeridian

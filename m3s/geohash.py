@@ -165,6 +165,19 @@ class GeohashGrid(BaseGrid):
         dense_lat_step = lat_step / 3
         dense_lon_step = lon_step / 3
 
+        # Cap total sample points to keep runtime bounded at high precision.
+        lat_range = extended_max_lat - extended_min_lat
+        lon_range = extended_max_lon - extended_min_lon
+        lat_steps = max(2, int(lat_range / dense_lat_step))
+        lon_steps = max(2, int(lon_range / dense_lon_step))
+        total_points = (lat_steps + 1) * (lon_steps + 1)
+        max_points = 4000
+        if total_points > max_points:
+            scale = (max_points / total_points) ** 0.5
+            if scale > 0:
+                dense_lat_step /= scale
+                dense_lon_step /= scale
+
         lat = extended_min_lat
         while lat <= extended_max_lat:
             lon = extended_min_lon

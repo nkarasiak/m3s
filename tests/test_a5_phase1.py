@@ -394,7 +394,7 @@ class TestSerialization:
             serializer.encode(origin=0, segment=0, s=0, resolution=-1)
 
         with pytest.raises(ValueError):
-            serializer.encode(origin=0, segment=0, s=0, resolution=31)
+            serializer.encode(origin=0, segment=0, s=0, resolution=30)
 
     def test_cell_id_to_string(self):
         """Test cell ID to hex string conversion."""
@@ -508,7 +508,7 @@ class TestA5Grid:
             A5Grid(precision=-1)
 
         with pytest.raises(ValueError):
-            A5Grid(precision=31)
+            A5Grid(precision=30)
 
     def test_initialization_phase2_resolution(self):
         """Test that resolution >= 2 is now supported (Phase 2 complete)."""

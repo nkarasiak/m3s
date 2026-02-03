@@ -9,17 +9,22 @@ from m3s import MGRSGrid
 
 
 class TestMGRSGrid:
+    """Test MGRSGrid behavior."""
+
     def test_grid_initialization(self):
+        """Initialize grid with valid precision."""
         grid = MGRSGrid(precision=2)
         assert grid.precision == 2
 
     def test_invalid_precision(self):
+        """Reject invalid precision values."""
         with pytest.raises(ValueError):
             MGRSGrid(precision=-1)
         with pytest.raises(ValueError):
             MGRSGrid(precision=6)
 
     def test_get_cell_from_point(self):
+        """Return a cell for a point."""
         grid = MGRSGrid(precision=2)
         cell = grid.get_cell_from_point(40.7128, -74.0060)
 
@@ -28,6 +33,7 @@ class TestMGRSGrid:
         assert isinstance(cell.polygon, Polygon)
 
     def test_get_cell_from_identifier(self):
+        """Return a cell for an identifier."""
         grid = MGRSGrid(precision=2)
 
         try:
@@ -41,6 +47,7 @@ class TestMGRSGrid:
             )
 
     def test_polygon_intersection(self):
+        """Find cells intersecting a polygon."""
         grid = MGRSGrid(precision=1)
 
         test_polygon = Polygon(
@@ -59,6 +66,7 @@ class TestMGRSGrid:
             assert isinstance(cell.polygon, Polygon)
 
     def test_grid_size(self):
+        """Compute grid size for each precision."""
         grid0 = MGRSGrid(precision=0)
         grid1 = MGRSGrid(precision=1)
         grid2 = MGRSGrid(precision=2)
@@ -70,6 +78,7 @@ class TestMGRSGrid:
         assert grid3._get_grid_size() == 100
 
     def test_get_neighbors(self):
+        """Return neighbor cells."""
         grid = MGRSGrid(precision=1)
         try:
             cell = grid.get_cell_from_point(40.7128, -74.0060)
@@ -81,6 +90,7 @@ class TestMGRSGrid:
             pytest.skip("MGRS neighbor calculation failed")
 
     def test_utm_zone_calculation(self):
+        """Compute UTM zone from coordinates."""
         grid = MGRSGrid(precision=1)
 
         utm_zone_north = grid._get_utm_zone_from_mgrs("18TWL")

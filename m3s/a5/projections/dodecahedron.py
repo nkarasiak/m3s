@@ -171,7 +171,9 @@ class DodecahedronProjection:
 
     def inverse(self, face: Face, origin_id: int) -> Tuple[float, float]:
         """
-        Unproject face coordinates to spherical coordinates using dodecahedron projection.
+        Unproject face coordinates to spherical coordinates.
+
+        Uses the dodecahedron projection.
 
         Parameters
         ----------
@@ -329,7 +331,8 @@ class DodecahedronProjection:
         vec2.negate(A, A)
         midpoint = B if even else C
 
-        # Squashing is important. A squashed triangle when unprojected will yield the correct spherical triangle.
+        # Squashing is important. A squashed triangle when unprojected will
+        # yield the correct spherical triangle.
         scale_factor = (1 + 1 / math.cos(INTERHEDRAL_ANGLE)) if squashed else 2
         # Manual scaleAndAdd: A = A + midpoint * scale_factor
         A[0] += midpoint[0] * scale_factor

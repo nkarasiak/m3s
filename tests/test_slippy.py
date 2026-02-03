@@ -34,7 +34,7 @@ class TestSlippyGrid:
         invalid_zooms = [-1, 23, 100]
         for zoom in invalid_zooms:
             with pytest.raises(
-                ValueError, match="Slippy zoom level must be between 0 and 22"
+                ValueError, match="Slippy precision must be between 0 and 22"
             ):
                 SlippyGrid(zoom=zoom)
 

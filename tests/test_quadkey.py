@@ -34,7 +34,7 @@ class TestQuadkeyGrid:
         invalid_levels = [0, 24, -1, 100]
         for level in invalid_levels:
             with pytest.raises(
-                ValueError, match="Quadkey level must be between 1 and 23"
+                ValueError, match="Quadkey precision must be between 1 and 23"
             ):
                 QuadkeyGrid(level=level)
 
@@ -467,7 +467,7 @@ class TestQuadkeyProperties:
         # Quadkeys should be the same or very similar
         # Count common prefix length
         common_prefix = 0
-        for c1, c2 in zip(cell1.identifier, cell2.identifier):
+        for c1, c2 in zip(cell1.identifier, cell2.identifier, strict=True):
             if c1 == c2:
                 common_prefix += 1
             else:

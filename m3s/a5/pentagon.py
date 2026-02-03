@@ -303,7 +303,7 @@ class PentagonShape:
         PentagonShape
             A new pentagon with copied vertices
         """
-        return PentagonShape([vertex for vertex in self.vertices])
+        return PentagonShape(list(self.vertices))
 
     def get_center(self) -> Face:
         """

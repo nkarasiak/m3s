@@ -7,12 +7,15 @@ through intelligent precision selection, fluent builder patterns, and type-safe 
 
 from .builder import GridBuilder
 from .comparator import MultiGridComparator
+from .grid_collection import GridCellCollection
+from .grid_wrapper import GridWrapper
 from .precision import (
     AreaCalculator,
     PerformanceProfiler,
     PrecisionRecommendation,
     PrecisionSelector,
 )
+from .precision_finder import PrecisionFinder
 from .results import GridQueryResult
 
 __all__ = [
@@ -23,4 +26,7 @@ __all__ = [
     "PerformanceProfiler",
     "GridQueryResult",
     "MultiGridComparator",
+    "GridWrapper",
+    "GridCellCollection",
+    "PrecisionFinder",
 ]

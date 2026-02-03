@@ -311,7 +311,7 @@ class Dodecahedron:
         self, point: Tuple[float, float], axis: Tuple[float, float]
     ) -> float:
         """
-        Modified haversine formula to calculate great-circle distance.
+        Calculate great-circle distance using a modified haversine formula.
 
         Returns the "angle" parameter (not the full arc distance), which is
         sufficient for comparing distances. This matches Palmer's implementation.

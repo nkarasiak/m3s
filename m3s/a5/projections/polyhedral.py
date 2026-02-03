@@ -171,7 +171,8 @@ class PolyhedralProjection:
 
         # When v is close to A, the quadruple product is unstable.
         # As we just need the intersection of two great circles we can use difference
-        # between A and v, as it lies in the same plane of the great circle containing A & v
+        # between A and v, as it lies in the same plane of the great circle
+        # containing A & v
         Z = vec3.create()
         vec3.subtract(Z, v, A)
         vec3.normalize(Z, Z)

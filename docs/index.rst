@@ -10,9 +10,11 @@ M3S: Multi Spatial Subdivision System
        </p>
    </div>
 
-M3S (Multi Spatial Subdivision System) is a powerful Python library that provides a modern fluent interface with intelligent precision selection for 12 spatial grid systems including **H3**, **Geohash**, **S2**, **MGRS**, **A5**, and more.
+M3S (Multi Spatial Subdivision System) is a powerful Python library that provides an intuitive interface for working with 12 spatial grid systems including **H3**, **Geohash**, **S2**, **MGRS**, **A5**, and more.
 
-**New in v0.6.0**: Complete API redesign with fluent builder interface, 5 intelligent precision selection strategies, and unified parameters across all grid systems.
+**New in v0.5.1**: Simplified API with direct grid access, universal geometry handling, and intelligent auto-precision selection. No instantiation required—just ``import m3s`` and start working!
+
+**Also Available**: Advanced GridBuilder API with fluent interface and 5 intelligent precision selection strategies.
 
 .. grid:: 3
 
@@ -49,10 +51,41 @@ Or using pip:
 
    pip install m3s
 
-Quick Example (v0.6.0+)
------------------------
+Quick Example - Simplified API (v0.5.1+)
+-----------------------------------------
 
-Get started with the modern fluent API:
+The easiest way to get started:
+
+.. code-block:: python
+
+   import m3s
+   from shapely.geometry import Polygon
+
+   # Direct grid access - no instantiation needed!
+   cell = m3s.Geohash.from_geometry((40.7128, -74.0060))
+   print(f"Cell: {cell.id}, Area: {cell.area_km2:.2f} km²")
+
+   # Works with any geometry type
+   polygon = Polygon([(-74.1, 40.7), (-73.9, 40.7), (-73.9, 40.8), (-74.1, 40.8)])
+   cells = m3s.H3.from_geometry(polygon)
+
+   # Get neighbors
+   neighbors = m3s.Geohash.neighbors(cell)
+
+   # Convert to GeoDataFrame
+   gdf = cells.to_gdf()
+
+   # Convert between grid systems
+   h3_cells = cells.to_h3()
+
+   # Find optimal precision
+   precision = m3s.H3.find_precision(polygon, method='auto')
+   cells = m3s.H3.from_geometry(polygon, precision=precision)
+
+Advanced Example - GridBuilder API
+-----------------------------------
+
+For complex workflows with method chaining:
 
 .. code-block:: python
 
@@ -71,10 +104,8 @@ Get started with the modern fluent API:
        .execute())
 
    print(f"Found {len(result)} cells at precision {rec.precision}")
-   print(f"Confidence: {rec.confidence:.0%}")
 
    # Type-safe result access
-   cell = result.single
    gdf = result.to_geodataframe()
 
 Multi-Grid Comparison
@@ -161,29 +192,38 @@ M3S supports **12 spatial grid systems** with unified precision parameters:
 Key Features
 ============
 
+✨ **Simplified API (New!)**
+   Direct grid access with ``m3s.H3``, ``m3s.Geohash``, etc. No instantiation needed—just import and use!
+
+🌐 **Universal Geometry Handling**
+   Single ``from_geometry()`` method accepts points, polygons, bounding boxes, and GeoDataFrames.
+
 🎯 **Intelligent Precision Selection**
-   5 strategies to auto-select optimal precision: area-based, count-based, use-case presets, distance-based, and performance-based.
+   Auto-select optimal precision with 5 strategies: minimize variance, fewer/more cells, balanced, or target count. Use case presets for common scenarios (building, neighborhood, city, etc.).
+
+🔄 **Easy Grid Conversion**
+   Convert between any grid systems with ``.to_h3()``, ``.to_geohash()``, ``.to_a5()``, etc.
+
+📦 **Powerful Collections**
+   ``GridCellCollection`` provides filtering, mapping, hierarchical operations, and easy exports.
 
 🔗 **Fluent Builder Interface**
-   Method chaining for elegant, readable workflows - compose queries with `.for_system().with_precision().at_point().execute()`.
+   Advanced ``GridBuilder`` API for complex workflows with method chaining.
 
 📊 **Multi-Grid Comparison**
-   Simultaneously analyze multiple grid systems, compare coverage patterns, and find precision equivalence.
-
-🎨 **Type-Safe Results**
-   Explicit `.single`, `.many`, and `.to_geodataframe()` accessors eliminate type ambiguity.
-
-🔧 **Unified Parameters**
-   All 12 grid systems use consistent `precision` parameter (no more confusion between resolution/level/zoom).
+   Simultaneously analyze multiple grid systems and compare coverage patterns.
 
 🚀 **High Performance**
-   Precomputed lookup tables, caching, and lazy evaluation.
+   Optimized precision finding with fast path for large areas, caching, and lazy evaluation.
 
 📈 **Scalable Operations**
    Memory-efficient streaming, threaded parallel processing, and adaptive chunking for large datasets.
 
 🛠️ **GeoPandas Integration**
    Native support for GeoDataFrames with automatic CRS transformation and UTM zone detection.
+
+🔙 **Full Backward Compatibility**
+   Existing code continues to work—new API is additive, not breaking.
 
 Documentation
 =============

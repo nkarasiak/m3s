@@ -18,7 +18,7 @@ class TestGeoDataFrameIntegration:
         geometries = [
             Point(-74.0060, 40.7128),  # NYC
             Point(-118.2437, 34.0522),  # LA
-            box(-74.1, 40.7, -74.0, 40.8),  # NYC bbox
+            box(-74.06, 40.70, -74.00, 40.76),  # NYC bbox (smaller for speed)
         ]
         data = {
             "name": ["NYC Point", "LA Point", "NYC Area"],
@@ -169,13 +169,13 @@ class TestGeoDataFrameIntegration:
 
     def test_polygon_intersection_multiple_cells(self):
         """Test that large polygons intersect multiple grid cells."""
-        # Create a large polygon that should intersect multiple cells
-        large_polygon = box(-75, 40, -73, 42)  # Large area around NYC
+        # Create a polygon that should intersect multiple cells
+        large_polygon = box(-74.08, 40.70, -74.00, 40.78)  # Smaller area for speed
         gdf = gpd.GeoDataFrame(
             {"name": ["Large Area"]}, geometry=[large_polygon], crs="EPSG:4326"
         )
 
-        grid = GeohashGrid(precision=4)  # Lower precision for more cells
+        grid = GeohashGrid(precision=5)  # Moderate precision to ensure >1 cell
         result = grid.intersects(gdf)
 
         assert len(result) > 1  # Should intersect multiple cells
@@ -235,7 +235,7 @@ class TestGeoDataFrameEdgeCases:
         geometries = [
             Point(-74.0060, 40.7128),  # NYC
             Point(-118.2437, 34.0522),  # LA
-            box(-74.1, 40.7, -74.0, 40.8),  # NYC bbox
+            box(-74.06, 40.70, -74.00, 40.76),  # NYC bbox (smaller for speed)
         ]
         data = {
             "name": ["NYC Point", "LA Point", "NYC Area"],

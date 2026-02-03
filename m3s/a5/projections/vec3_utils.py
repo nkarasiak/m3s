@@ -427,9 +427,11 @@ def vectorDifference(A: Vec3, B: Vec3) -> float:
     D = sqrt(1 - dot(a,b)) / sqrt(2)
     D = 1: a and b are perpendicular
     D = 0: a and b are the same
-    D = NaN: a and b are opposite (shouldn't happen with normalized vectors in same hemisphere)
+    D = NaN: a and b are opposite (shouldn't happen with normalized vectors in
+    same hemisphere)
 
-    D is a measure of the angle between the two vectors. sqrt(2) can be ignored when comparing ratios.
+    D is a measure of the angle between the two vectors. sqrt(2) can be ignored
+    when comparing ratios.
 
     Uses a numerically stable algorithm for small angles.
 
@@ -450,7 +452,8 @@ def vectorDifference(A: Vec3, B: Vec3) -> float:
     # Using double angle formula for cos(2x) = 1 - 2sin(x)^2, can rewrite as:
     # 1 - cos(x) = 2 * sin(x/2)^2
     # => sqrt(1 - cos(x)) = sqrt(2) * sin(x/2)
-    # Angle x/2 can be obtained as the angle between A and the normalized midpoint of A and B
+    # Angle x/2 can be obtained as the angle between A and the normalized
+    # midpoint of A and B
     # => sin(x/2) = |cross(A, midpointAB)|
     lerp(_midpointAB, A, B, 0.5)
     normalize(_midpointAB, _midpointAB)
@@ -459,7 +462,8 @@ def vectorDifference(A: Vec3, B: Vec3) -> float:
 
     # Math.sin(x) = x for x < 1e-8
     if D < 1e-8:
-        # When A and B are close or equal sin(x/2) ≈ x/2, just take the half-distance between A and B
+        # When A and B are close or equal sin(x/2) ≈ x/2, just take the
+        # half-distance between A and B
         subtract(_crossCD, A, B)
         half_distance = 0.5 * length(_crossCD)
         return half_distance

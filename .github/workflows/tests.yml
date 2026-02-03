@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.11', '3.12']
+        python-version: ['3.12', '3.13']
 
     steps:
     - uses: actions/checkout@v4
@@ -26,16 +26,33 @@ jobs:
     - name: Install uv
       uses: astral-sh/setup-uv@v5
 
+    - name: Cache uv and pip
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/uv
+          ~/.cache/pip
+        key: ${{ runner.os }}-py${{ matrix.python-version }}-uv-${{ hashFiles('uv.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-py${{ matrix.python-version }}-uv-
+          ${{ runner.os }}-py
+
     - name: Install dependencies
       run: |
-        uv pip install --system -e ".[dev]"
+        uv pip install --system -e ".[test]"
 
-    - name: Run tests
+    - name: Run tests (with coverage)
+      if: matrix.python-version == '3.13'
       run: |
         pytest tests/ -v --cov=m3s --cov-report=xml --cov-report=term
 
+    - name: Run tests
+      if: matrix.python-version != '3.13'
+      run: |
+        pytest tests/ -v
+
     - name: Upload coverage
-      if: matrix.python-version == '3.11'
+      if: matrix.python-version == '3.14'
       uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
@@ -43,7 +60,7 @@ jobs:
 
   # Summary job that all matrix jobs must pass
   tests-complete:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: test
     steps:
     - name: All tests passed

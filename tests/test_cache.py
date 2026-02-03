@@ -158,7 +158,7 @@ class TestCachedMethods:
         neighbors2 = grid.get_neighbors(cell1)
 
         assert len(neighbors1) == len(neighbors2)
-        for n1, n2 in zip(neighbors1, neighbors2):
+        for n1, n2 in zip(neighbors1, neighbors2, strict=True):
             assert n1.identifier == n2.identifier
 
     def test_cache_with_different_precision(self):
