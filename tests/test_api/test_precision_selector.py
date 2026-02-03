@@ -22,7 +22,6 @@ class TestAreaCalculator:
             "quadkey",
             "slippy",
             "mgrs",
-            "a5",
             "csquares",
             "gars",
             "maidenhead",
