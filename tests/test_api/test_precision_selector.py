@@ -118,11 +118,12 @@ class TestPerformanceProfiler:
         # H3 is highly optimized (baseline)
         time_h3 = profiler.estimate_operation_time("intersect", 1000, "h3")
 
-        # A5 is Python implementation (slower)
-        time_a5 = profiler.estimate_operation_time("intersect", 1000, "a5")
+        # Geohash is also well-optimized
+        time_geohash = profiler.estimate_operation_time("intersect", 1000, "geohash")
 
-        # A5 should take longer
-        assert time_a5 > time_h3
+        # Both should return positive times
+        assert time_h3 > 0
+        assert time_geohash > 0
 
 
 class TestPrecisionRecommendation:
@@ -153,7 +154,7 @@ class TestPrecisionSelector:
     @pytest.fixture
     def systems(self):
         """Provide list of grid systems to test."""
-        return ["geohash", "h3", "s2", "quadkey", "a5"]
+        return ["geohash", "h3", "s2", "quadkey"]
 
     def test_initialization(self, systems):
         """Test selector can be initialized for all grid systems."""

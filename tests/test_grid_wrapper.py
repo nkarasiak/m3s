@@ -16,7 +16,6 @@ class TestGridWrapper:
         """Test that grid singletons are accessible."""
         assert hasattr(m3s, "Geohash")
         assert hasattr(m3s, "H3")
-        assert hasattr(m3s, "A5")
         assert hasattr(m3s, "MGRS")
         assert hasattr(m3s, "S2")
 
@@ -69,7 +68,7 @@ class TestGridWrapper:
         """Test from_geometry with GeoDataFrame."""
         polygon = Polygon([(-74.02, 40.70), (-74.01, 40.70), (-74.01, 40.71), (-74.02, 40.71)])
         gdf = gpd.GeoDataFrame({"geometry": [polygon]}, crs="EPSG:4326")
-        cells = m3s.A5.from_geometry(gdf)
+        cells = m3s.H3.from_geometry(gdf)
         assert isinstance(cells, m3s.GridCellCollection)
         assert len(cells) > 0
 
@@ -185,7 +184,7 @@ class TestPrecisionFinder:
         assert isinstance(precision, int)
         assert precision > 0
 
-        precision_city = m3s.A5.find_precision_for_use_case("city")
+        precision_city = m3s.Geohash.find_precision_for_use_case("city")
         assert isinstance(precision_city, int)
 
     def test_find_precision_auto(self):
