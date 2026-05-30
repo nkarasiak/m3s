@@ -3,6 +3,7 @@ MGRS (Military Grid Reference System) grid implementation.
 """
 
 import math
+import re
 from typing import Any, override
 
 import mgrs
@@ -81,6 +82,23 @@ class MGRSGrid(BaseGrid):
             return GridCell(identifier, polygon, self.precision)
         except Exception as e:
             raise ValueError(f"Invalid MGRS identifier: {identifier}") from e
+
+    @override
+    def identifier_to_precision(self, identifier: str) -> int | None:
+        """
+        Decode MGRS precision from the digit count in the identifier.
+
+        MGRS precision is the number of digits per easting/northing component:
+        ``31UDQ524117`` has six numeric digits (three each) → precision 3.
+        Returns None if the identifier is not a recognisable MGRS reference.
+        """
+        match = re.fullmatch(r"\s*\d{1,2}[C-X][A-Z]{2}(\d*)\s*", identifier.upper())
+        if match is None:
+            return None
+        digits = len(match.group(1))
+        if digits % 2 != 0:
+            return None
+        return digits // 2
 
     def _create_mgrs_polygon(
         self, mgrs_id: str, center_lat: float, center_lon: float, grid_size: float

@@ -12,10 +12,11 @@ from shapely.geometry import MultiPolygon, Point, Polygon
 
 from ..base import BaseGrid, GridCell
 from .grid_collection import GridCellCollection
+from .h3_verbs import H3VerbsMixin
 from .precision_finder import PrecisionFinder
 
 
-class GridWrapper:
+class GridWrapper(H3VerbsMixin):
     """
     Simplified wrapper providing easy access to grid systems.
 
@@ -63,7 +64,7 @@ class GridWrapper:
     def from_geometry(
         self,
         geometry: Union[
-            Tuple[float, float],  # Point tuple (lat, lon)
+            Tuple[float, float],  # Point tuple (lon, lat)
             Tuple[float, float, float, float],  # Bbox tuple
             Point,  # Shapely Point
             Polygon,  # Shapely Polygon
@@ -75,13 +76,17 @@ class GridWrapper:
         """
         Universal method accepting any geometry type.
 
+        Uses GIS-native (lon, lat) / (x, y) axis order for tuples, consistent
+        with shapely, geopandas and pyproj.
+
         Parameters
         ----------
         geometry : Union[tuple, Point, Polygon, MultiPolygon, GeoDataFrame]
             Input geometry:
-            - Tuple[float, float]: (lat, lon) point
-            - Tuple[float, float, float, float]: (min_lat, min_lon, max_lat,
-              max_lon) bbox
+
+            - Tuple[float, float]: (lon, lat) point
+            - Tuple[float, float, float, float]: (min_lon, min_lat, max_lon,
+              max_lat) bbox
             - shapely.Point: Point geometry
             - shapely.Polygon: Polygon geometry
             - shapely.MultiPolygon: MultiPolygon geometry
@@ -93,7 +98,8 @@ class GridWrapper:
         Returns
         -------
         Union[GridCell, GridCellCollection]
-            Single GridCell for point, GridCellCollection for area geometries
+            Single GridCell for a point, GridCellCollection for area geometries.
+            A 2-tuple is treated as a point, a 4-tuple as a bbox.
 
         Notes
         -----
@@ -109,7 +115,7 @@ class GridWrapper:
             return self.from_bbox(geometry, precision=precision)  # type: ignore
         elif geom_type == "shapely_point":
             pt = geometry  # type: ignore
-            return self.from_point(pt.y, pt.x, precision=precision)
+            return self.from_point(pt.x, pt.y, precision=precision)
         elif geom_type in ["polygon", "multipolygon"]:
             return self.from_polygon(geometry, precision=precision)  # type: ignore
         elif geom_type == "gdf":
@@ -120,17 +126,20 @@ class GridWrapper:
     # Specific geometry type methods (for clarity when needed)
 
     def from_point(
-        self, lat: float, lon: float, precision: Optional[int] = None
+        self, lon: float, lat: float, precision: Optional[int] = None
     ) -> GridCell:
         """
         Get cell at point location.
 
+        Uses GIS-native (lon, lat) / (x, y) axis order, consistent with
+        shapely, geopandas and pyproj.
+
         Parameters
         ----------
-        lat : float
-            Latitude in decimal degrees
         lon : float
             Longitude in decimal degrees
+        lat : float
+            Latitude in decimal degrees
         precision : Optional[int], optional
             Precision level (uses default if not specified)
 
@@ -156,7 +165,9 @@ class GridWrapper:
         Parameters
         ----------
         bounds : Union[Tuple, List]
-            (min_lat, min_lon, max_lat, max_lon) or [min_lat, min_lon, max_lat, max_lon]
+            (min_lon, min_lat, max_lon, max_lat), GIS-native axis order.
+            Matches ``GridCell.bounds`` / ``GridCellCollection.bounds``, so
+            ``grid.from_bbox(collection.bounds)`` round-trips correctly.
         precision : Optional[int], optional
             Precision level (uses default if not specified)
 
@@ -168,7 +179,7 @@ class GridWrapper:
         if precision is None:
             precision = self._default_precision
 
-        min_lat, min_lon, max_lat, max_lon = bounds
+        min_lon, min_lat, max_lon, max_lat = bounds
 
         # Create bbox polygon
         from shapely.geometry import box
@@ -226,9 +237,7 @@ class GridWrapper:
 
         return GridCellCollection(cells, self)
 
-    def neighbors(
-        self, cell: GridCell, depth: int = 1
-    ) -> GridCellCollection:
+    def neighbors(self, cell: GridCell, depth: int = 1) -> GridCellCollection:
         """
         Get neighbors of a cell.
 
@@ -280,16 +289,20 @@ class GridWrapper:
         ValueError
             If identifier invalid or precision cannot be determined
         """
-        # Try to infer precision from identifier
-        # This is grid-specific, so we try common precisions
-        for precision in range(1, 15):
+        # Try to infer precision from identifier within this grid's valid
+        # precision range (rather than a blind 1..14 sweep).
+        lo, hi = self._get_precision_range()
+        for precision in range(lo, hi + 1):
             try:
                 grid = self._get_grid(precision)
                 return grid.get_cell_from_identifier(identifier)
-            except Exception:
+            except (ValueError, KeyError, TypeError, IndexError):
                 continue
 
-        raise ValueError(f"Cannot determine precision for identifier: {identifier}")
+        raise ValueError(
+            f"Cannot parse identifier {identifier!r} as a "
+            f"{self._grid_class.__name__} cell"
+        )
 
     # Precision methods
 
@@ -307,9 +320,7 @@ class GridWrapper:
         GridWrapper
             New wrapper instance with specified default precision
         """
-        wrapper = GridWrapper(
-            self._grid_class, precision, self._precision_param_name
-        )
+        wrapper = GridWrapper(self._grid_class, precision, self._precision_param_name)
         wrapper._cached_grids = self._cached_grids  # Share cache
         return wrapper
 
@@ -340,9 +351,7 @@ class GridWrapper:
         """
         return self._precision_finder.for_geometries(geometries, method)
 
-    def find_precision_for_area(
-        self, target_km2: float, tolerance: float = 0.2
-    ) -> int:
+    def find_precision_for_area(self, target_km2: float, tolerance: float = 0.2) -> int:
         """
         Find precision for target cell area.
 
@@ -404,10 +413,10 @@ class GridWrapper:
         """Detect geometry type from input."""
         if isinstance(geometry, tuple):
             if len(geometry) == 2:
-                # Could be (lat, lon) point
+                # (lon, lat) point
                 return "point"
             elif len(geometry) == 4:
-                # Could be (min_lat, min_lon, max_lat, max_lon) bbox
+                # (min_lon, min_lat, max_lon, max_lat) bbox
                 return "bbox"
             else:
                 raise ValueError(
@@ -452,7 +461,7 @@ class GridWrapper:
             "GARSGrid": (1, 5),
             "MaidenheadGrid": (1, 6),
             "PlusCodeGrid": (2, 15),
-            "What3WordsGrid": (12, 12),  # Fixed precision
+            "What3WordsGrid": (1, 1),  # Fixed precision (3m squares)
         }
 
         return ranges.get(grid_name, (1, 12))
@@ -476,13 +485,16 @@ class GridWrapper:
             grid = self._get_grid(current_precision)
             next_cells = []
             for c in current_cells:
-                # Check if grid has get_children method
+                # Grid must support hierarchical children to refine
                 if hasattr(grid, "get_children"):
                     children = grid.get_children(c)  # type: ignore
                     next_cells.extend(children)
                 else:
-                    # Fallback: return current cells
-                    return current_cells
+                    raise NotImplementedError(
+                        f"{self._grid_class.__name__} does not support refine() "
+                        "(no get_children); hierarchical refinement is "
+                        "unavailable for this grid system"
+                    )
             current_cells = next_cells
             current_precision += 1
 
@@ -500,12 +512,15 @@ class GridWrapper:
 
         while current_cell is not None and current_precision > target_precision:
             grid = self._get_grid(current_precision)
-            # Check if grid has get_parent method
+            # Grid must support hierarchical parents to coarsen
             if hasattr(grid, "get_parent"):
                 current_cell = grid.get_parent(current_cell)  # type: ignore
                 current_precision -= 1
             else:
-                # Fallback: return current cell
-                return current_cell
+                raise NotImplementedError(
+                    f"{self._grid_class.__name__} does not support coarsen() "
+                    "(no get_parent); hierarchical coarsening is "
+                    "unavailable for this grid system"
+                )
 
         return current_cell

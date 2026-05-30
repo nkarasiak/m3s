@@ -22,7 +22,7 @@ class GridCell:
     and precision level for spatial indexing systems.
     """
 
-    __slots__ = ('identifier', 'polygon', 'precision', '__dict__')
+    __slots__ = ("identifier", "polygon", "precision", "__dict__")
 
     def __init__(self, identifier: str, polygon: Polygon, precision: int):
         self.identifier = identifier
@@ -156,13 +156,16 @@ class GridCell:
         """
         Centroid of the cell.
 
+        Uses GIS-native (lon, lat) / (x, y) axis order, consistent with
+        ``bounds`` and the simplified ``GridWrapper`` API.
+
         Returns
         -------
         tuple[float, float]
-            (lat, lon) of centroid
+            (lon, lat) of centroid
         """
         c = self.polygon.centroid
-        return (c.y, c.x)
+        return (c.x, c.y)
 
     @property
     def geometry(self) -> Polygon:
@@ -220,10 +223,32 @@ class BaseGrid(ABC):
 
     Provides common interface for spatial grid implementations including
     cell retrieval, neighbor finding, and polygon intersection operations.
+
+    Required interface (abstract): ``area_km2``, ``get_cell_from_point``,
+    ``get_cell_from_identifier``, ``get_neighbors``, ``get_cells_in_bbox``.
+
+    Optional hierarchy interface: ``get_children``, ``get_parent`` and
+    ``get_covering_cells`` are implemented only by hierarchical grids
+    (H3, S2, Quadkey, Slippy). Operations that depend on them
+    (``GridCellCollection.refine``/``coarsen``) raise ``NotImplementedError``
+    on grids that do not provide them.
     """
 
     def __init__(self, precision: int):
         self.precision = precision
+
+    @property
+    @abstractmethod
+    def area_km2(self) -> float:
+        """
+        Theoretical area of a cell at this grid's precision/resolution.
+
+        Returns
+        -------
+        float
+            Approximate area of a single cell in square kilometers
+        """
+        ...
 
     @abstractmethod
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
@@ -432,6 +457,111 @@ class BaseGrid(ABC):
             result_gdf = result_gdf.to_crs(original_crs)
 
         return result_gdf
+
+    # ------------------------------------------------------------------
+    # h3-compat backend hooks
+    #
+    # These give the h3-style verb layer (m3s.api.h3_verbs.H3VerbsMixin) a
+    # pluggable way to resolve cells and compute exact values per backend.
+    # Defaults are backend-agnostic best-effort; backends override where the
+    # identifier encodes its precision or the library offers an exact answer.
+    # ------------------------------------------------------------------
+
+    def is_valid_identifier(self, identifier: str) -> bool:
+        """
+        Whether ``identifier`` parses as a cell at this grid's precision.
+
+        Parameters
+        ----------
+        identifier : str
+            Candidate cell identifier
+
+        Returns
+        -------
+        bool
+            True if ``get_cell_from_identifier`` succeeds
+        """
+        try:
+            self.get_cell_from_identifier(identifier)
+            return True
+        except Exception:
+            return False
+
+    def identifier_to_precision(self, identifier: str) -> int | None:
+        """
+        Native precision/level encoded in ``identifier``, or None if unknown.
+
+        Backends whose identifier encodes its own precision should override this
+        so the h3-style verb layer can resolve a cell directly. Returning None
+        signals the caller to fall back to a validated precision sweep.
+
+        Parameters
+        ----------
+        identifier : str
+            Cell identifier
+
+        Returns
+        -------
+        int | None
+            Precision encoded in the identifier, or None if not derivable
+        """
+        return None
+
+    def native_cell_center(self, identifier: str) -> tuple[float, float] | None:
+        """
+        Exact ``(lat, lng)`` cell center, or None to use the polygon centroid.
+
+        Parameters
+        ----------
+        identifier : str
+            Cell identifier
+
+        Returns
+        -------
+        tuple[float, float] | None
+            Exact center as (lat, lng), or None if no native center is available
+        """
+        return None
+
+    def native_cell_area(self, identifier: str, unit: str) -> float | None:
+        """
+        Exact cell area in ``unit``, or None to use the projected polygon area.
+
+        Parameters
+        ----------
+        identifier : str
+            Cell identifier
+        unit : str
+            Area unit ('km^2', 'm^2', or 'rads^2')
+
+        Returns
+        -------
+        float | None
+            Exact area, or None if no native area is available
+        """
+        return None
+
+    def native_compact(self, identifiers: list[str]) -> list[str] | None:
+        """
+        Natively compact a same-precision id set, or None if unsupported.
+
+        Returns
+        -------
+        list[str] | None
+            Mixed-precision compacted ids, or None to use the generic path
+        """
+        return None
+
+    def native_uncompact(self, identifiers: list[str], res: int) -> list[str] | None:
+        """
+        Natively expand a compacted id set to ``res``, or None if unsupported.
+
+        Returns
+        -------
+        list[str] | None
+            Ids at ``res``, or None to use the generic path
+        """
+        return None
 
     def _filter_intersecting_cells(
         self,

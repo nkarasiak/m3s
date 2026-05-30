@@ -21,7 +21,7 @@ A unified Python package for working with hierarchical spatial grid systems. M3S
 - **Hierarchical Operations**: Parent/child relationships and multi-resolution analysis
 - **Neighbor Finding**: Get neighboring cells across all grid systems
 - **Parallel Processing**: Threaded parallelism and streaming for large datasets
-- **Modern Python**: Type hints, comprehensive documentation, full test coverage
+- **Modern Python**: Type hints, comprehensive documentation and test suite
 
 ## Installation
 
@@ -32,7 +32,7 @@ uv pip install m3s
 For development:
 
 ```bash
-git clone https://github.com/yourusername/m3s.git
+git clone https://github.com/nkarasiak/m3s.git
 cd m3s
 uv pip install -e ".[dev]"
 ```
@@ -48,15 +48,16 @@ import m3s
 from shapely.geometry import Polygon
 
 # Direct access to grid systems (no instantiation needed!)
-cell = m3s.Geohash.from_geometry((40.7128, -74.0060))  # Point tuple (lat, lon)
+# Coordinate tuples use GIS-native (lon, lat) / (x, y) order, like shapely.
+cell = m3s.Geohash.from_geometry((-74.0060, 40.7128))  # Point tuple (lon, lat)
 print(f"Cell: {cell.id}, Area: {cell.area_km2:.2f} km²")
-# Output: Cell: dr5rs, Area: 18.11 km²
+# Output: Cell: dr5re, Area: 18.11 km²
 
 # Works with any geometry type: points, polygons, GeoDataFrames, bbox tuples
 polygon = Polygon([(-74.1, 40.7), (-73.9, 40.7), (-73.9, 40.8), (-74.1, 40.8)])
 cells = m3s.H3.from_geometry(polygon)  # Uses default precision (7)
 print(f"Found {len(cells)} H3 cells with total area {cells.total_area_km2:.2f} km²")
-# Output: Found 3 H3 cells with total area 763.44 km²
+# Output: Found 47 H3 cells with total area 244.01 km²
 
 # For optimal precision with large areas, find it explicitly first:
 precision = m3s.H3.find_precision(polygon, method='auto')  # Minimizes coverage variance
@@ -98,22 +99,42 @@ precision = m3s.Geohash.find_precision_for_use_case('neighborhood')  # ~1-10 km�
 - `m3s.PlusCode` - Open Location Codes
 - `m3s.What3Words` - 3-meter precision squares
 
+> **Coordinate order:** the simplified API uses GIS-native **(lon, lat)** / (x, y)
+> order for coordinate tuples — matching shapely, geopandas and pyproj.
+> `GridCell.bounds`, `GridCell.centroid` and `from_bbox` all follow the same
+> order, so `grid.from_bbox(collection.bounds)` round-trips correctly. The
+> classic low-level `Grid.get_cell_from_point(lat, lon)` keeps explicit
+> `lat, lon` parameters.
+
 ### 🆚 API Comparison
 
 | Task | New Simplified API | Classic API |
 |------|-------------------|-------------|
-| **Get cell at point** | `m3s.Geohash.from_geometry((40.7, -74.0))` | `GeohashGrid(precision=5).get_cell_from_point(40.7, -74.0)` |
+| **Get cell at point** | `m3s.Geohash.from_geometry((-74.0, 40.7))` | `GeohashGrid(precision=5).get_cell_from_point(40.7, -74.0)` |
 | **Get cells in area** | `m3s.H3.from_geometry(polygon)` | `H3Grid(resolution=7).intersects(gdf)` |
 | **Get neighbors** | `m3s.Geohash.neighbors(cell)` | `grid.get_neighbors(cell)` |
 | **Find precision** | `m3s.H3.find_precision_for_use_case('city')` | Manual selection |
 | **Convert grids** | `cells.to_h3()` | Use conversion utilities |
 | **Export** | `cells.to_gdf()` | Multiple steps |
 
-**When to use each:**
-- **Simplified API**: Quick start, exploratory analysis, standard workflows
-- **Classic API**: Fine-grained control, advanced customization, existing codebases
+### Which API should I use?
 
-Both APIs work together seamlessly—choose what fits your workflow!
+M3S has one recommended path and two optional tiers. **If unsure, use the
+Simplified API** — it covers the large majority of use cases.
+
+1. **Simplified API (recommended, the golden path)** — `m3s.H3`, `m3s.Geohash`, …
+   Direct access, `from_geometry()`, `find_precision*()`, `GridCellCollection`
+   (`.filter()`, `.to_gdf()`, `.to_h3()`). Start here.
+2. **Classic API (advanced)** — the `*Grid` classes (`GeohashGrid`, `H3Grid`, …)
+   when you need fine-grained control or are integrating into existing code.
+3. **Power tools (advanced, optional)** — `GridBuilder` (fluent pipelines),
+   `PrecisionSelector` (precision strategies), `MultiGridComparator`
+   (cross-system comparison). Reach for these only for the specific workflow
+   each enables; you never need them for everyday tasks. See
+   `examples/quickstart.py` and `examples/precision_selection_example.py`.
+
+All tiers interoperate and share the same `GridCell` objects, so you can mix
+them freely.
 
 ### All Grid Systems (Classic API)
 
@@ -137,7 +158,7 @@ grids = {
     'GARS': GARSGrid(precision=2),              # Global Area Reference System
     'Maidenhead': MaidenheadGrid(precision=3),  # Amateur radio locator
     'Plus Codes': PlusCodeGrid(precision=10),   # Open Location Codes
-    'What3Words': What3WordsGrid(precision=3)   # 3-meter precision squares
+    'What3Words': What3WordsGrid(precision=1)   # 3-meter precision squares (only precision 1)
 }
 
 # Get cell areas
@@ -151,14 +172,14 @@ for name, grid in grids.items():
     print(f"{name}: {cell.identifier}")
 
 # Example output:
-# Geohash: 5,892.00 km² per cell
+# Geohash: 4,892.00 km² per cell
 # MGRS: 100.00 km² per cell  
 # H3: 5.16 km² per cell
 # Quadkey: 95.73 km² per cell
 # S2: 81.07 km² per cell
 # Slippy: 95.73 km² per cell
 #
-# Geohash: dr5ru
+# Geohash: dr5re
 # MGRS: 18TWL8451
 # H3: 871fb4662ffffff
 # Quadkey: 120220012313
@@ -297,21 +318,26 @@ All grid classes inherit from `BaseGrid`:
 
 ```python
 class BaseGrid:
+    # Required interface (abstract — every grid implements these)
     @property
     def area_km2(self) -> float
         """Theoretical area in km² for cells at this precision/resolution/level"""
-    
+
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell
     def get_cell_from_identifier(self, identifier: str) -> GridCell
     def get_neighbors(self, cell: GridCell) -> List[GridCell]
+    def get_cells_in_bbox(self, min_lat: float, min_lon: float,
+                         max_lat: float, max_lon: float) -> List[GridCell]
+
+    # Optional hierarchy interface — only hierarchical grids (H3, S2,
+    # Quadkey, Slippy). refine()/coarsen() raise NotImplementedError on grids
+    # that do not provide these.
     def get_children(self, cell: GridCell) -> List[GridCell]
     def get_parent(self, cell: GridCell) -> Optional[GridCell]
-    def get_cells_in_bbox(self, min_lat: float, min_lon: float, 
-                         max_lat: float, max_lon: float) -> List[GridCell]
     def get_covering_cells(self, polygon: Polygon, max_cells: int = 100) -> List[GridCell]
-    
+
     # GeoDataFrame integration methods with UTM zone support
-    def intersects(self, gdf: gpd.GeoDataFrame, 
+    def intersects(self, gdf: gpd.GeoDataFrame,
                   target_crs: str = "EPSG:4326") -> gpd.GeoDataFrame
 ```
 
@@ -346,7 +372,7 @@ The UTM column contains EPSG codes (e.g., 32614 for UTM Zone 14N, 32723 for UTM 
 ### Setup
 
 ```bash
-git clone https://github.com/yourusername/m3s.git
+git clone https://github.com/nkarasiak/m3s.git
 cd m3s
 uv pip install -e ".[dev]"
 ```

@@ -25,8 +25,8 @@ import geopandas as gpd
 # The from_geometry() method accepts point tuples, Polygons, GeoDataFrames,
 # and bounding box tuples. Precision is auto-selected for optimal coverage.
 
-# Point tuple (lat, lon)
-cell = m3s.Geohash.from_geometry((40.7128, -74.0060))
+# Point tuple (lon, lat) - GIS-native axis order
+cell = m3s.Geohash.from_geometry((-74.0060, 40.7128))
 print(f"Cell: {cell.id}, Area: {cell.area_km2:.2f} km²")
 print(f"Centroid: {cell.centroid}")
 print(f"Bounds: {cell.bounds}")
@@ -77,7 +77,7 @@ print(f"More cells precision: {precision_more}")
 # ---------------------------------------------------------------
 
 cells = m3s.MGRS.with_precision(5).from_geometry(
-    (40.7, -74.1, 40.8, -73.9)  # Bbox tuple
+    (-74.1, 40.7, -73.9, 40.8)  # Bbox tuple (min_lon, min_lat, max_lon, max_lat)
 )
 result_gdf = cells.to_gdf()
 print(f"\nCreated GeoDataFrame with {len(result_gdf)} MGRS cells")
@@ -86,7 +86,7 @@ print(f"\nCreated GeoDataFrame with {len(result_gdf)} MGRS cells")
 # Example 6: Get neighbors
 # ------------------------
 
-cell = m3s.S2.from_geometry((40.7128, -74.0060))  # Point tuple
+cell = m3s.S2.from_geometry((-74.0060, 40.7128))  # Point tuple (lon, lat)
 neighbors = m3s.S2.neighbors(cell, depth=1)
 print(f"\nCell has {len(neighbors)} neighbors (including itself)")
 
@@ -95,7 +95,7 @@ print(f"\nCell has {len(neighbors)} neighbors (including itself)")
 # ----------------------------------------
 # Default conversion uses centroid method (fast, good for most cases)
 
-geohash_cells = m3s.Geohash.from_geometry((40.7, -74.0))
+geohash_cells = m3s.Geohash.from_geometry((-74.0, 40.7))
 neighbors_with_origin = m3s.Geohash.neighbors(geohash_cells)
 h3_cells = neighbors_with_origin.to_h3()  # Centroid method (default)
 print(f"\nConverted {len(neighbors_with_origin)} Geohash → {len(h3_cells)} H3")
@@ -113,7 +113,7 @@ print(f"With overlap method: {len(h3_cells_overlap)} H3 cells")
 
 precision = m3s.H3.find_precision_for_use_case("neighborhood")
 cells = m3s.H3.with_precision(precision).from_geometry(
-    (40.7, -74.1, 40.8, -73.9)  # Bbox
+    (-74.1, 40.7, -73.9, 40.8)  # Bbox (min_lon, min_lat, max_lon, max_lat)
 )
 print(f"\nNeighborhood-level precision {precision}: {len(cells)} cells")
 
@@ -127,8 +127,8 @@ print(f"City precision: {city_precision}")
 # Example 10: Specific geometry methods when clarity is preferred
 # ----------------------------------------------------------------
 
-cell = m3s.MGRS.from_point(40.7128, -74.0060)  # Explicit point method
-cells = m3s.S2.from_bbox((40.7, -74.1, 40.8, -73.9))  # Explicit bbox method
+cell = m3s.MGRS.from_point(-74.0060, 40.7128)  # Explicit point method (lon, lat)
+cells = m3s.S2.from_bbox((-74.1, 40.7, -73.9, 40.8))  # Explicit bbox method
 cells = m3s.Quadkey.from_polygon(polygon)  # Explicit polygon method
 
 print(f"\nUsed specific methods: {len(cells)} Quadkey cells")
@@ -155,7 +155,7 @@ print(f"Converted to {len(ids_list)} IDs, {len(polygons_list)} polygons")
 # ------------------------------------
 
 # Get children at higher precision
-cell = m3s.Geohash.from_geometry((40.7, -74.0))
+cell = m3s.Geohash.from_geometry((-74.0, 40.7))
 neighbors = m3s.Geohash.neighbors(cell)
 
 # This requires parent/child methods - only works for grids that support it
@@ -180,7 +180,7 @@ print(f"Cell: {old_cell.identifier}")
 
 # New API (much simpler!)
 print("\nNew API:")
-new_cell = m3s.Geohash.from_geometry((40.7, -74.0))
+new_cell = m3s.Geohash.from_geometry((-74.0, 40.7))
 print(f"Cell: {new_cell.id}")
 
 print("\nBoth APIs work! New API is simpler for quick start.")

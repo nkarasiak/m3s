@@ -21,7 +21,7 @@ class GridBuilder:
     Fluent interface for building and executing grid queries.
 
     Enables method chaining for common workflows, eliminating verbose
-    multi-step operations. Supports all 12 grid systems through a
+    multi-step operations. Supports all 11 grid systems through a
     unified interface.
 
     Examples
@@ -31,7 +31,7 @@ class GridBuilder:
     >>> result = (GridBuilder
     ...     .for_system('h3')
     ...     .with_precision(7)
-    ...     .at_point(40.7128, -74.0060)
+    ...     .at_point(-74.0060, 40.7128)
     ...     .execute())
     >>> print(result.single.identifier)
 
@@ -42,7 +42,7 @@ class GridBuilder:
     >>> result = (GridBuilder
     ...     .for_system('geohash')
     ...     .with_auto_precision(rec)
-    ...     .at_point(40.7128, -74.0060)
+    ...     .at_point(-74.0060, 40.7128)
     ...     .find_neighbors()
     ...     .execute())
     >>> print(f"Cell + {len(result.many) - 1} neighbors")
@@ -52,7 +52,7 @@ class GridBuilder:
     >>> result = (GridBuilder
     ...     .for_system('s2')
     ...     .with_precision(10)
-    ...     .in_bbox(40.7, -74.1, 40.8, -73.9)
+    ...     .in_bbox(-74.1, 40.7, -73.9, 40.8)
     ...     .filter(lambda cell: cell.area_km2 > 1.0)
     ...     .execute())
     >>> gdf = result.to_geodataframe()
@@ -62,7 +62,7 @@ class GridBuilder:
     >>> result = (GridBuilder
     ...     .for_system('geohash')
     ...     .with_precision(5)
-    ...     .at_point(40.7128, -74.0060)
+    ...     .at_point(-74.0060, 40.7128)
     ...     .convert_to('h3', method='centroid')
     ...     .execute())
     """
@@ -162,16 +162,18 @@ class GridBuilder:
         self._metadata["spatial_index"] = enabled
         return self
 
-    def at_point(self, latitude: float, longitude: float) -> "GridBuilder":
+    def at_point(self, longitude: float, latitude: float) -> "GridBuilder":
         """
         Query single point location.
 
+        Uses GIS-native (lon, lat) / (x, y) argument order.
+
         Parameters
         ----------
-        latitude : float
-            Latitude in decimal degrees
         longitude : float
             Longitude in decimal degrees
+        latitude : float
+            Latitude in decimal degrees
 
         Returns
         -------
@@ -192,7 +194,7 @@ class GridBuilder:
         Parameters
         ----------
         points : Union[List[Tuple[float, float]], np.ndarray]
-            List of (latitude, longitude) tuples or Nx2 array
+            List of (longitude, latitude) tuples or Nx2 array, GIS-native order
 
         Returns
         -------
@@ -204,24 +206,26 @@ class GridBuilder:
 
     def in_bbox(
         self,
-        min_latitude: float,
         min_longitude: float,
-        max_latitude: float,
+        min_latitude: float,
         max_longitude: float,
+        max_latitude: float,
     ) -> "GridBuilder":
         """
         Query bounding box region.
 
+        Uses GIS-native (min_lon, min_lat, max_lon, max_lat) argument order.
+
         Parameters
         ----------
-        min_latitude : float
-            Minimum latitude
         min_longitude : float
             Minimum longitude
-        max_latitude : float
-            Maximum latitude
+        min_latitude : float
+            Minimum latitude
         max_longitude : float
             Maximum longitude
+        max_latitude : float
+            Maximum latitude
 
         Returns
         -------
@@ -411,9 +415,9 @@ class GridBuilder:
                 cells = []
                 for point in points:
                     if isinstance(point, (list, tuple)):
-                        lat, lon = point
+                        lon, lat = point
                     else:  # numpy array row
-                        lat, lon = float(point[0]), float(point[1])
+                        lon, lat = float(point[0]), float(point[1])
                     cells.append(grid.get_cell_from_point(lat, lon))
 
             elif op_name == "bbox":

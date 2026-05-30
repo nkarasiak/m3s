@@ -6,6 +6,8 @@ This example demonstrates all 5 intelligent precision selection strategies
 in M3S v0.6.0+, helping you choose the optimal precision level for any use case.
 """
 
+# sphinx_gallery_thumbnail_path = '_static/thumb_precision_selection.png'
+
 import pandas as pd
 
 from m3s import GridBuilder, PrecisionSelector
@@ -296,7 +298,7 @@ best_rec = max([rec1, rec2, rec3, rec4], key=lambda r: r.confidence)
 result = (
     GridBuilder.for_system("h3")
     .with_auto_precision(best_rec)
-    .in_bbox(37.75, -122.45, 37.80, -122.40)  # Small SF area
+    .in_bbox(-122.45, 37.75, -122.40, 37.80)  # Small SF area
     .limit(10)
     .execute()
 )

@@ -178,10 +178,9 @@ Visual Comparisons
 
 See the Example Gallery for detailed visual comparisons:
 
-* :doc:`auto_examples/grid_generation_example` - Compare how different grids tessellate the same area
+* :doc:`auto_examples/grid_systems/index` - One example per grid system, each tessellating the same area
 * :doc:`auto_examples/precision_selection_example` - Learn intelligent precision selection
 * :doc:`auto_examples/new_grids_example` - Explore C-squares, GARS, Maidenhead, Plus Codes
-* :doc:`auto_examples/a5_example` - Understanding the A5 pentagonal grid
 * :doc:`auto_examples/quadkey_s2_example` - Web mapping grid systems
 
 Code Examples

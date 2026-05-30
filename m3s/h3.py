@@ -20,9 +20,7 @@ class H3Grid(BaseGrid):
     providing uniform hexagonal cells with consistent neighbor relationships.
     """
 
-    def __init__(
-        self, precision: int | None = None, resolution: int | None = None
-    ):
+    def __init__(self, precision: int | None = None, resolution: int | None = None):
         """
         Initialize H3Grid.
 
@@ -542,6 +540,61 @@ class H3Grid(BaseGrid):
             ]
         except Exception:
             return cells  # Return original cells if uncompacting fails
+
+    # ------------------------------------------------------------------
+    # h3-compat native hooks (exact parity with the h3 library)
+    # ------------------------------------------------------------------
+
+    @override
+    def is_valid_identifier(self, identifier: str) -> bool:
+        """Validate a cell id via ``h3.is_valid_cell``."""
+        try:
+            return bool(h3.is_valid_cell(identifier))
+        except Exception:
+            return False
+
+    @override
+    def identifier_to_precision(self, identifier: str) -> int | None:
+        """Resolution encoded in an H3 id via ``h3.get_resolution``."""
+        try:
+            return int(h3.get_resolution(identifier))
+        except Exception:
+            return None
+
+    @override
+    def native_cell_center(self, identifier: str) -> tuple[float, float] | None:
+        """Exact cell center via ``h3.cell_to_latlng`` (returns (lat, lng))."""
+        try:
+            lat, lng = h3.cell_to_latlng(identifier)
+            return (lat, lng)
+        except Exception:
+            return None
+
+    @override
+    def native_cell_area(self, identifier: str, unit: str) -> float | None:
+        """Exact spherical cell area via ``h3.cell_area``."""
+        if unit not in ("km^2", "m^2", "rads^2"):
+            return None
+        try:
+            return float(h3.cell_area(identifier, unit=unit))
+        except Exception:
+            return None
+
+    @override
+    def native_compact(self, identifiers: list[str]) -> list[str] | None:
+        """Compact via ``h3.compact_cells``."""
+        try:
+            return list(h3.compact_cells(list(identifiers)))
+        except Exception:
+            return None
+
+    @override
+    def native_uncompact(self, identifiers: list[str], res: int) -> list[str] | None:
+        """Uncompact via ``h3.uncompact_cells``."""
+        try:
+            return list(h3.uncompact_cells(list(identifiers), res))
+        except Exception:
+            return None
 
     @override
     def _get_additional_columns(self, cell: GridCell) -> dict[str, Any]:

@@ -10,7 +10,7 @@ See examples/quickstart_new_api.py for the simplified direct access API.
 
 For most use cases, the simplified API is recommended:
     import m3s
-    cell = m3s.Geohash.from_geometry((40.7, -74.0))
+    cell = m3s.Geohash.from_geometry((-74.0, 40.7))
 
 This example shows the advanced GridBuilder API for complex workflows.
 """
@@ -27,7 +27,7 @@ print("=" * 70)
 
 # Query a single point using H3 grid at precision 7
 result = (
-    GridBuilder.for_system("h3").with_precision(7).at_point(40.7128, -74.0060).execute()
+    GridBuilder.for_system("h3").with_precision(7).at_point(-74.0060, 40.7128).execute()
 )
 
 # Access single cell result
@@ -85,7 +85,7 @@ rec = selector.for_use_case("city")
 result = (
     GridBuilder.for_system("geohash")
     .with_auto_precision(rec)
-    .at_point(51.5074, -0.1278)  # London
+    .at_point(-0.1278, 51.5074)  # London
     .find_neighbors(depth=1)
     .execute()
 )
@@ -107,10 +107,10 @@ print("=" * 70)
 
 # Query multiple cities simultaneously
 cities = [
-    (40.7128, -74.0060),  # New York
-    (34.0522, -118.2437),  # Los Angeles
-    (51.5074, -0.1278),  # London
-    (35.6762, 139.6503),  # Tokyo
+    (-74.0060, 40.7128),  # New York
+    (-118.2437, 34.0522),  # Los Angeles
+    (-0.1278, 51.5074),  # London
+    (139.6503, 35.6762),  # Tokyo
 ]
 
 result = GridBuilder.for_system("h3").with_precision(7).at_points(cities).execute()
@@ -133,7 +133,7 @@ print("=" * 70)
 result = (
     GridBuilder.for_system("geohash")
     .with_precision(6)
-    .in_bbox(40.7, -74.05, 40.85, -73.9)  # Manhattan area
+    .in_bbox(-74.05, 40.7, -73.9, 40.85)  # Manhattan area
     .filter(lambda cell: cell.area_km2 < 1.0)  # Only smaller cells
     .limit(10)  # Limit for display
     .execute()
@@ -154,7 +154,7 @@ print("=" * 70)
 result = (
     GridBuilder.for_system("s2")
     .with_precision(12)
-    .in_bbox(40.75, -74.0, 40.77, -73.97)
+    .in_bbox(-74.0, 40.75, -73.97, 40.77)
     .limit(5)
     .execute()
 )
@@ -179,14 +179,14 @@ from m3s import MultiGridComparator
 # Compare same location across different grid systems
 comparator = MultiGridComparator([("geohash", 5), ("h3", 7), ("s2", 10)])
 
-results = comparator.query_all(40.7128, -74.0060)
+results = comparator.query_all(-74.0060, 40.7128)
 
 print("\nSame point in different grid systems:")
 for system, cell in results.items():
     print(f"  {system:10s}: {cell.identifier:20s} ({cell.area_km2:.2f} km²)")
 
 # Compare coverage for a region
-coverage_df = comparator.compare_coverage((40.7, -74.1, 40.8, -73.9))
+coverage_df = comparator.compare_coverage((-74.1, 40.7, -73.9, 40.8))
 print("\nRegional coverage comparison:")
 print(coverage_df[["system", "precision", "cell_count", "avg_cell_size_km2"]])
 print()

@@ -46,7 +46,7 @@ class TestGridBuilderBasics:
         result = (
             GridBuilder.for_system("geohash")
             .with_precision(5)
-            .at_point(40.7128, -74.0060)
+            .at_point(-74.0060, 40.7128)
         )
 
         assert isinstance(result, GridBuilder)
@@ -60,7 +60,7 @@ class TestGridBuilderSinglePointQueries:
         result = (
             GridBuilder.for_system("geohash")
             .with_precision(5)
-            .at_point(40.7128, -74.0060)
+            .at_point(-74.0060, 40.7128)
             .execute()
         )
 
@@ -81,7 +81,7 @@ class TestGridBuilderSinglePointQueries:
             result = (
                 GridBuilder.for_system(system)
                 .with_precision(7)
-                .at_point(lat, lon)
+                .at_point(lon, lat)
                 .execute()
             )
 
@@ -95,7 +95,7 @@ class TestGridBuilderBatchQueries:
 
     def test_at_points_list(self):
         """Test querying multiple points from list."""
-        points = [(40.7128, -74.0060), (34.0522, -118.2437), (51.5074, -0.1278)]
+        points = [(-74.0060, 40.7128), (-118.2437, 34.0522), (-0.1278, 51.5074)]
 
         result = (
             GridBuilder.for_system("h3").with_precision(7).at_points(points).execute()
@@ -109,7 +109,7 @@ class TestGridBuilderBatchQueries:
         result = (
             GridBuilder.for_system("geohash")
             .with_precision(5)
-            .in_bbox(40.7, -74.1, 40.8, -73.9)
+            .in_bbox(-74.1, 40.7, -73.9, 40.8)
             .execute()
         )
 
@@ -138,7 +138,7 @@ class TestGridBuilderNeighborOperations:
         result = (
             GridBuilder.for_system("h3")
             .with_precision(7)
-            .at_point(40.7128, -74.0060)
+            .at_point(-74.0060, 40.7128)
             .find_neighbors(depth=1)
             .execute()
         )
@@ -151,7 +151,7 @@ class TestGridBuilderNeighborOperations:
         result = (
             GridBuilder.for_system("h3")
             .with_precision(7)
-            .at_point(40.7128, -74.0060)
+            .at_point(-74.0060, 40.7128)
             .find_neighbors(depth=2)
             .execute()
         )
@@ -172,7 +172,7 @@ class TestGridBuilderHierarchyOperations:
         result = (
             GridBuilder.for_system("h3")
             .with_precision(5)
-            .at_point(40.7128, -74.0060)
+            .at_point(-74.0060, 40.7128)
             .with_children(child_precision=6)
             .execute()
         )
@@ -188,7 +188,7 @@ class TestGridBuilderHierarchyOperations:
         result = (
             GridBuilder.for_system("h3")
             .with_precision(7)
-            .at_point(40.7128, -74.0060)
+            .at_point(-74.0060, 40.7128)
             .with_parent(parent_precision=6)
             .execute()
         )
@@ -207,7 +207,7 @@ class TestGridBuilderConversion:
         result = (
             GridBuilder.for_system("geohash")
             .with_precision(5)
-            .at_point(40.7128, -74.0060)
+            .at_point(-74.0060, 40.7128)
             .convert_to("h3", method="centroid")
             .execute()
         )
@@ -227,7 +227,7 @@ class TestGridBuilderFilteringAndLimiting:
         result = (
             GridBuilder.for_system("geohash")
             .with_precision(5)
-            .in_bbox(40.7, -74.1, 40.8, -73.9)
+            .in_bbox(-74.1, 40.7, -73.9, 40.8)
             .filter(lambda cell: cell.area_km2 > 1.0)
             .execute()
         )
@@ -240,7 +240,7 @@ class TestGridBuilderFilteringAndLimiting:
         result = (
             GridBuilder.for_system("h3")
             .with_precision(7)
-            .in_bbox(40.7, -74.1, 40.8, -73.9)
+            .in_bbox(-74.1, 40.7, -73.9, 40.8)
             .limit(5)
             .execute()
         )
@@ -257,14 +257,14 @@ class TestGridBuilderErrorHandling:
         builder = GridBuilder()
 
         with pytest.raises(ValueError, match="Grid system not set"):
-            builder.with_precision(5).at_point(40.7, -74.0).execute()
+            builder.with_precision(5).at_point(-74.0, 40.7).execute()
 
     def test_execute_without_precision(self):
         """Test that execute fails without precision."""
         builder = GridBuilder.for_system("h3")
 
         with pytest.raises(ValueError, match="Precision not set"):
-            builder.at_point(40.7, -74.0).execute()
+            builder.at_point(-74.0, 40.7).execute()
 
     def test_execute_without_operations(self):
         """Test that execute fails without operations."""
@@ -279,7 +279,7 @@ class TestGridBuilderErrorHandling:
             (
                 GridBuilder.for_system("invalid_system")
                 .with_precision(5)
-                .at_point(40.7, -74.0)
+                .at_point(-74.0, 40.7)
                 .execute()
             )
 
@@ -292,7 +292,7 @@ class TestGridBuilderComplexWorkflows:
         result = (
             GridBuilder.for_system("h3")
             .with_precision(7)
-            .at_point(40.7128, -74.0060)
+            .at_point(-74.0060, 40.7128)
             .find_neighbors(depth=1)
             .filter(lambda cell: cell.area_km2 < 10.0)
             .execute()
@@ -307,7 +307,7 @@ class TestGridBuilderComplexWorkflows:
         result = (
             GridBuilder.for_system("geohash")
             .with_precision(5)
-            .in_bbox(40.7, -74.1, 40.8, -73.9)
+            .in_bbox(-74.1, 40.7, -73.9, 40.8)
             .limit(10)
             .execute()
         )
@@ -330,7 +330,7 @@ class TestGridBuilderComplexWorkflows:
         result = (
             GridBuilder.for_system("h3")
             .with_auto_precision(rec)
-            .at_point(40.7128, -74.0060)
+            .at_point(-74.0060, 40.7128)
             .find_neighbors()
             .execute()
         )
@@ -350,7 +350,7 @@ class TestGridBuilderIntegration:
         result = (
             GridBuilder.for_system("h3")
             .with_precision(7)
-            .at_point(40.7128, -74.0060)  # NYC
+            .at_point(-74.0060, 40.7128)  # NYC
             .execute()
         )
 
@@ -363,7 +363,7 @@ class TestGridBuilderIntegration:
         result = (
             GridBuilder.for_system("geohash")
             .with_precision(5)
-            .at_point(51.5074, -0.1278)  # London
+            .at_point(-0.1278, 51.5074)  # London
             .execute()
         )
 
@@ -376,7 +376,7 @@ class TestGridBuilderIntegration:
         result = (
             GridBuilder.for_system("s2")
             .with_precision(10)
-            .at_point(35.6762, 139.6503)
+            .at_point(139.6503, 35.6762)
             .execute()
         )  # Tokyo
 

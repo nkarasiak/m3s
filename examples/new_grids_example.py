@@ -6,6 +6,8 @@ This example demonstrates the new grid systems added to M3S: Plus codes (Open Lo
 Maidenhead locator system, and GARS (Global Area Reference System).
 """
 
+# sphinx_gallery_thumbnail_path = '_static/thumb_new_grids.png'
+
 import geopandas as gpd
 import matplotlib.pyplot as plt
 from shapely.geometry import Point

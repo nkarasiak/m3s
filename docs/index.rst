@@ -61,8 +61,8 @@ The easiest way to get started:
    import m3s
    from shapely.geometry import Polygon
 
-   # Direct grid access - no instantiation needed!
-   cell = m3s.Geohash.from_geometry((40.7128, -74.0060))
+   # Direct grid access - no instantiation needed!  (lon, lat)
+   cell = m3s.Geohash.from_geometry((-74.0060, 40.7128))
    print(f"Cell: {cell.id}, Area: {cell.area_km2:.2f} km²")
 
    # Works with any geometry type
@@ -99,7 +99,7 @@ For complex workflows with method chaining:
    result = (GridBuilder
        .for_system('h3')
        .with_auto_precision(rec)
-       .at_point(40.7128, -74.0060)  # NYC
+       .at_point(-74.0060, 40.7128)  # NYC (lon, lat)
        .find_neighbors(depth=1)
        .execute())
 
@@ -123,7 +123,7 @@ Compare same location across multiple grid systems:
        ('s2', 10)
    ])
 
-   results = comparator.query_all(40.7128, -74.0060)
+   results = comparator.query_all(-74.0060, 40.7128)
    for system, cell in results.items():
        print(f"{system}: {cell.identifier} ({cell.area_km2:.2f} km²)")
 

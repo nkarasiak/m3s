@@ -13,13 +13,12 @@ This guide focuses on the new simplified API introduced in v0.5.1.
 
 ### Grid Systems
 
-M3S supports 12 different spatial grid systems, each accessible via a singleton instance:
+M3S supports 11 different spatial grid systems, each accessible via a singleton instance:
 
 ```python
 import m3s
 
 # Access any grid system directly
-m3s.A5           # Pentagonal DGGS
 m3s.Geohash      # Base32 spatial index
 m3s.H3           # Hexagonal grid
 m3s.MGRS         # Military Grid Reference
@@ -42,7 +41,7 @@ A `GridCell` represents a single grid cell with:
 - `.area_km2`: Cell area in square kilometers
 - `.polygon` or `.geometry`: Shapely polygon
 - `.bounds`: Bounding box (min_lon, min_lat, max_lon, max_lat)
-- `.centroid`: Center point (lat, lon)
+- `.centroid`: Center point (lon, lat), GIS-native order
 
 ### GridCellCollection
 
@@ -62,8 +61,8 @@ A `GridCellCollection` is a container for multiple cells with utility methods:
 ```python
 import m3s
 
-# Point as tuple (lat, lon)
-cell = m3s.Geohash.from_geometry((40.7128, -74.0060))
+# Point as tuple (lon, lat) - GIS-native order
+cell = m3s.Geohash.from_geometry((-74.0060, 40.7128))
 print(f"Cell: {cell.id}")
 print(f"Area: {cell.area_km2:.2f} km²")
 print(f"Centroid: {cell.centroid}")
@@ -74,7 +73,7 @@ point = Point(-74.0060, 40.7128)
 cell = m3s.H3.from_geometry(point)
 
 # Explicit method (for clarity)
-cell = m3s.MGRS.from_point(40.7128, -74.0060)
+cell = m3s.MGRS.from_point(-74.0060, 40.7128)
 ```
 
 ### Working with Areas
@@ -92,16 +91,16 @@ cells = m3s.H3.from_geometry(polygon)  # Auto-precision
 print(f"Found {len(cells)} cells")
 print(f"Total area: {cells.total_area_km2:.2f} km²")
 
-# Bounding box as tuple (min_lat, min_lon, max_lat, max_lon)
-cells = m3s.Geohash.from_geometry((40.7, -74.1, 40.8, -73.9))
+# Bounding box as tuple (min_lon, min_lat, max_lon, max_lat)
+cells = m3s.Geohash.from_geometry((-74.1, 40.7, -73.9, 40.8))
 
 # GeoDataFrame
 import geopandas as gpd
 gdf = gpd.GeoDataFrame({'geometry': [polygon]}, crs='EPSG:4326')
-cells = m3s.A5.from_geometry(gdf)
+cells = m3s.MGRS.from_geometry(gdf)
 
 # Explicit methods
-cells = m3s.S2.from_bbox((40.7, -74.1, 40.8, -73.9))
+cells = m3s.S2.from_bbox((-74.1, 40.7, -73.9, 40.8))
 cells = m3s.Quadkey.from_polygon(polygon)
 ```
 
@@ -128,7 +127,7 @@ cells = m3s.Geohash.with_precision(7).from_geometry(polygon)
 
 # Method 2: precision parameter
 cells = m3s.H3.from_geometry(polygon, precision=9)
-cell = m3s.A5.from_point(40.7, -74.0, precision=10)
+cell = m3s.Geohash.from_point(-74.0, 40.7, precision=10)
 ```
 
 ### Finding Optimal Precision
@@ -143,7 +142,7 @@ precision = m3s.H3.find_precision(polygon, method='auto')
 precision = m3s.Geohash.find_precision(polygon, method='less')
 
 # More: prefer more, smaller cells (200-1000 cells)
-precision = m3s.A5.find_precision(polygon, method='more')
+precision = m3s.Quadkey.find_precision(polygon, method='more')
 
 # Balanced: balance coverage quality and cell count
 precision = m3s.S2.find_precision(polygon, method='balanced')
@@ -166,7 +165,7 @@ precision = m3s.H3.find_precision_for_area(target_km2=5.0, tolerance=0.1)
 
 ```python
 # Predefined use cases
-precision = m3s.A5.find_precision_for_use_case('building')      # ~0.001-0.01 km²
+precision = m3s.PlusCode.find_precision_for_use_case('building')  # ~0.001-0.01 km²
 precision = m3s.Geohash.find_precision_for_use_case('block')    # ~0.01-0.1 km²
 precision = m3s.H3.find_precision_for_use_case('neighborhood')  # ~1-10 km²
 precision = m3s.MGRS.find_precision_for_use_case('city')        # ~100-1000 km²
@@ -180,7 +179,7 @@ Get neighboring cells:
 
 ```python
 # Get cell
-cell = m3s.Geohash.from_geometry((40.7, -74.0))
+cell = m3s.Geohash.from_geometry((-74.0, 40.7))
 
 # Get neighbors (depth=1 includes cell + immediate neighbors)
 neighbors = m3s.Geohash.neighbors(cell, depth=1)
@@ -217,7 +216,7 @@ large_cells = cells.filter(lambda c: c.area_km2 > 10.0)
 
 # Filter by custom predicate
 def is_in_nyc(cell):
-    lat, lon = cell.centroid
+    lon, lat = cell.centroid
     return 40.5 <= lat <= 40.9 and -74.3 <= lon <= -73.7
 
 nyc_cells = cells.filter(is_in_nyc)
@@ -264,7 +263,6 @@ geohash_cells = m3s.Geohash.from_geometry(polygon)
 
 # Convert to another system (centroid method by default)
 h3_cells = geohash_cells.to_h3()
-a5_cells = geohash_cells.to_a5()
 s2_cells = geohash_cells.to_s2()
 
 # Specify conversion method
@@ -274,7 +272,6 @@ h3_cells_containment = geohash_cells.to_h3(method='containment')  # Contains cen
 # All conversion methods
 cells.to_h3()
 cells.to_geohash()
-cells.to_a5()
 cells.to_mgrs()
 cells.to_s2()
 cells.to_quadkey()
@@ -334,12 +331,12 @@ children = cells.refine(precision=9)
 ## GridCell Enhancements
 
 ```python
-cell = m3s.Geohash.from_geometry((40.7, -74.0))
+cell = m3s.Geohash.from_geometry((-74.0, 40.7))
 
 # Convenience properties
 cell.id              # Alias for identifier
 cell.bounds          # (min_lon, min_lat, max_lon, max_lat)
-cell.centroid        # (lat, lon)
+cell.centroid        # (lon, lat)
 cell.geometry        # Alias for polygon
 
 # Conversion methods
@@ -369,10 +366,10 @@ neighbors = grid.get_neighbors(cell)
 import m3s
 
 # Direct access, auto-precision
-cell = m3s.Geohash.from_geometry((40.7, -74.0))
+cell = m3s.Geohash.from_geometry((-74.0, 40.7))
 
 # Universal method, shorter names
-cells = m3s.Geohash.from_geometry((40.7, -74.1, 40.8, -73.9))
+cells = m3s.Geohash.from_geometry((-74.1, 40.7, -73.9, 40.8))
 neighbors = m3s.Geohash.neighbors(cell)
 ```
 
@@ -448,11 +445,11 @@ area = Polygon([...])
 # Compare different grid systems
 geohash_cells = m3s.Geohash.from_geometry(area)
 h3_cells = m3s.H3.from_geometry(area)
-a5_cells = m3s.A5.from_geometry(area)
+s2_cells = m3s.S2.from_geometry(area)
 
 print(f"Geohash: {len(geohash_cells)} cells")
 print(f"H3: {len(h3_cells)} cells")
-print(f"A5: {len(a5_cells)} cells")
+print(f"S2: {len(s2_cells)} cells")
 ```
 
 ### Pattern 3: Spatial Join with Grid Cells
@@ -535,7 +532,7 @@ for method in ['less', 'auto', 'more']:
 
 The new M3S simplified API provides:
 
-✅ **Easy access**: `m3s.A5`, `m3s.Geohash`, etc.
+✅ **Easy access**: `m3s.H3`, `m3s.Geohash`, etc.
 ✅ **Universal methods**: `from_geometry()` handles any geometry type
 ✅ **Auto-precision**: Intelligent defaults based on coverage optimization
 ✅ **Easy conversion**: `.to_h3()`, `.to_geohash()`, etc.

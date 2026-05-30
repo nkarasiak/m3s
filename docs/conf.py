@@ -33,6 +33,10 @@ extensions = [
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
+# The sphinx_gallery_conf dict holds a sort-key class, which Sphinx cannot pickle
+# for its environment cache. The warning is harmless (cache is simply skipped).
+suppress_warnings = ["config.cache"]
+
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
@@ -188,6 +192,8 @@ sphinx_gallery_conf = {
     'first_notebook_cell': '%matplotlib inline',
     'remove_config_comments': True,
     'thumbnail_size': (200, 200),     # size of thumbnail images
+    # Embed rich HTML reprs (e.g. interactive folium maps) in the gallery output.
+    'capture_repr': ('_repr_html_', '__repr__'),
 }
 
 if sorter:

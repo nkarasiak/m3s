@@ -1,5 +1,6 @@
 """
 Grid System Enhancements Example.
+=================================
 
 This example demonstrates the new grid system enhancements in M3S:
 1. What3Words integration
@@ -7,6 +8,8 @@ This example demonstrates the new grid system enhancements in M3S:
 3. Grid cell relationship analysis
 4. Multi-resolution grid operations
 """
+
+# sphinx_gallery_thumbnail_path = '_static/thumb_grid_enhancements.png'
 
 import geopandas as gpd
 import matplotlib.pyplot as plt

@@ -32,8 +32,8 @@ class MultiGridComparator:
     ...     ('h3', 7),
     ...     ('s2', 10)
     ... ])
-    >>> results = comparator.query_all(40.7128, -74.0060)
-    >>> df = comparator.compare_coverage((40.7, -74.1, 40.8, -73.9))
+    >>> results = comparator.query_all(-74.0060, 40.7128)
+    >>> df = comparator.compare_coverage((-74.1, 40.7, -73.9, 40.8))
     """
 
     def __init__(self, grid_configs: List[Tuple[str, int]]):
@@ -53,16 +53,18 @@ class MultiGridComparator:
         for system, precision in self.grid_configs:
             ParameterNormalizer.validate_precision(system, precision)
 
-    def query_all(self, latitude: float, longitude: float) -> Dict[str, GridCell]:
+    def query_all(self, longitude: float, latitude: float) -> Dict[str, GridCell]:
         """
         Query same point across all configured grid systems.
 
+        Uses GIS-native (lon, lat) argument order.
+
         Parameters
         ----------
-        latitude : float
-            Latitude in decimal degrees
         longitude : float
             Longitude in decimal degrees
+        latitude : float
+            Latitude in decimal degrees
 
         Returns
         -------
@@ -75,7 +77,7 @@ class MultiGridComparator:
             result = (
                 GridBuilder.for_system(system)
                 .with_precision(precision)
-                .at_point(latitude, longitude)
+                .at_point(longitude, latitude)
                 .execute()
             )
             results[system] = result.single
@@ -84,24 +86,26 @@ class MultiGridComparator:
 
     def query_all_in_bbox(
         self,
-        min_lat: float,
         min_lon: float,
-        max_lat: float,
+        min_lat: float,
         max_lon: float,
+        max_lat: float,
     ) -> Dict[str, List[GridCell]]:
         """
         Query bounding box across all configured grid systems.
 
+        Uses GIS-native (min_lon, min_lat, max_lon, max_lat) argument order.
+
         Parameters
         ----------
-        min_lat : float
-            Minimum latitude
         min_lon : float
             Minimum longitude
-        max_lat : float
-            Maximum latitude
+        min_lat : float
+            Minimum latitude
         max_lon : float
             Maximum longitude
+        max_lat : float
+            Maximum latitude
 
         Returns
         -------
@@ -114,7 +118,7 @@ class MultiGridComparator:
             result = (
                 GridBuilder.for_system(system)
                 .with_precision(precision)
-                .in_bbox(min_lat, min_lon, max_lat, max_lon)
+                .in_bbox(min_lon, min_lat, max_lon, max_lat)
                 .execute()
             )
             results[system] = result.many
@@ -131,7 +135,7 @@ class MultiGridComparator:
         Parameters
         ----------
         bounds : Tuple[float, float, float, float]
-            Bounding box (min_lat, min_lon, max_lat, max_lon)
+            Bounding box (min_lon, min_lat, max_lon, max_lat), GIS-native order
 
         Returns
         -------
@@ -139,14 +143,14 @@ class MultiGridComparator:
             Comparison table with columns: system, precision, cell_count,
             total_area_km2, avg_cell_size_km2, coverage_efficiency
         """
-        min_lat, min_lon, max_lat, max_lon = bounds
+        min_lon, min_lat, max_lon, max_lat = bounds
 
         rows = []
         for system, precision in self.grid_configs:
             result = (
                 GridBuilder.for_system(system)
                 .with_precision(precision)
-                .in_bbox(min_lat, min_lon, max_lat, max_lon)
+                .in_bbox(min_lon, min_lat, max_lon, max_lat)
                 .execute()
             )
 
@@ -222,24 +226,26 @@ class MultiGridComparator:
         return pd.DataFrame(rows)
 
     def compare_point_coverage(
-        self, latitude: float, longitude: float
+        self, longitude: float, latitude: float
     ) -> gpd.GeoDataFrame:
         """
         Visualize how different grid systems cover the same point.
 
+        Uses GIS-native (lon, lat) argument order.
+
         Parameters
         ----------
-        latitude : float
-            Latitude in decimal degrees
         longitude : float
             Longitude in decimal degrees
+        latitude : float
+            Latitude in decimal degrees
 
         Returns
         -------
         gpd.GeoDataFrame
             GeoDataFrame with one row per grid system showing cell geometries
         """
-        results = self.query_all(latitude, longitude)
+        results = self.query_all(longitude, latitude)
 
         rows = []
         for system, cell in results.items():
@@ -260,7 +266,7 @@ class MultiGridComparator:
         point_row = {
             "system": "query_point",
             "precision": None,
-            "identifier": f"({latitude}, {longitude})",
+            "identifier": f"({longitude}, {latitude})",
             "area_km2": 0.0,
             "geometry": Point(longitude, latitude),
         }
@@ -351,7 +357,7 @@ class MultiGridComparator:
         Parameters
         ----------
         bounds : Tuple[float, float, float, float]
-            Bounding box (min_lat, min_lon, max_lat, max_lon)
+            Bounding box (min_lon, min_lat, max_lon, max_lat), GIS-native order
         max_cells_per_system : int, optional
             Limit cells per system to avoid overwhelming visualizations
 
@@ -360,7 +366,7 @@ class MultiGridComparator:
         gpd.GeoDataFrame
             GeoDataFrame with all cells from all systems
         """
-        min_lat, min_lon, max_lat, max_lon = bounds
+        min_lon, min_lat, max_lon, max_lat = bounds
 
         all_cells = []
 
@@ -368,7 +374,7 @@ class MultiGridComparator:
             result = (
                 GridBuilder.for_system(system)
                 .with_precision(precision)
-                .in_bbox(min_lat, min_lon, max_lat, max_lon)
+                .in_bbox(min_lon, min_lat, max_lon, max_lat)
                 .limit(max_cells_per_system)
                 .execute()
             )
