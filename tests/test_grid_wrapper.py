@@ -362,8 +362,3 @@ class TestContractAndInference:
         cells = m3s.Geohash.from_geometry((-74.02, 40.70, -74.01, 40.71))
         with pytest.raises(NotImplementedError):
             cells.coarsen(3)
-
-    def test_what3words_singleton_default_precision(self):
-        """What3Words singleton uses its only valid precision (1)."""
-        cell = m3s.What3Words.from_point(-74.0, 40.7)
-        assert cell.precision == 1

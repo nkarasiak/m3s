@@ -28,7 +28,6 @@ class ParameterNormalizer:
         "gars": "resolution",
         "maidenhead": "precision",
         "pluscode": "precision",
-        "what3words": "precision",
         "geohash_int": "precision",
     }
 
@@ -44,7 +43,6 @@ class ParameterNormalizer:
         "gars": (1, 3),  # 30', 15', 5'
         "maidenhead": (1, 6),  # 2-12 characters (pairs)
         "pluscode": (2, 15),  # 2-15 digits
-        "what3words": (1, 1),  # Fixed 3m resolution
         "geohash_int": (1, 12),
     }
 

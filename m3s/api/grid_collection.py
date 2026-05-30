@@ -329,10 +329,6 @@ class GridCellCollection:
         """Convert to Plus Code grid system."""
         return self._convert_to("pluscode", method)
 
-    def to_what3words(self, method: str = "centroid") -> "GridCellCollection":
-        """Convert to What3Words grid system."""
-        return self._convert_to("what3words", method)
-
     def _convert_to(self, target_system: str, method: str) -> "GridCellCollection":
         """
         Convert cells across grid systems.

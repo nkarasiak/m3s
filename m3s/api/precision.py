@@ -227,9 +227,6 @@ class AreaCalculator:
             0.76,  # 14 digits
             0.095,  # 15 digits
         ],
-        "what3words": [  # 3m × 3m fixed
-            0.000009,  # 3m × 3m
-        ],
     }
 
     # Valid precision ranges for each grid system
@@ -245,7 +242,6 @@ class AreaCalculator:
         "gars": (1, 3),
         "maidenhead": (1, 6),
         "pluscode": (2, 15),
-        "what3words": (1, 1),
     }
 
     def __init__(self, grid_system: str):
@@ -408,7 +404,6 @@ class PerformanceProfiler:
             "quadkey": 1.1,  # Fast
             "slippy": 1.1,  # Fast
             "mgrs": 1.5,  # UTM conversions add overhead
-            "what3words": 3.0,  # API calls required
         }
         multiplier = system_multipliers.get(grid_system, 1.3)
 
@@ -526,17 +521,6 @@ USE_CASE_PRESETS = {
         "street": 12,
         "building": 13,
         "room": 14,
-    },
-    "what3words": {
-        "global": 1,
-        "continental": 1,
-        "country": 1,
-        "region": 1,
-        "city": 1,
-        "neighborhood": 1,
-        "street": 1,
-        "building": 1,
-        "room": 1,
     },
 }
 

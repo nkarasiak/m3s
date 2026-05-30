@@ -461,7 +461,6 @@ class GridWrapper(H3VerbsMixin):
             "GARSGrid": (1, 5),
             "MaidenheadGrid": (1, 6),
             "PlusCodeGrid": (2, 15),
-            "What3WordsGrid": (1, 1),  # Fixed precision (3m squares)
         }
 
         return ranges.get(grid_name, (1, 12))

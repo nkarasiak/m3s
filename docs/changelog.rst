@@ -89,7 +89,6 @@ Added
   - ``m3s.GARS`` (default precision 2)
   - ``m3s.Maidenhead`` (default precision 4)
   - ``m3s.PlusCode`` (default precision 5)
-  - ``m3s.What3Words`` (default precision 1)
 
 - **Documentation**: Comprehensive guides and examples
 

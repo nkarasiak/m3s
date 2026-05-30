@@ -3,10 +3,9 @@ Grid System Enhancements Example.
 =================================
 
 This example demonstrates the new grid system enhancements in M3S:
-1. What3Words integration
-2. Grid conversion utilities
-3. Grid cell relationship analysis
-4. Multi-resolution grid operations
+1. Grid conversion utilities
+2. Grid cell relationship analysis
+3. Multi-resolution grid operations
 """
 
 # sphinx_gallery_thumbnail_path = '_static/thumb_grid_enhancements.png'
@@ -20,7 +19,6 @@ from m3s import (
     GeohashGrid,
     H3Grid,
     QuadkeyGrid,
-    What3WordsGrid,
     analyze_relationship,
     convert_cell,
     create_adaptive_grid,
@@ -30,27 +28,6 @@ from m3s import (
     find_adjacent_cells,
     list_grid_systems,
 )
-
-
-def demonstrate_what3words():
-    """Demonstrate What3Words grid integration."""
-    print("=== What3Words Grid System ===")
-
-    # Create What3Words grid
-    w3w_grid = What3WordsGrid()
-    print(f"What3Words cell area: {w3w_grid.area_km2} km²")
-
-    # Get cell for NYC coordinates
-    nyc_cell = w3w_grid.get_cell_from_point(40.7128, -74.0060)
-    print(f"NYC What3Words cell: {nyc_cell.identifier}")
-    print(f"Cell area: {nyc_cell.area_km2:.9f} km²")
-
-    # Find neighbors
-    neighbors = w3w_grid.get_neighbors(nyc_cell)
-    print(f"Number of neighbors: {len(neighbors)}")
-    print("Neighbor identifiers:", [n.identifier[:20] + "..." for n in neighbors[:3]])
-
-    print()
 
 
 def demonstrate_grid_conversion():
@@ -72,12 +49,10 @@ def demonstrate_grid_conversion():
     # Convert to different systems
     h3_cell = convert_cell(source_cell, "h3", method="centroid")
     quadkey_cell = convert_cell(source_cell, "quadkey", method="centroid")
-    w3w_cell = convert_cell(source_cell, "what3words", method="centroid")
 
     print("\nConversions:")
     print(f"  H3: {h3_cell.identifier}")
     print(f"  Quadkey: {quadkey_cell.identifier}")
-    print(f"  What3Words: {w3w_cell.identifier}")
 
     # Create conversion table for small area
     bounds = (-74.01, 40.71, -74.00, 40.72)
@@ -432,7 +407,6 @@ def main():
     print("=" * 50)
     print()
 
-    demonstrate_what3words()
     demonstrate_grid_conversion()
     demonstrate_relationship_analysis()
     demonstrate_multiresolution()
@@ -444,7 +418,6 @@ def main():
 
     print("All demonstrations completed successfully!")
     print("\nKey features demonstrated:")
-    print("✓ What3Words grid integration with 3m precision")
     print("✓ Grid conversion between different systems")
     print("✓ Spatial relationship analysis (containment, adjacency)")
     print("✓ Multi-resolution grid operations with adaptive selection")

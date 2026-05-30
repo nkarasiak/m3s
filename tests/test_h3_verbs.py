@@ -33,7 +33,6 @@ ALL_SINGLETONS = [
     "GARS",
     "Maidenhead",
     "PlusCode",
-    "What3Words",
 ]
 
 HIERARCHICAL = ["H3", "S2", "Quadkey", "Slippy"]
@@ -44,7 +43,6 @@ NON_HIERARCHICAL = [
     "GARS",
     "Maidenhead",
     "PlusCode",
-    "What3Words",
 ]
 
 

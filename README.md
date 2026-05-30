@@ -1,6 +1,6 @@
 # M3S - Multi Spatial Subdivision System
 
-A unified Python package for working with hierarchical spatial grid systems. M3S (Multi Spatial Subdivision System) provides a consistent interface for working with different spatial indexing systems including Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, C-squares, GARS, Maidenhead, Plus Codes, and What3Words.
+A unified Python package for working with hierarchical spatial grid systems. M3S (Multi Spatial Subdivision System) provides a consistent interface for working with different spatial indexing systems including Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, C-squares, GARS, Maidenhead, and Plus Codes.
 
 ## Features
 
@@ -13,7 +13,7 @@ A unified Python package for working with hierarchical spatial grid systems. M3S
 - **🔙 Fully Compatible**: Existing code works unchanged
 
 ### Core Capabilities
-- **11 Grid Systems**: Geohash, MGRS, H3, Quadkey, S2, Slippy, C-squares, GARS, Maidenhead, Plus Codes, What3Words
+- **10 Grid Systems**: Geohash, MGRS, H3, Quadkey, S2, Slippy, C-squares, GARS, Maidenhead, Plus Codes
 - **Area Calculations**: All grids support `area_km2` property
 - **GeoPandas Integration**: Native GeoDataFrame support with automatic CRS transformation
 - **UTM Zone Integration**: Automatic UTM zone detection and inclusion
@@ -97,7 +97,6 @@ precision = m3s.Geohash.find_precision_for_use_case('neighborhood')  # ~1-10 km�
 - `m3s.GARS` - Global Area Reference System
 - `m3s.Maidenhead` - Amateur radio locator
 - `m3s.PlusCode` - Open Location Codes
-- `m3s.What3Words` - 3-meter precision squares
 
 > **Coordinate order:** the simplified API uses GIS-native **(lon, lat)** / (x, y)
 > order for coordinate tuples — matching shapely, geopandas and pyproj.
@@ -141,7 +140,7 @@ them freely.
 ```python
 from m3s import (
     GeohashGrid, MGRSGrid, H3Grid, QuadkeyGrid, S2Grid, SlippyGrid,
-    CSquaresGrid, GARSGrid, MaidenheadGrid, PlusCodeGrid, What3WordsGrid
+    CSquaresGrid, GARSGrid, MaidenheadGrid, PlusCodeGrid
 )
 from shapely.geometry import Point, box
 import geopandas as gpd
@@ -158,7 +157,6 @@ grids = {
     'GARS': GARSGrid(precision=2),              # Global Area Reference System
     'Maidenhead': MaidenheadGrid(precision=3),  # Amateur radio locator
     'Plus Codes': PlusCodeGrid(precision=10),   # Open Location Codes
-    'What3Words': What3WordsGrid(precision=1)   # 3-meter precision squares (only precision 1)
 }
 
 # Get cell areas

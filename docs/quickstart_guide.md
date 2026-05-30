@@ -29,7 +29,6 @@ m3s.CSquares     # Marine data indexing
 m3s.GARS         # Global Area Reference
 m3s.Maidenhead   # Amateur radio locator
 m3s.PlusCode     # Open Location Codes
-m3s.What3Words   # 3-meter precision squares
 ```
 
 ### GridCell
@@ -280,7 +279,6 @@ cells.to_csquares()
 cells.to_gars()
 cells.to_maidenhead()
 cells.to_pluscode()
-cells.to_what3words()
 ```
 
 ## Advanced Workflows

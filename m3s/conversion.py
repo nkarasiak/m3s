@@ -22,7 +22,6 @@ from .pluscode import PlusCodeGrid
 from .quadkey import QuadkeyGrid
 from .s2 import S2Grid
 from .slippy import SlippyGrid
-from .what3words import What3WordsGrid
 
 
 class GridConverter:
@@ -45,7 +44,6 @@ class GridConverter:
         "gars": GARSGrid,
         "maidenhead": MaidenheadGrid,
         "pluscode": PlusCodeGrid,
-        "what3words": What3WordsGrid,
     }
 
     # Default precision/resolution mappings for equivalent area coverage
@@ -60,7 +58,6 @@ class GridConverter:
         "gars": 2,  # ~464 km²
         "maidenhead": 4,  # ~232 km²
         "pluscode": 4,  # ~12.5m resolution in this implementation
-        "what3words": 1,  # ~9 m²
     }
 
     def __init__(self) -> None:
@@ -296,7 +293,7 @@ class GridConverter:
         best_diff = float("inf")
 
         # Test precision levels around the default
-        test_range = range(1, 16) if target_system != "what3words" else [1]
+        test_range = range(1, 16)
 
         for test_precision in test_range:
             try:

@@ -91,11 +91,6 @@ Grid System Comparison
      - 2-15
      - P4: ~12m, P6: ~60cm
      - Address replacement, geocoding
-   * - **What3Words**
-     - Square
-     - 1 (fixed)
-     - 3m × 3m (fixed)
-     - Precise location sharing, logistics
 
 How to Choose
 -------------
@@ -129,8 +124,6 @@ By Use Case
 **Address Replacement**
    **Plus Codes** - Open-source, works anywhere, short codes for nearby locations
 
-   **What3Words** - Human-readable 3-word addresses, fixed 3m precision
-
 **Amateur Radio**
    **Maidenhead** - Ham radio standard, optimized for voice communication
 
@@ -159,16 +152,13 @@ By Precision Needs
 ~~~~~~~~~~~~~~~~~~
 
 **High Precision (meters)**
-   **MGRS** (1m), **S2** (high levels), **H3** (res 12+), **What3Words** (3m fixed)
+   **MGRS** (1m), **S2** (high levels), **H3** (res 12+)
 
 **Medium Precision (kilometers)**
    **H3**, **Geohash**, **Quadkey**, **S2**
 
 **Coarse Precision (100+ km)**
    **MGRS** (P1), **C-squares** (P1), **GARS**
-
-**Fixed Precision**
-   **What3Words** - Always 3m × 3m
 
 Examples
 --------

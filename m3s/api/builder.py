@@ -21,7 +21,7 @@ class GridBuilder:
     Fluent interface for building and executing grid queries.
 
     Enables method chaining for common workflows, eliminating verbose
-    multi-step operations. Supports all 11 grid systems through a
+    multi-step operations. Supports all 10 grid systems through a
     unified interface.
 
     Examples
@@ -86,7 +86,7 @@ class GridBuilder:
         system : str
             Grid system name: 'geohash', 'h3', 's2', 'quadkey', 'slippy',
             'mgrs', 'csquares', 'gars', 'maidenhead', 'pluscode',
-            'what3words', 'geohash_int'
+            'geohash_int'
 
         Returns
         -------
@@ -648,7 +648,6 @@ class GridBuilder:
         from ..quadkey import QuadkeyGrid
         from ..s2 import S2Grid
         from ..slippy import SlippyGrid
-        from ..what3words import What3WordsGrid
 
         grid_classes = {
             "geohash": GeohashGrid,
@@ -661,7 +660,6 @@ class GridBuilder:
             "gars": GARSGrid,
             "maidenhead": MaidenheadGrid,
             "pluscode": PlusCodeGrid,
-            "what3words": What3WordsGrid,
             "geohash_int": GeohashGrid,  # Alias
         }
 

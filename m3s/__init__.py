@@ -86,7 +86,6 @@ from .relationships import (
 )
 from .s2 import S2Grid
 from .slippy import SlippyGrid
-from .what3words import What3WordsGrid
 
 # Simplified API: Grid system singletons for direct access
 Geohash = GridWrapper(GeohashGrid, default_precision=5)
@@ -102,8 +101,6 @@ GARS = GridWrapper(GARSGrid, default_precision=2)
 Maidenhead = GridWrapper(MaidenheadGrid, default_precision=4)
 # Max precision is 7, use 5 as default.
 PlusCode = GridWrapper(PlusCodeGrid, default_precision=5)
-# Only supports precision 1 (3m squares).
-What3Words = GridWrapper(What3WordsGrid, default_precision=1)
 
 __version__ = "0.5.2"
 __all__ = [
@@ -118,7 +115,6 @@ __all__ = [
     "GARS",
     "Maidenhead",
     "PlusCode",
-    "What3Words",
     # Core grid systems (for advanced use)
     "BaseGrid",
     "GeohashGrid",
@@ -131,7 +127,6 @@ __all__ = [
     "QuadkeyGrid",
     "S2Grid",
     "SlippyGrid",
-    "What3WordsGrid",
     # Modern API
     "GridBuilder",
     "GridWrapper",

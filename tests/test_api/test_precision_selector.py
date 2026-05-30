@@ -26,7 +26,6 @@ class TestAreaCalculator:
             "gars",
             "maidenhead",
             "pluscode",
-            "what3words",
         ]
 
         for system in systems:

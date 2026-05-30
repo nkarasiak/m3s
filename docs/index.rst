@@ -180,10 +180,6 @@ M3S supports **11 spatial grid systems** with unified precision parameters:
      - Open Location Codes
      - Address replacement, geocoding
      - 2-15
-   * - **What3Words**
-     - 3-meter precision squares
-     - Precise location reference
-     - 1 (fixed)
 
 Key Features
 ============

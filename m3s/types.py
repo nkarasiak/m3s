@@ -55,8 +55,6 @@ class GridSystemType(Enum):
         Amateur radio grid locator system
     PLUSCODE : str
         Open Location Codes (Plus Codes)
-    WHAT3WORDS : str
-        What3Words-style 3-meter precision squares
     """
 
     GEOHASH = "geohash"
@@ -69,7 +67,6 @@ class GridSystemType(Enum):
     GARS = "gars"
     MAIDENHEAD = "maidenhead"
     PLUSCODE = "pluscode"
-    WHAT3WORDS = "what3words"
 
     @classmethod
     def from_string(cls, value: str) -> Self:

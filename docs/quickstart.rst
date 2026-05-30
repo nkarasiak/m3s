@@ -33,7 +33,7 @@ Get Cell at a Point
    print(f"Area: {cell.area_km2:.2f} km²")
    print(f"Centroid: {cell.centroid}")
 
-   # Works with all 11 grid systems!
+   # Works with all 10 grid systems!
    h3_cell = m3s.H3.from_geometry((40.7128, -74.0060))
    mgrs_cell = m3s.MGRS.from_geometry((40.7128, -74.0060))
    s2_cell = m3s.S2.from_geometry((40.7128, -74.0060))
@@ -178,7 +178,6 @@ All 12 grid systems are directly accessible:
    m3s.GARS         # Global Area Reference
    m3s.Maidenhead   # Amateur radio locator
    m3s.PlusCode     # Open Location Codes
-   m3s.What3Words   # 3-meter precision squares
 
 GridBuilder API (Advanced)
 --------------------------
