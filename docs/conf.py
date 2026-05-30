@@ -7,6 +7,8 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath(".."))
+# Make the shared interactive-map helper importable from gallery examples.
+sys.path.insert(0, os.path.abspath("../examples"))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -186,7 +188,7 @@ sphinx_gallery_conf = {
     'examples_dirs': '../examples',   # path to your example scripts
     'gallery_dirs': 'auto_examples',  # path to where to save gallery generated output
     'filename_pattern': r'.*\.py',     # pattern to identify example files
-    'ignore_pattern': r'__init__\.py|parallel_processing_example\.py',
+    'ignore_pattern': r'__init__\.py|parallel_processing_example\.py|_grid_interactive\.py',
     'plot_gallery': True,             # whether to execute examples and create plots
     'download_all_examples': False,   # whether to create download links
     'first_notebook_cell': '%matplotlib inline',

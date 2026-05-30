@@ -60,7 +60,10 @@
       "Bash(rtk git *)",
       "Bash(git check-ignore *)",
       "Bash(echo \"exit:$?\")",
-      "Bash(rtk wc *)"
+      "Bash(rtk wc *)",
+      "Bash(rtk read *)",
+      "Bash(rtk grep *)",
+      "Bash(tee /tmp/m3s_build.log)"
     ],
     "deny": [],
     "ask": []
