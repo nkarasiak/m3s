@@ -8,6 +8,7 @@ from shapely.ops import unary_union
 
 from m3s import EAQuadGrid, list_grid_systems
 from m3s.base import GridCell
+from m3s.eaquad import _format_id, _get_transformers, _ncols, _parse_id
 
 
 class TestEAQuadInit:
@@ -166,11 +167,26 @@ class TestEAQuadNeighbors:
         assert cell.identifier not in ids
 
     def test_neighbors_edge_fewer(self):
-        """A cell at a domain corner has fewer than 8 neighbours (no wrap)."""
+        """A polar-row cell has fewer than 8 neighbours (latitude does not wrap)."""
         grid = EAQuadGrid(precision=2)  # 256 km
         cell = grid.get_cell_from_point(-89.9, -179.9)
         neighbors = grid.get_neighbors(cell)
         assert 0 < len(neighbors) < 8
+
+    def test_neighbors_wrap_antimeridian(self):
+        """Longitude wraps: east neighbour of the last column is a column-0 cell."""
+        grid = EAQuadGrid(precision=2)  # 256 km
+        east_cell = grid.get_cell_from_point(0.0, 180.0)
+        size_km, col, row = _parse_id(east_cell.identifier)
+        assert col == _ncols(size_km) - 1  # easternmost column
+
+        neighbors = grid.get_neighbors(east_cell)
+        ids = {n.identifier for n in neighbors}
+        # east neighbour wraps to column 0 at the same row
+        assert _format_id(size_km, 0, row) in ids
+        # still <= 8, unique, excludes self
+        assert len(neighbors) == len(ids) <= 8
+        assert east_cell.identifier not in ids
 
 
 class TestEAQuadBbox:
@@ -211,6 +227,32 @@ class TestEAQuadEdges:
             assert isinstance(cell, GridCell)
             assert cell.polygon.is_valid
             assert cell.polygon.area > 0
+
+    def test_high_latitude_valid(self):
+        """Coverage is global to +/-90: high-latitude points return valid cells."""
+        grid = EAQuadGrid(precision=2)
+        for lat in (85.0, 88.0, 90.0, -90.0):
+            cell = grid.get_cell_from_point(lat, 10.0)
+            assert isinstance(cell, GridCell)
+            assert cell.polygon.is_valid
+            assert cell.polygon.area > 0
+
+    def test_boundary_cell_clipped_but_nominal_area(self):
+        """Boundary cells are clipped to the domain yet report nominal area."""
+        grid = EAQuadGrid(precision=2)  # 256 km
+        east_cell = grid.get_cell_from_point(0.0, 180.0)
+        size_km, col, _ = _parse_id(east_cell.identifier)
+        assert col == _ncols(size_km) - 1  # easternmost (partial) column
+
+        # The clipped cell is physically narrower than a full nominal cell.
+        fwd, _ = _get_transformers()
+        min_lon, _, max_lon, _ = east_cell.polygon.bounds
+        x_lo, _ = fwd.transform(min_lon, 0.0)
+        x_hi, _ = fwd.transform(max_lon, 0.0)
+        assert (x_hi - x_lo) < size_km * 1000
+
+        # area_km2 still reports the nominal size_km ** 2 (no boundary special-casing).
+        assert grid.area_km2 == float(size_km**2)
 
     def test_registered(self):
         """The grid is discoverable via list_grid_systems."""

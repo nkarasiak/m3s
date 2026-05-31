@@ -31,6 +31,10 @@ class S2Grid(BaseGrid):
         S2 cell level (0-30), where higher levels provide smaller cells
     """
 
+    MIN_PRECISION = 0
+    MAX_PRECISION = 30
+    DEFAULT_PRECISION = 10
+
     def __init__(self, precision: int | None = None, level: int | None = None):
         """
         Initialize S2 grid.
@@ -58,12 +62,15 @@ class S2Grid(BaseGrid):
             warnings.warn(
                 "The 'level' parameter is deprecated. Use 'precision' instead.",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
             precision = level
 
-        if not 0 <= precision <= 30:
-            raise ValueError("S2 precision must be between 0 and 30")
+        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
+            raise ValueError(
+                f"S2 precision must be between {self.MIN_PRECISION} and "
+                f"{self.MAX_PRECISION}"
+            )
 
         super().__init__(precision)
         self.level = precision  # Keep for backwards compatibility

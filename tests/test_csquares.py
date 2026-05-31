@@ -358,3 +358,41 @@ class TestCSquaresGrid:
         # Test invalid subdivision part
         with pytest.raises(ValueError, match="Invalid subdivision part"):
             grid._decode_csquare("1403:0:00")  # Single digit instead of 2
+
+
+class TestCSquaresHierarchy:
+    """C-squares expose the standard get_children/get_parent interface."""
+
+    @pytest.mark.parametrize("precision,n_children", [(1, 4), (2, 25), (3, 4), (4, 25)])
+    def test_get_children_aperture(self, precision, n_children):
+        """Aperture varies by level (10->5 is 2x2, 5->1 is 5x5, ...)."""
+        grid = CSquaresGrid(precision=precision)
+        cell = grid.get_cell_from_point(40.7128, -74.0060)
+        children = grid.get_children(cell)
+
+        assert len(children) == n_children
+        assert all(c.precision == precision + 1 for c in children)
+        assert all(
+            cell.polygon.buffer(1e-9).contains(c.polygon.centroid) for c in children
+        )
+
+    def test_parent_child_roundtrip(self):
+        """The parent of any child is the original cell."""
+        grid = CSquaresGrid(precision=2)
+        cell = grid.get_cell_from_point(40.7128, -74.0060)
+        child = grid.get_children(cell)[0]
+        parent = CSquaresGrid(precision=3).get_parent(child)
+        assert parent.identifier == cell.identifier
+
+    def test_children_finest_empty(self):
+        """The finest precision has no children."""
+        grid = CSquaresGrid(precision=5)
+        cell = grid.get_cell_from_point(40.7128, -74.0060)
+        assert grid.get_children(cell) == []
+
+    def test_parent_coarsest_raises(self):
+        """The coarsest precision has no parent."""
+        grid = CSquaresGrid(precision=1)
+        cell = grid.get_cell_from_point(40.7128, -74.0060)
+        with pytest.raises(ValueError):
+            grid.get_parent(cell)

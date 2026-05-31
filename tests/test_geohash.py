@@ -82,3 +82,51 @@ class TestGeohashGrid:
         for expanded_cell in expanded:
             assert expanded_cell.identifier.startswith(cell.identifier)
             assert len(expanded_cell.identifier) == len(cell.identifier) + 1
+
+
+class TestGeohashHierarchy:
+    """Geohash exposes the standard get_children/get_parent interface."""
+
+    def test_get_children(self):
+        """A cell has 32 children one precision finer, each nested within it."""
+        grid = GeohashGrid(precision=3)
+        cell = grid.get_cell_from_identifier("dr5")
+        children = grid.get_children(cell)
+
+        assert len(children) == 32
+        for child in children:
+            assert child.identifier.startswith(cell.identifier)
+            assert child.precision == cell.precision + 1
+            assert cell.polygon.buffer(1e-9).contains(child.polygon.centroid)
+
+    def test_get_children_finest_empty(self):
+        """The finest precision (12) has no children."""
+        grid = GeohashGrid(precision=12)
+        cell = grid.get_cell_from_identifier("dr5regw3pg6t")
+        assert grid.get_children(cell) == []
+
+    def test_get_parent(self):
+        """The parent drops the last character and is one precision coarser."""
+        grid = GeohashGrid(precision=4)
+        cell = grid.get_cell_from_identifier("dr5r")
+        parent = grid.get_parent(cell)
+        assert parent.identifier == "dr5"
+        assert parent.precision == 3
+
+    def test_get_parent_coarsest_raises(self):
+        """The coarsest precision (1) has no parent."""
+        grid = GeohashGrid(precision=1)
+        cell = grid.get_cell_from_identifier("d")
+        with pytest.raises(ValueError):
+            grid.get_parent(cell)
+
+    def test_refine_coarsen_roundtrip(self):
+        """The wrapper's refine/coarsen work now that hierarchy is supported."""
+        import m3s
+
+        cell = m3s.Geohash.from_point(-74.0060, 40.7128, precision=5)
+        collection = m3s.Geohash.neighbors(cell)
+        refined = collection.refine(6)
+        assert all(c.precision == 6 for c in refined)
+        coarsened = collection.coarsen(4)
+        assert all(c.precision == 4 for c in coarsened)

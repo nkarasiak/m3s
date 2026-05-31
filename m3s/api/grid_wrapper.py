@@ -27,10 +27,9 @@ class GridWrapper(H3VerbsMixin):
     ----------
     grid_class : Type[BaseGrid]
         Grid system class to wrap
-    default_precision : int
-        Default precision when not specified
-    precision_param_name : str, optional
-        Parameter name for precision ('precision', 'resolution', 'level', 'zoom')
+    default_precision : int, optional
+        Default precision when not specified. Defaults to the grid class's
+        ``DEFAULT_PRECISION``.
 
     Examples
     --------
@@ -49,13 +48,15 @@ class GridWrapper(H3VerbsMixin):
     def __init__(
         self,
         grid_class: Type[BaseGrid],
-        default_precision: int,
-        precision_param_name: str = "precision",
+        default_precision: Optional[int] = None,
     ):
         """Initialize grid wrapper."""
         self._grid_class = grid_class
-        self._default_precision = default_precision
-        self._precision_param_name = precision_param_name
+        self._default_precision = (
+            default_precision
+            if default_precision is not None
+            else grid_class.DEFAULT_PRECISION
+        )
         self._cached_grids = {}
         self._precision_finder = PrecisionFinder(self)
 
@@ -320,7 +321,7 @@ class GridWrapper(H3VerbsMixin):
         GridWrapper
             New wrapper instance with specified default precision
         """
-        wrapper = GridWrapper(self._grid_class, precision, self._precision_param_name)
+        wrapper = GridWrapper(self._grid_class, precision)
         wrapper._cached_grids = self._cached_grids  # Share cache
         return wrapper
 
@@ -403,9 +404,8 @@ class GridWrapper(H3VerbsMixin):
             Grid instance
         """
         if precision not in self._cached_grids:
-            # Create grid with appropriate parameter name
-            kwargs = {self._precision_param_name: precision}
-            self._cached_grids[precision] = self._grid_class(**kwargs)
+            # Every grid accepts the standardized ``precision`` keyword.
+            self._cached_grids[precision] = self._grid_class(precision=precision)
 
         return self._cached_grids[precision]
 
@@ -445,25 +445,14 @@ class GridWrapper(H3VerbsMixin):
         return cells
 
     def _get_precision_range(self) -> Tuple[int, int]:
-        """Get valid precision range for this grid system."""
-        # Grid-specific ranges (could be made more sophisticated)
-        # These are approximate ranges
-        grid_name = self._grid_class.__name__
+        """
+        Get valid precision range for this grid system.
 
-        ranges = {
-            "GeohashGrid": (1, 12),
-            "H3Grid": (0, 15),
-            "S2Grid": (0, 30),
-            "QuadkeyGrid": (1, 23),
-            "SlippyGrid": (0, 20),
-            "MGRSGrid": (1, 5),
-            "CSquaresGrid": (1, 10),
-            "GARSGrid": (1, 5),
-            "MaidenheadGrid": (1, 6),
-            "PlusCodeGrid": (2, 15),
-        }
-
-        return ranges.get(grid_name, (1, 12))
+        Derived from the grid class's ``MIN_PRECISION``/``MAX_PRECISION``
+        attributes (the single source of truth, matching each grid's own
+        constructor validation) so the range can never drift.
+        """
+        return self._grid_class.precision_range()
 
     def _get_neighbors(self, cell: GridCell) -> List[GridCell]:
         """Get neighbors of a cell (internal helper)."""

@@ -159,3 +159,40 @@ class TestPlusCodeGrid:
         # Should contain the '+' separator in standard position
         if len(code) >= 8:
             assert "+" in code
+
+
+class TestPlusCodeHierarchy:
+    """Plus Codes expose the standard get_children/get_parent interface."""
+
+    def test_get_children(self):
+        """A cell subdivides into 20x20 = 400 children, each nested within it."""
+        grid = PlusCodeGrid(precision=2)
+        cell = grid.get_cell_from_point(40.7128, -74.0060)
+        children = grid.get_children(cell)
+
+        assert len(children) == 400
+        assert all(c.precision == 3 for c in children)
+        assert all(
+            cell.polygon.buffer(1e-9).contains(c.polygon.centroid) for c in children
+        )
+
+    def test_parent_child_roundtrip(self):
+        """The parent of any child is the original cell."""
+        grid = PlusCodeGrid(precision=2)
+        cell = grid.get_cell_from_point(40.7128, -74.0060)
+        child = grid.get_children(cell)[0]
+        parent = PlusCodeGrid(precision=3).get_parent(child)
+        assert parent.identifier == cell.identifier
+
+    def test_children_finest_empty(self):
+        """The finest precision has no children."""
+        grid = PlusCodeGrid(precision=7)
+        cell = grid.get_cell_from_point(40.7128, -74.0060)
+        assert grid.get_children(cell) == []
+
+    def test_parent_coarsest_raises(self):
+        """The coarsest precision has no parent."""
+        grid = PlusCodeGrid(precision=1)
+        cell = grid.get_cell_from_point(40.7128, -74.0060)
+        with pytest.raises(ValueError):
+            grid.get_parent(cell)

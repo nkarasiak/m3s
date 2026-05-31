@@ -13,6 +13,20 @@ subdivides into 2x2 = 4 children that perfectly tile it. Because the
 projection is equal-area, a cell of a given size has the same ground area
 everywhere on Earth.
 
+Coverage is global to latitude +/-90. The equal-area cylindrical projection
+(EPSG:6933) maps each pole to a finite line, so the top and bottom rows reach
+the poles (very thin in latitude, full in area) -- there are no excluded polar
+caps and the grid spans the entire Earth's surface area. For neighbour queries
+longitude wraps at the antimeridian (column 0 is adjacent to the last column at
+lon +/-180) while latitude does not wrap (the poles are real edges).
+
+.. note::
+    EA-Quad uses the EASE-Grid 2.0 *projection* (EPSG:6933) only; it is **not**
+    the NSIDC EASE-Grid product. Its power-of-two kilometre cells do **not**
+    align with NSIDC EASE-Grid pixel definitions (e.g. the SMAP/SMOS/AMSR
+    25/12.5/9/3 km grids). Treat it as a general-purpose equal-area quadtree,
+    not as a drop-in for EASE-Grid datasets.
+
 .. note::
     The identifier format (``"<size>kmE<easting>N<northing>"``) is provisional
     and isolated in :func:`_format_id` / :func:`_parse_id`; it can be changed
@@ -126,6 +140,12 @@ class EAQuadGrid(BaseGrid):
         precision 10 = 1 km.
     """
 
+    # Mirror the module-level bounds as the BaseGrid metadata attributes so
+    # consumers (GridWrapper, AreaCalculator, ...) see EA-Quad's true 0-10 range.
+    MIN_PRECISION = MIN_PRECISION
+    MAX_PRECISION = MAX_PRECISION
+    DEFAULT_PRECISION = 4
+
     def __init__(self, precision: int = 4):
         """
         Initialize EAQuadGrid.
@@ -148,10 +168,10 @@ class EAQuadGrid(BaseGrid):
         ValueError
             If precision is not between 0 and 10.
         """
-        if not MIN_PRECISION <= precision <= MAX_PRECISION:
+        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
             raise ValueError(
-                f"EA-Quad precision must be between {MIN_PRECISION} and "
-                f"{MAX_PRECISION}"
+                f"EA-Quad precision must be between {self.MIN_PRECISION} and "
+                f"{self.MAX_PRECISION}"
             )
         super().__init__(precision)
 
@@ -168,10 +188,16 @@ class EAQuadGrid(BaseGrid):
         Equal-area projection: the area is analytic and constant worldwide,
         ``size_km ** 2``. No projection of the polygon is needed.
 
+        This is the *nominal* cell area. The projection domain is not an integer
+        multiple of every cell size, so the easternmost/northernmost (and polar)
+        cells are clipped to the domain and are physically smaller than nominal.
+        Like the other M3S grids, ``area_km2`` still reports the nominal
+        ``size_km ** 2`` for those boundary cells.
+
         Returns
         -------
         float
-            Theoretical area in square kilometres.
+            Theoretical (nominal) area in square kilometres.
         """
         return float(self.size_km**2)
 
@@ -279,7 +305,14 @@ class EAQuadGrid(BaseGrid):
     @override
     def get_neighbors(self, cell: GridCell) -> list[GridCell]:
         """
-        Get up to 8 neighbouring cells (no wraparound at the domain edges).
+        Get up to 8 neighbouring cells.
+
+        Longitude wraps at the antimeridian: the single seamless cylindrical
+        projection makes column 0 and the last column physically adjacent at
+        lon +/-180, so the east neighbour of an easternmost-column cell is the
+        column-0 cell at the same row. Latitude does **not** wrap -- the poles
+        are real edges, so cells in the top/bottom rows have fewer than 8
+        neighbours.
 
         Parameters
         ----------
@@ -289,7 +322,8 @@ class EAQuadGrid(BaseGrid):
         Returns
         -------
         list[GridCell]
-            Neighbouring cells of the same size that lie within the grid.
+            Up to 8 neighbouring cells of the same size; unique and excluding
+            ``cell`` itself.
         """
         size_km, col, row = _parse_id(cell.identifier)
         ncols = _ncols(size_km)
@@ -299,9 +333,9 @@ class EAQuadGrid(BaseGrid):
             for drow in (-1, 0, 1):
                 if dcol == 0 and drow == 0:
                     continue
-                ncol = col + dcol
-                nrow = row + drow
-                if 0 <= ncol < ncols and 0 <= nrow < nrows:
+                ncol = (col + dcol) % ncols  # longitude wraps at the antimeridian
+                nrow = row + drow  # latitude does not wrap (poles are real edges)
+                if 0 <= nrow < nrows:
                     neighbors.append(self._make_cell(size_km, ncol, nrow))
         return neighbors
 

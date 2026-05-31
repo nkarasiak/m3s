@@ -48,7 +48,10 @@ class GridConverter:
         "eaquad": EAQuadGrid,
     }
 
-    # Default precision/resolution mappings for equivalent area coverage
+    # Default precision/resolution mappings chosen for roughly *equivalent area
+    # coverage across grids* (so a conversion lands at a comparable cell size).
+    # This is distinct from each grid's own ``DEFAULT_PRECISION`` (the natural
+    # API default); do not conflate the two.
     DEFAULT_PRECISIONS = {
         "geohash": 5,  # ~4,892 km²
         "mgrs": 1,  # ~100 km²

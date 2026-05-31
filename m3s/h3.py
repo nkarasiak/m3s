@@ -20,6 +20,10 @@ class H3Grid(BaseGrid):
     providing uniform hexagonal cells with consistent neighbor relationships.
     """
 
+    MIN_PRECISION = 0
+    MAX_PRECISION = 15
+    DEFAULT_PRECISION = 7
+
     def __init__(self, precision: int | None = None, resolution: int | None = None):
         """
         Initialize H3Grid.
@@ -71,8 +75,11 @@ class H3Grid(BaseGrid):
             )
             precision = resolution
 
-        if not 0 <= precision <= 15:
-            raise ValueError("H3 precision must be between 0 and 15")
+        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
+            raise ValueError(
+                f"H3 precision must be between {self.MIN_PRECISION} and "
+                f"{self.MAX_PRECISION}"
+            )
         super().__init__(precision)
 
     @property

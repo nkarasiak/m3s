@@ -29,6 +29,10 @@ class SlippyGrid(BaseGrid):
         Zoom level (0-22), where higher levels provide smaller tiles
     """
 
+    MIN_PRECISION = 0
+    MAX_PRECISION = 22
+    DEFAULT_PRECISION = 12
+
     def __init__(self, precision: int | None = None, zoom: int | None = None):
         """
         Initialize Slippy Map Tiling grid.
@@ -57,12 +61,15 @@ class SlippyGrid(BaseGrid):
             warnings.warn(
                 "The 'zoom' parameter is deprecated. Use 'precision' instead.",
                 DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
             precision = zoom
 
-        if not 0 <= precision <= 22:
-            raise ValueError("Slippy precision must be between 0 and 22")
+        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
+            raise ValueError(
+                f"Slippy precision must be between {self.MIN_PRECISION} and "
+                f"{self.MAX_PRECISION}"
+            )
 
         super().__init__(precision)
         self.zoom = precision  # Keep for backwards compatibility

@@ -20,6 +20,13 @@ class GeohashGrid(BaseGrid):
     encoding to create hierarchical rectangular grid cells.
     """
 
+    MIN_PRECISION = 1
+    MAX_PRECISION = 12
+    DEFAULT_PRECISION = 5
+
+    # Geohash base-32 alphabet (no a/i/l/o).
+    _BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz"
+
     def __init__(self, precision: int = 5):
         """
         Initialize GeohashGrid.
@@ -35,8 +42,11 @@ class GeohashGrid(BaseGrid):
         ValueError
             If precision is not between 1 and 12
         """
-        if not 1 <= precision <= 12:
-            raise ValueError("Geohash precision must be between 1 and 12")
+        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
+            raise ValueError(
+                f"Geohash precision must be between {self.MIN_PRECISION} and "
+                f"{self.MAX_PRECISION}"
+            )
         super().__init__(precision)
 
     @property
@@ -214,9 +224,63 @@ class GeohashGrid(BaseGrid):
         lon_bits = (self.precision * 5) // 2
         return 360.0 / (2**lon_bits)
 
+    def get_children(self, cell: GridCell) -> list[GridCell]:
+        """
+        Get the 32 child cells one precision level finer.
+
+        Geohash is natively hierarchical: a child is the parent identifier with
+        one more base-32 character appended, and the 32 children exactly tile
+        the parent.
+
+        Parameters
+        ----------
+        cell : GridCell
+            Parent cell.
+
+        Returns
+        -------
+        list[GridCell]
+            The 32 children, or an empty list if already at the finest
+            precision (12).
+        """
+        if len(cell.identifier) >= self.MAX_PRECISION:
+            return []
+        return [
+            self.get_cell_from_identifier(cell.identifier + char)
+            for char in self._BASE32
+        ]
+
+    def get_parent(self, cell: GridCell) -> GridCell:
+        """
+        Get the parent cell one precision level coarser.
+
+        Parameters
+        ----------
+        cell : GridCell
+            Child cell.
+
+        Returns
+        -------
+        GridCell
+            The parent cell (identifier with the last character dropped).
+
+        Raises
+        ------
+        ValueError
+            If the cell is already at the coarsest precision (1).
+        """
+        if len(cell.identifier) <= self.MIN_PRECISION:
+            raise ValueError(
+                "Cell has no parent (already at the coarsest geohash precision)"
+            )
+        return self.get_cell_from_identifier(cell.identifier[:-1])
+
     def expand_cell(self, cell: GridCell) -> list[GridCell]:
         """
         Expand a geohash cell to higher precision cells contained within it.
+
+        Thin wrapper over :meth:`get_children` that returns the cell unchanged
+        when it is already at the finest precision.
 
         Args:
             cell: The cell to expand
@@ -225,21 +289,8 @@ class GeohashGrid(BaseGrid):
         -------
             List of higher precision cells
         """
-        if len(cell.identifier) >= 12:
-            return [cell]
-
-        expanded_cells = []
-        base32 = "0123456789bcdefghjkmnpqrstuvwxyz"
-
-        for char in base32:
-            new_identifier = cell.identifier + char
-            try:
-                expanded_cells.append(self.get_cell_from_identifier(new_identifier))
-            except Exception:
-                # Skip invalid geohash identifiers
-                pass
-
-        return expanded_cells
+        children = self.get_children(cell)
+        return children if children else [cell]
 
     @override
     def _get_additional_columns(self, cell: GridCell) -> dict[str, Any]:

@@ -164,9 +164,6 @@ class TestGridBuilderNeighborOperations:
 class TestGridBuilderHierarchyOperations:
     """Test parent/child hierarchy operations."""
 
-    @pytest.mark.skip(
-        reason="Needs get_children/get_parent implementation in base grids"
-    )
     def test_with_children(self):
         """Test getting children at finer precision."""
         result = (
@@ -182,7 +179,6 @@ class TestGridBuilderHierarchyOperations:
         # All children should have precision 6
         assert all(cell.precision == 6 for cell in result.many)
 
-    @pytest.mark.skip(reason="Needs get_parent implementation in base grids")
     def test_with_parent(self):
         """Test getting parent at coarser precision."""
         result = (

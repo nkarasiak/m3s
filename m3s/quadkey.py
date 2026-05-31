@@ -30,6 +30,10 @@ class QuadkeyGrid(BaseGrid):
         Zoom level (precision) of the quadkey tiles (1-23)
     """
 
+    MIN_PRECISION = 1
+    MAX_PRECISION = 23
+    DEFAULT_PRECISION = 12
+
     def __init__(self, precision: int | None = None, level: int | None = None):
         """
         Initialize Quadkey grid.
@@ -57,8 +61,11 @@ class QuadkeyGrid(BaseGrid):
             )
             precision = level
 
-        if not 1 <= precision <= 23:
-            raise ValueError("Quadkey precision must be between 1 and 23")
+        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
+            raise ValueError(
+                f"Quadkey precision must be between {self.MIN_PRECISION} and "
+                f"{self.MAX_PRECISION}"
+            )
 
         super().__init__(precision)
         self.level = precision  # Keep for backwards compatibility

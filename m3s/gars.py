@@ -18,6 +18,10 @@ class GARSGrid(BaseGrid):
     coordinate system with longitude bands and latitude zones.
     """
 
+    MIN_PRECISION = 1
+    MAX_PRECISION = 3
+    DEFAULT_PRECISION = 2
+
     def __init__(self, precision: int = 1):
         """
         Initialize GARSGrid.
@@ -37,8 +41,11 @@ class GARSGrid(BaseGrid):
         ValueError
             If precision is not between 1 and 3
         """
-        if not 1 <= precision <= 3:
-            raise ValueError("GARS precision must be between 1 and 3")
+        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
+            raise ValueError(
+                f"GARS precision must be between {self.MIN_PRECISION} and "
+                f"{self.MAX_PRECISION}"
+            )
         super().__init__(precision)
 
     @cached_property
@@ -340,10 +347,8 @@ class GARSGrid(BaseGrid):
         list[GridCell]
             List of grid cells that intersect the bounding box
         """
-        cells = []
-        seen = set()
-
-        # Determine step size based on precision
+        # GARS is a regular lon/lat lattice from the global SW corner; enumerate
+        # every intersecting cell deterministically rather than point-sampling.
         if self.precision == 1:
             lat_step, lon_step = 0.5, 0.5  # 30' × 30'
         elif self.precision == 2:
@@ -351,21 +356,6 @@ class GARSGrid(BaseGrid):
         else:  # precision == 3
             lat_step, lon_step = 0.25 / 3, 0.25 / 3  # 5' × 5'
 
-        # Generate grid points
-        lat = min_lat
-        while lat <= max_lat + lat_step:
-            lon = min_lon
-            while lon <= max_lon + lon_step:
-                if -90 <= lat <= 90 and -180 <= lon <= 180:
-                    try:
-                        cell = self.get_cell_from_point(lat, lon)
-                        if cell.identifier not in seen:
-                            cells.append(cell)
-                            seen.add(cell.identifier)
-                    except Exception:
-                        # Skip invalid coordinates
-                        pass
-                lon += lon_step
-            lat += lat_step
-
-        return cells
+        return self._cells_in_bbox_regular(
+            min_lat, min_lon, max_lat, max_lon, lat_step, lon_step
+        )
