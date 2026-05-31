@@ -77,24 +77,35 @@ class TestEAQuadCells:
         assert again.polygon.equals(cell.polygon)
 
     def test_identifier_format(self):
-        """Identifiers encode the cell size in km as a prefix."""
+        """Identifiers are fixed-length base-4 paths (len == 6 + precision)."""
         cell = EAQuadGrid(precision=10).get_cell_from_point(0.0, 0.0)
-        assert cell.identifier.startswith("1kmE")
+        assert len(cell.identifier) == 16
+        assert set(cell.identifier) <= set("0123")
         cell64 = EAQuadGrid(precision=4).get_cell_from_point(0.0, 0.0)
-        assert cell64.identifier.startswith("64kmE")
+        assert len(cell64.identifier) == 10
+        assert set(cell64.identifier) <= set("0123")
+
+    def test_identifier_prefix_is_parent(self):
+        """Dropping the last character yields the parent's identifier."""
+        grid = EAQuadGrid(precision=6)
+        cell = grid.get_cell_from_point(48.85, 2.35)  # Paris
+        parent = grid.get_parent(cell)
+        assert cell.identifier[:-1] == parent.identifier
 
     def test_invalid_identifiers(self):
-        """Malformed, non-power-of-two, or misaligned identifiers raise."""
+        """Non-base-4 strings and out-of-range lengths raise."""
         grid = EAQuadGrid(precision=4)
-        for bad in ["garbage", "3kmE0N0", "8kmE5N0", "8kmE0N5"]:
+        for bad in ["garbage", "0124", "01", ""]:
             with pytest.raises(ValueError):
                 grid.get_cell_from_identifier(bad)
 
     def test_identifier_to_precision(self):
-        """Precision is derivable from the identifier's size."""
-        grid = EAQuadGrid(precision=4)
-        assert grid.identifier_to_precision("8kmE16N8") == 7
-        assert grid.identifier_to_precision("1024kmE0N0") == 0
+        """Precision is derivable from the identifier length (6 + precision)."""
+        grid = EAQuadGrid(precision=7)
+        ident = grid.get_cell_from_point(0.0, 0.0).identifier
+        assert len(ident) == 13
+        assert grid.identifier_to_precision(ident) == 7
+        assert grid.identifier_to_precision("012201") == 0  # len 6 -> precision 0
         assert grid.identifier_to_precision("garbage") is None
 
 

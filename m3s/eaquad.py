@@ -28,9 +28,14 @@ lon +/-180) while latitude does not wrap (the poles are real edges).
     not as a drop-in for EASE-Grid datasets.
 
 .. note::
-    The identifier format (``"<size>kmE<easting>N<northing>"``) is provisional
-    and isolated in :func:`_format_id` / :func:`_parse_id`; it can be changed
-    later without touching the rest of the API.
+    Cell identifiers are Geohash-style base-4 quadtree paths: a single string of
+    digits ``0-3`` over a square super-root that bounds the projection domain
+    (see :data:`SUPER_ROOT_KM`). Each digit selects a quadrant
+    (``0=SW, 1=SE, 2=NW, 3=NE``); appending a digit descends one level, so any
+    prefix is an ancestor cell and a cell's parent is its identifier with the
+    last character removed. Every cell at a given precision has the same
+    identifier length (``6 + precision`` characters). The format is isolated in
+    :func:`_format_id` / :func:`_parse_id`.
 """
 
 import math
@@ -56,12 +61,20 @@ HEIGHT = Y_MAX - Y_MIN
 # p=0 -> 1024 km (coarsest), p=10 -> 1 km (finest).
 MIN_PRECISION = 0
 MAX_PRECISION = 10
-_VALID_SIZES_KM = {2**k for k in range(MAX_PRECISION + 1)}  # {1, 2, ..., 1024}
 
 # Guard against accidental memory blow-up in get_cells_in_bbox.
 MAX_BBOX_CELLS = 1_000_000
 
-_ID_RE = re.compile(r"^(\d+)kmE(\d+)N(\d+)$")
+# Geohash-style base-4 identifiers: a quadtree path over a square super-root that
+# bounds the projection domain. The super-root edge is the smallest power-of-two
+# km >= the domain's larger dimension (~34735 km wide), SW-aligned at
+# (X_MIN, Y_MIN). An identifier's length equals its super-root level == 6 +
+# precision, so size_km == SUPER_ROOT_KM >> level.
+SUPER_ROOT_KM = 65536  # 2 ** 16 km; >= domain width (~34735 km)
+_SUPER_ROOT_LEVEL = SUPER_ROOT_KM.bit_length() - 1  # 16
+_MIN_LEVEL = _SUPER_ROOT_LEVEL - MAX_PRECISION  # 6  (precision 0, 1024 km)
+_MAX_LEVEL = _SUPER_ROOT_LEVEL - MIN_PRECISION  # 16 (precision 10, 1 km)
+_ID_RE = re.compile(r"^[0-3]+$")
 
 
 @lru_cache(maxsize=1)
@@ -94,35 +107,42 @@ def _nrows(size_km: int) -> int:
 
 def _format_id(size_km: int, col: int, row: int) -> str:
     """
-    Encode a cell as an identifier (PROVISIONAL format, easy to change later).
+    Encode a cell as a Geohash-style base-4 quadtree path.
 
-    The easting/northing are the kilometres of the cell's south-west corner
-    measured from the projection's south-west origin, INSPIRE-style.
+    The string has one digit per level from the super-root down to the cell;
+    each digit ``0-3`` selects a quadrant (``0=SW, 1=SE, 2=NW, 3=NE``). ``col``
+    and ``row`` are the cell's indices (in units of its own size) from the SW
+    origin: their high bits give the coarse digits, so any prefix of the string
+    is an ancestor cell.
     """
-    return f"{size_km}kmE{col * size_km}N{row * size_km}"
+    level = _SUPER_ROOT_LEVEL - (size_km.bit_length() - 1)
+    return "".join(
+        str(2 * ((row >> i) & 1) + ((col >> i) & 1)) for i in range(level - 1, -1, -1)
+    )
 
 
 def _parse_id(identifier: str) -> tuple[int, int, int]:
     """
-    Decode an identifier into ``(size_km, col, row)``.
+    Decode a base-4 quadtree path into ``(size_km, col, row)``.
 
     Raises
     ------
     ValueError
-        If the identifier is malformed, the size is not a valid power-of-two
-        km level, or the easting/northing are not aligned to the cell size.
+        If the identifier is not a base-4 string, or its length does not
+        correspond to a valid precision level (6 to 16 characters inclusive).
     """
-    match = _ID_RE.match(identifier)
-    if match is None:
+    if _ID_RE.match(identifier) is None:
         raise ValueError(f"Invalid EA-Quad identifier: {identifier}")
-    size_km = int(match.group(1))
-    easting = int(match.group(2))
-    northing = int(match.group(3))
-    if size_km not in _VALID_SIZES_KM:
-        raise ValueError(f"Invalid EA-Quad cell size: {size_km} km")
-    if easting % size_km != 0 or northing % size_km != 0:
-        raise ValueError(f"EA-Quad identifier not aligned to cell size: {identifier}")
-    return size_km, easting // size_km, northing // size_km
+    level = len(identifier)
+    if not _MIN_LEVEL <= level <= _MAX_LEVEL:
+        raise ValueError(f"Invalid EA-Quad identifier length: {identifier}")
+    size_km = SUPER_ROOT_KM >> level
+    col = row = 0
+    for ch in identifier:
+        digit = int(ch)
+        col = (col << 1) | (digit & 1)
+        row = (row << 1) | ((digit >> 1) & 1)
+    return size_km, col, row
 
 
 class EAQuadGrid(BaseGrid):
@@ -287,7 +307,7 @@ class EAQuadGrid(BaseGrid):
         Parameters
         ----------
         identifier : str
-            Identifier of the form ``"<size>kmE<easting>N<northing>"``.
+            Base-4 quadtree path identifier (digits ``0-3``), e.g. ``"0122012"``.
 
         Returns
         -------
