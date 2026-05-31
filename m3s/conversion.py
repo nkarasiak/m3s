@@ -13,6 +13,7 @@ import pandas as pd
 
 from .base import BaseGrid, GridCell
 from .csquares import CSquaresGrid
+from .eaquad import EAQuadGrid
 from .gars import GARSGrid
 from .geohash import GeohashGrid
 from .h3 import H3Grid
@@ -44,6 +45,7 @@ class GridConverter:
         "gars": GARSGrid,
         "maidenhead": MaidenheadGrid,
         "pluscode": PlusCodeGrid,
+        "eaquad": EAQuadGrid,
     }
 
     # Default precision/resolution mappings for equivalent area coverage
@@ -58,6 +60,7 @@ class GridConverter:
         "gars": 2,  # ~464 km²
         "maidenhead": 4,  # ~232 km²
         "pluscode": 4,  # ~12.5m resolution in this implementation
+        "eaquad": 4,  # 64 km cells -> 4096 km²
     }
 
     def __init__(self) -> None:

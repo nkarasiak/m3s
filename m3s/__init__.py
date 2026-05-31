@@ -42,6 +42,7 @@ from .conversion import (
     list_grid_systems,
 )
 from .csquares import CSquaresGrid
+from .eaquad import EAQuadGrid
 from .gars import GARSGrid
 from .geohash import GeohashGrid
 from .h3 import H3Grid
@@ -101,6 +102,8 @@ GARS = GridWrapper(GARSGrid, default_precision=2)
 Maidenhead = GridWrapper(MaidenheadGrid, default_precision=4)
 # Max precision is 7, use 5 as default.
 PlusCode = GridWrapper(PlusCodeGrid, default_precision=5)
+# Global equal-area quadtree, power-of-two km cells (precision 0-10 = 1024..1 km).
+EAQuad = GridWrapper(EAQuadGrid, default_precision=4)
 
 __version__ = "0.5.2"
 __all__ = [
@@ -115,6 +118,7 @@ __all__ = [
     "GARS",
     "Maidenhead",
     "PlusCode",
+    "EAQuad",
     # Core grid systems (for advanced use)
     "BaseGrid",
     "GeohashGrid",
@@ -127,6 +131,7 @@ __all__ = [
     "QuadkeyGrid",
     "S2Grid",
     "SlippyGrid",
+    "EAQuadGrid",
     # Modern API
     "GridBuilder",
     "GridWrapper",
