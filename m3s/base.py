@@ -216,6 +216,59 @@ class GridCell:
             },
         }
 
+    # Area unit conversion factors from square kilometres.
+    _AREA_UNITS: ClassVar[dict[str, float]] = {
+        "km2": 1.0,
+        "m2": 1_000_000.0,
+        "ha": 100.0,
+        "mi2": 0.3861021585424458,
+    }
+
+    def area(self, unit: str = "km2") -> float:
+        """
+        Cell area in the requested unit.
+
+        Parameters
+        ----------
+        unit : str, optional
+            One of ``"km2"`` (default), ``"m2"``, ``"ha"``, ``"mi2"``.
+
+        Returns
+        -------
+        float
+            Area expressed in ``unit``.
+
+        Raises
+        ------
+        ValueError
+            If ``unit`` is not recognised.
+        """
+        try:
+            return self.area_km2 * self._AREA_UNITS[unit]
+        except KeyError:
+            valid = ", ".join(self._AREA_UNITS)
+            raise ValueError(f"Unknown area unit {unit!r}. Valid units: {valid}")
+
+    def _to_gdf(self) -> "gpd.GeoDataFrame":
+        """One-row GeoDataFrame for this cell (used by plot/explore)."""
+        return gpd.GeoDataFrame(
+            {
+                "cell_id": [self.identifier],
+                "precision": [self.precision],
+                "area_km2": [self.area_km2],
+                "geometry": [self.polygon],
+            },
+            crs="EPSG:4326",
+        )
+
+    def explore(self, **kwargs: Any) -> Any:
+        """Render the cell on an interactive Leaflet map (GeoPandas.explore)."""
+        return self._to_gdf().explore(**kwargs)
+
+    def plot(self, **kwargs: Any) -> Any:
+        """Plot the cell with matplotlib (GeoPandas.plot)."""
+        return self._to_gdf().plot(**kwargs)
+
 
 class BaseGrid(ABC):
     """

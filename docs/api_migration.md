@@ -68,7 +68,7 @@ print(cell.id)  # .id is alias for .identifier
 ```python
 from m3s import H3Grid
 
-grid = H3Grid(resolution=7)
+grid = H3Grid(precision=7)
 cells = grid.get_cells_in_bbox(
     min_lat=40.7, min_lon=-74.1,
     max_lat=40.8, max_lon=-73.9
@@ -146,7 +146,7 @@ gdf = neighbors.to_gdf()
 ```python
 from m3s import S2Grid
 
-grid = S2Grid(level=10)
+grid = S2Grid(precision=10)
 cell = grid.get_cell_from_identifier('89c25b')
 ```
 
@@ -190,7 +190,7 @@ a5_cells = cells.to_a5(method='overlap')  # Or specify method
 from m3s import H3Grid
 import geopandas as gpd
 
-grid = H3Grid(resolution=7)
+grid = H3Grid(precision=7)
 gdf = grid.intersects(polygon_gdf)
 
 # Manual filtering

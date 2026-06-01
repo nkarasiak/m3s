@@ -7,7 +7,6 @@ Google Maps, and most web mapping services. They use a Web Mercator projection
 """
 
 import math
-import warnings
 from typing import override
 
 from shapely.geometry import Polygon
@@ -25,46 +24,28 @@ class SlippyGrid(BaseGrid):
 
     Attributes
     ----------
-    zoom : int
-        Zoom level (0-22), where higher levels provide smaller tiles
+    precision : int
+        Precision (zoom) level (0-22), where higher values provide smaller tiles
     """
 
     MIN_PRECISION = 0
     MAX_PRECISION = 22
     DEFAULT_PRECISION = 12
 
-    def __init__(self, precision: int | None = None, zoom: int | None = None):
+    def __init__(self, precision: int = 12):
         """
         Initialize Slippy Map Tiling grid.
 
         Parameters
         ----------
         precision : int, optional
-            Precision level (0-22).
-            This is the standardized parameter name across all grid systems.
-        zoom : int, optional
-            Deprecated alias for precision. Use 'precision' instead.
-            Zoom 0: 1 tile covering the world
-            Zoom 1: 2×2 = 4 tiles
-            Zoom 10: 1024×1024 = ~1M tiles (~40km tiles)
-            Zoom 15: 32768×32768 = ~1B tiles (~1.2km tiles)
-            Zoom 18: 262144×262144 tiles (~150m tiles)
+            Precision (zoom) level (0-22), by default 12.
+            Precision 0: 1 tile covering the world
+            Precision 1: 2×2 = 4 tiles
+            Precision 10: 1024×1024 = ~1M tiles (~40km tiles)
+            Precision 15: 32768×32768 = ~1B tiles (~1.2km tiles)
+            Precision 18: 262144×262144 tiles (~150m tiles)
         """
-        # Handle parameter aliases with deprecation warning
-        if precision is None and zoom is None:
-            raise ValueError("Must specify either 'precision' or 'zoom' parameter")
-        elif precision is not None and zoom is not None:
-            raise ValueError(
-                "Cannot specify both 'precision' and 'zoom'. Use 'precision' instead."
-            )
-        elif zoom is not None:
-            warnings.warn(
-                "The 'zoom' parameter is deprecated. Use 'precision' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            precision = zoom
-
         if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
             raise ValueError(
                 f"Slippy precision must be between {self.MIN_PRECISION} and "
@@ -72,7 +53,6 @@ class SlippyGrid(BaseGrid):
             )
 
         super().__init__(precision)
-        self.zoom = precision  # Keep for backwards compatibility
 
     @property
     def area_km2(self) -> float:
@@ -93,7 +73,7 @@ class SlippyGrid(BaseGrid):
         earth_circumference_km = 40075.0
 
         # Number of tiles at this zoom level
-        tiles_per_side = 2**self.zoom
+        tiles_per_side = 2**self.precision
 
         # Size of each tile
         tile_size_km = earth_circumference_km / tiles_per_side
@@ -118,7 +98,7 @@ class SlippyGrid(BaseGrid):
             Tile X and Y coordinates
         """
         lat_rad = math.radians(lat)
-        n = 2.0**self.zoom
+        n = 2.0**self.precision
 
         x = int((lon + 180.0) / 360.0 * n)
         y = int((1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n)
@@ -141,7 +121,7 @@ class SlippyGrid(BaseGrid):
         tuple
             Bounding box as (min_lon, min_lat, max_lon, max_lat)
         """
-        n = 2.0**self.zoom
+        n = 2.0**self.precision
 
         lon_min = x / n * 360.0 - 180.0
         lat_max = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * y / n))))
@@ -199,11 +179,11 @@ class SlippyGrid(BaseGrid):
         x, y = self._deg2num(lat, lon)
 
         # Create tile identifier in z/x/y format
-        identifier = f"{self.zoom}/{x}/{y}"
+        identifier = f"{self.precision}/{x}/{y}"
 
         polygon = self._create_tile_polygon(x, y)
 
-        return GridCell(identifier, polygon, self.zoom)
+        return GridCell(identifier, polygon, self.precision)
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -227,8 +207,10 @@ class SlippyGrid(BaseGrid):
 
             z, x, y = map(int, parts)
 
-            if z != self.zoom:
-                raise ValueError(f"Zoom level mismatch: expected {self.zoom}, got {z}")
+            if z != self.precision:
+                raise ValueError(
+                    f"Zoom level mismatch: expected {self.precision}, got {z}"
+                )
 
             # Validate tile coordinates
             max_coord = 2**z
@@ -300,7 +282,7 @@ class SlippyGrid(BaseGrid):
         list[GridCell]
             List of 4 child tiles
         """
-        if self.zoom >= 22:
+        if self.precision >= 22:
             return []  # No children at maximum zoom
 
         try:
@@ -338,7 +320,7 @@ class SlippyGrid(BaseGrid):
         GridCell | None
             Parent tile, or None if already at zoom 0
         """
-        if self.zoom <= 0:
+        if self.precision <= 0:
             return None
 
         try:
@@ -385,7 +367,7 @@ class SlippyGrid(BaseGrid):
             x_max, y_min = self._deg2num(min_lat, max_lon)
 
             # Ensure we have valid ranges
-            max_coord = 2**self.zoom
+            max_coord = 2**self.precision
             x_min = max(0, min(x_min, max_coord - 1))
             x_max = max(0, min(x_max, max_coord - 1))
             y_min = max(0, min(y_min, max_coord - 1))
@@ -402,9 +384,9 @@ class SlippyGrid(BaseGrid):
             # Generate all tiles in the bounding box
             for x in range(x_min, x_max + 1):
                 for y in range(y_min, y_max + 1):
-                    tile_id = f"{self.zoom}/{x}/{y}"
+                    tile_id = f"{self.precision}/{x}/{y}"
                     polygon = self._create_tile_polygon(x, y)
-                    tiles.append(GridCell(tile_id, polygon, self.zoom))
+                    tiles.append(GridCell(tile_id, polygon, self.precision))
 
             return tiles
         except Exception:
@@ -443,4 +425,4 @@ class SlippyGrid(BaseGrid):
         return intersecting_tiles[:max_cells]
 
     def __repr__(self):
-        return f"SlippyGrid(zoom={self.zoom})"
+        return f"SlippyGrid(precision={self.precision})"

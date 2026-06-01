@@ -38,7 +38,7 @@ class TestGridConverter:
         # Test with custom precision
         h3_grid = converter._get_grid("h3", 8)
         assert isinstance(h3_grid, H3Grid)
-        assert h3_grid.resolution == 8
+        assert h3_grid.precision == 8
 
     def test_get_grid_invalid_system(self):
         """Test error for invalid grid system."""

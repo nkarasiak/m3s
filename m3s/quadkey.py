@@ -7,7 +7,6 @@ string of digits (0, 1, 2, 3) representing the quadrant path from root.
 """
 
 import math
-import warnings
 from typing import override
 
 from shapely.geometry import Polygon
@@ -26,41 +25,23 @@ class QuadkeyGrid(BaseGrid):
 
     Attributes
     ----------
-    level : int
-        Zoom level (precision) of the quadkey tiles (1-23)
+    precision : int
+        Precision (zoom) level of the quadkey tiles (1-23)
     """
 
     MIN_PRECISION = 1
     MAX_PRECISION = 23
     DEFAULT_PRECISION = 12
 
-    def __init__(self, precision: int | None = None, level: int | None = None):
+    def __init__(self, precision: int = 12):
         """
         Initialize Quadkey grid.
 
         Parameters
         ----------
         precision : int, optional
-            Precision level for quadkey tiles (1-23).
-            This is the standardized parameter name across all grid systems.
-        level : int, optional
-            Deprecated alias for precision. Use 'precision' instead.
+            Precision level for quadkey tiles (1-23), by default 12.
         """
-        # Handle parameter aliases with deprecation warning
-        if precision is None and level is None:
-            raise ValueError("Must specify either 'precision' or 'level' parameter")
-        elif precision is not None and level is not None:
-            raise ValueError(
-                "Cannot specify both 'precision' and 'level'. Use 'precision' instead."
-            )
-        elif level is not None:
-            warnings.warn(
-                "The 'level' parameter is deprecated. Use 'precision' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            precision = level
-
         if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
             raise ValueError(
                 f"Quadkey precision must be between {self.MIN_PRECISION} and "
@@ -68,7 +49,6 @@ class QuadkeyGrid(BaseGrid):
             )
 
         super().__init__(precision)
-        self.level = precision  # Keep for backwards compatibility
 
     @property
     def area_km2(self) -> float:
@@ -88,7 +68,7 @@ class QuadkeyGrid(BaseGrid):
         earth_circumference_km = 40075.0  # At equator
 
         # Number of tiles at this level (2^level × 2^level)
-        tiles_per_side = 2**self.level
+        tiles_per_side = 2**self.precision
 
         # Size of each tile
         tile_size_km = earth_circumference_km / tiles_per_side
@@ -120,7 +100,7 @@ class QuadkeyGrid(BaseGrid):
         lon_rad = lon * math.pi / 180
 
         # Map size at this zoom level
-        map_size = 256 << self.level
+        map_size = 256 << self.precision
 
         # Convert to pixel coordinates
         x = (lon_rad + math.pi) / (2 * math.pi)
@@ -199,7 +179,7 @@ class QuadkeyGrid(BaseGrid):
         """
         quadkey = []
 
-        for i in range(self.level, 0, -1):
+        for i in range(self.precision, 0, -1):
             digit = 0
             mask = 1 << (i - 1)
 
@@ -259,7 +239,7 @@ class QuadkeyGrid(BaseGrid):
         tuple
             Bounds as (min_lat, min_lon, max_lat, max_lon)
         """
-        map_size = 256 << self.level
+        map_size = 256 << self.precision
 
         # Calculate pixel coordinates for tile bounds
         min_pixel_x = tile_x * 256
@@ -325,7 +305,7 @@ class QuadkeyGrid(BaseGrid):
         quadkey = self._tile_xy_to_quadkey(tile_x, tile_y)
         polygon = self._create_tile_polygon(tile_x, tile_y)
 
-        return GridCell(quadkey, polygon, self.level)
+        return GridCell(quadkey, polygon, self.precision)
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -342,10 +322,10 @@ class QuadkeyGrid(BaseGrid):
         GridCell
             The grid cell corresponding to the identifier
         """
-        if len(identifier) != self.level:
+        if len(identifier) != self.precision:
             raise ValueError(
                 "Quadkey length "
-                f"{len(identifier)} does not match grid level {self.level}"
+                f"{len(identifier)} does not match grid level {self.precision}"
             )
 
         # Validate quadkey contains only digits 0-3
@@ -355,7 +335,7 @@ class QuadkeyGrid(BaseGrid):
         tile_x, tile_y = self._quadkey_to_tile_xy(identifier)
         polygon = self._create_tile_polygon(tile_x, tile_y)
 
-        return GridCell(identifier, polygon, self.level)
+        return GridCell(identifier, polygon, self.precision)
 
     @override
     def get_neighbors(self, cell: GridCell) -> list[GridCell]:
@@ -385,12 +365,12 @@ class QuadkeyGrid(BaseGrid):
                 neighbor_y = tile_y + dy
 
                 # Check if neighbor is within valid range
-                max_tile = (1 << self.level) - 1
+                max_tile = (1 << self.precision) - 1
                 if 0 <= neighbor_x <= max_tile and 0 <= neighbor_y <= max_tile:
                     neighbor_quadkey = self._tile_xy_to_quadkey(neighbor_x, neighbor_y)
                     neighbor_polygon = self._create_tile_polygon(neighbor_x, neighbor_y)
                     neighbors.append(
-                        GridCell(neighbor_quadkey, neighbor_polygon, self.level)
+                        GridCell(neighbor_quadkey, neighbor_polygon, self.precision)
                     )
 
         return neighbors
@@ -409,7 +389,7 @@ class QuadkeyGrid(BaseGrid):
         list[GridCell]
             List of 4 child cells
         """
-        if self.level >= 23:
+        if self.precision >= 23:
             return []  # No children at maximum level
 
         # Child cells have quadkeys that start with parent quadkey + one digit
@@ -418,9 +398,9 @@ class QuadkeyGrid(BaseGrid):
             child_quadkey = cell.identifier + digit
             child_tile_x, child_tile_y = self._quadkey_to_tile_xy(child_quadkey)
             child_polygon = self._create_tile_polygon_for_level(
-                child_tile_x, child_tile_y, self.level + 1
+                child_tile_x, child_tile_y, self.precision + 1
             )
-            children.append(GridCell(child_quadkey, child_polygon, self.level + 1))
+            children.append(GridCell(child_quadkey, child_polygon, self.precision + 1))
 
         return children
 
@@ -526,11 +506,11 @@ class QuadkeyGrid(BaseGrid):
         for tile_x in range(min_tile_x, max_tile_x + 1):
             for tile_y in range(min_tile_y, max_tile_y + 1):
                 # Check if tile is within valid range
-                max_tile = (1 << self.level) - 1
+                max_tile = (1 << self.precision) - 1
                 if 0 <= tile_x <= max_tile and 0 <= tile_y <= max_tile:
                     quadkey = self._tile_xy_to_quadkey(tile_x, tile_y)
                     polygon = self._create_tile_polygon(tile_x, tile_y)
-                    cells.append(GridCell(quadkey, polygon, self.level))
+                    cells.append(GridCell(quadkey, polygon, self.precision))
 
         return cells
 
@@ -566,4 +546,4 @@ class QuadkeyGrid(BaseGrid):
         return min_lat, min_lon, max_lat, max_lon
 
     def __repr__(self):
-        return f"QuadkeyGrid(level={self.level})"
+        return f"QuadkeyGrid(precision={self.precision})"

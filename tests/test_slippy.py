@@ -15,18 +15,17 @@ class TestSlippyGrid:
     @pytest.fixture
     def grid_zoom_10(self):
         """Create a Slippy grid with zoom 10."""
-        return SlippyGrid(zoom=10)
+        return SlippyGrid(precision=10)
 
     @pytest.fixture
     def grid_zoom_15(self):
         """Create a Slippy grid with zoom 15."""
-        return SlippyGrid(zoom=15)
+        return SlippyGrid(precision=15)
 
     def test_initialization_valid_zooms(self):
         """Test grid initialization with valid zoom levels."""
         for zoom in [0, 5, 10, 18, 22]:
-            grid = SlippyGrid(zoom=zoom)
-            assert grid.zoom == zoom
+            grid = SlippyGrid(precision=zoom)
             assert grid.precision == zoom
 
     def test_initialization_invalid_zooms(self):
@@ -36,23 +35,23 @@ class TestSlippyGrid:
             with pytest.raises(
                 ValueError, match="Slippy precision must be between 0 and 22"
             ):
-                SlippyGrid(zoom=zoom)
+                SlippyGrid(precision=zoom)
 
     def test_area_km2_property(self):
         """Test area_km2 property calculation."""
         # Test zoom 0 (1 tile covering the world)
-        grid_0 = SlippyGrid(zoom=0)
+        grid_0 = SlippyGrid(precision=0)
         expected_area_0 = 40075.0**2  # Earth circumference squared
         assert abs(grid_0.area_km2 - expected_area_0) < 1000  # Allow some tolerance
 
         # Test zoom 1 (4 tiles)
-        grid_1 = SlippyGrid(zoom=1)
+        grid_1 = SlippyGrid(precision=1)
         expected_area_1 = (40075.0 / 2) ** 2
         assert abs(grid_1.area_km2 - expected_area_1) < 1000
 
         # Test that higher zoom levels have smaller areas
-        grid_10 = SlippyGrid(zoom=10)
-        grid_15 = SlippyGrid(zoom=15)
+        grid_10 = SlippyGrid(precision=10)
+        grid_15 = SlippyGrid(precision=15)
         assert grid_15.area_km2 < grid_10.area_km2
 
     def test_deg2num_conversion(self, grid_zoom_10):
@@ -198,7 +197,7 @@ class TestSlippyGrid:
 
     def test_get_children_max_zoom(self):
         """Test getting children at maximum zoom level."""
-        grid = SlippyGrid(zoom=22)  # Maximum zoom
+        grid = SlippyGrid(precision=22)  # Maximum zoom
         cell = grid.get_cell_from_point(40.7128, -74.0060)
         children = grid.get_children(cell)
 
@@ -214,7 +213,7 @@ class TestSlippyGrid:
 
     def test_get_parent_root_zoom(self):
         """Test getting parent at root zoom level."""
-        grid = SlippyGrid(zoom=0)
+        grid = SlippyGrid(precision=0)
         cell = grid.get_cell_from_point(40.7128, -74.0060)
         parent = grid.get_parent(cell)
 
@@ -271,7 +270,7 @@ class TestSlippyGrid:
         tiles = []
 
         for zoom in zooms:
-            grid = SlippyGrid(zoom=zoom)
+            grid = SlippyGrid(precision=zoom)
             tile = grid.get_cell_from_point(lat, lon)
             tiles.append(tile)
 
@@ -309,8 +308,8 @@ class TestSlippyGrid:
 
     def test_tile_hierarchy(self):
         """Test parent-child relationships."""
-        parent_grid = SlippyGrid(zoom=10)
-        child_grid = SlippyGrid(zoom=11)
+        parent_grid = SlippyGrid(precision=10)
+        child_grid = SlippyGrid(precision=11)
 
         # Get a parent tile
         parent_tile = parent_grid.get_cell_from_point(40.7128, -74.0060)
@@ -326,7 +325,7 @@ class TestSlippyGrid:
 
     def test_world_coverage_zoom_0(self):
         """Test that zoom 0 has exactly 4 tiles covering the world."""
-        grid = SlippyGrid(zoom=0)
+        grid = SlippyGrid(precision=0)
 
         # At zoom 0, there are 2x2 = 4 tiles covering the world
         # Test specific points to verify correct tiles
@@ -353,7 +352,7 @@ class TestSlippyGrid:
         """Test string representation of grid."""
         repr_str = repr(grid_zoom_10)
         assert "SlippyGrid" in repr_str
-        assert "zoom=10" in repr_str
+        assert "precision=10" in repr_str
 
 
 class TestSlippyGridEdgeCases:
@@ -362,11 +361,11 @@ class TestSlippyGridEdgeCases:
     @pytest.fixture
     def grid_zoom_10(self):
         """Create a Slippy grid with zoom 10."""
-        return SlippyGrid(zoom=10)
+        return SlippyGrid(precision=10)
 
     def test_extreme_coordinates(self):
         """Test with extreme but valid coordinates."""
-        grid = SlippyGrid(zoom=5)
+        grid = SlippyGrid(precision=5)
 
         extreme_coords = [
             (85.0, 179.0),  # Near max lat/lon
@@ -380,7 +379,7 @@ class TestSlippyGridEdgeCases:
 
     def test_dateline_crossing(self):
         """Test behavior around the international dateline."""
-        grid = SlippyGrid(zoom=10)
+        grid = SlippyGrid(precision=10)
 
         # Points on either side of dateline
         west_point = grid.get_cell_from_point(0.0, 179.9)
@@ -391,7 +390,7 @@ class TestSlippyGridEdgeCases:
 
     def test_polar_regions(self):
         """Test behavior in polar regions."""
-        grid = SlippyGrid(zoom=5)
+        grid = SlippyGrid(precision=5)
 
         # Points near poles
         north_tile = grid.get_cell_from_point(84.0, 0.0)
@@ -411,7 +410,7 @@ class TestSlippyGridEdgeCases:
 
     def test_large_bbox_high_zoom(self):
         """Test large bounding box at high zoom level."""
-        grid = SlippyGrid(zoom=18)  # High zoom
+        grid = SlippyGrid(precision=18)  # High zoom
 
         # Small bounding box should not return too many tiles
         tiles = grid.get_cells_in_bbox(40.75, -74.05, 40.76, -74.04)
@@ -426,7 +425,7 @@ class TestSlippyGridSpecialProperties:
 
     def test_web_mercator_bounds(self):
         """Test that tiles respect Web Mercator bounds."""
-        grid = SlippyGrid(zoom=10)
+        grid = SlippyGrid(precision=10)
 
         # Test that extreme latitudes are handled correctly
         # Web Mercator clips at approximately ±85.05°
@@ -438,7 +437,7 @@ class TestSlippyGridSpecialProperties:
 
     def test_tile_naming_convention(self):
         """Test that tile names follow z/x/y convention."""
-        grid = SlippyGrid(zoom=10)
+        grid = SlippyGrid(precision=10)
 
         tile = grid.get_cell_from_point(40.7128, -74.0060)
         parts = tile.identifier.split("/")
@@ -451,7 +450,7 @@ class TestSlippyGridSpecialProperties:
 
     def test_quadtree_property(self):
         """Test that tiles follow quadtree subdivision."""
-        parent_grid = SlippyGrid(zoom=5)
+        parent_grid = SlippyGrid(precision=5)
 
         # Get a parent tile
         parent = parent_grid.get_cell_from_point(40.0, -100.0)

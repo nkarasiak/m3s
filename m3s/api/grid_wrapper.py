@@ -238,7 +238,9 @@ class GridWrapper(H3VerbsMixin):
 
         return GridCellCollection(cells, self)
 
-    def neighbors(self, cell: GridCell, depth: int = 1) -> GridCellCollection:
+    def neighbors(
+        self, cell: GridCell, depth: int = 1, include_self: bool = True
+    ) -> GridCellCollection:
         """
         Get neighbors of a cell.
 
@@ -248,11 +250,14 @@ class GridWrapper(H3VerbsMixin):
             Cell to find neighbors for
         depth : int, optional
             Neighbor ring depth (default: 1)
+        include_self : bool, optional
+            Include the origin cell in the result (default: True)
 
         Returns
         -------
         GridCellCollection
-            Collection of neighbor cells (including original cell)
+            Collection of neighbor cells (the origin cell is included only when
+            ``include_self`` is True)
         """
         grid = self._get_grid(cell.precision)
 
@@ -268,6 +273,9 @@ class GridWrapper(H3VerbsMixin):
                     all_neighbors[n.identifier] = n
                     next_ring.add(n)
             current_ring = next_ring
+
+        if not include_self:
+            all_neighbors.pop(cell.identifier, None)
 
         return GridCellCollection(list(all_neighbors.values()), self)
 
@@ -304,6 +312,26 @@ class GridWrapper(H3VerbsMixin):
             f"Cannot parse identifier {identifier!r} as a "
             f"{self._grid_class.__name__} cell"
         )
+
+    def from_ids(self, identifiers: List[str]) -> GridCellCollection:
+        """
+        Build a collection from a list of cell identifiers.
+
+        Inverse of :attr:`GridCellCollection.ids` / :meth:`GridCellCollection.to_ids`,
+        so a saved identifier list round-trips into a wrapper-aware collection.
+
+        Parameters
+        ----------
+        identifiers : List[str]
+            Cell identifiers belonging to this grid system.
+
+        Returns
+        -------
+        GridCellCollection
+            Resolved cells (wrapper-aware, so ``refine``/``neighbors`` work).
+        """
+        cells = [self.from_id(identifier) for identifier in identifiers]
+        return GridCellCollection(cells, self)
 
     # Precision methods
 

@@ -27,45 +27,27 @@ class S2Grid(BaseGrid):
 
     Attributes
     ----------
-    level : int
-        S2 cell level (0-30), where higher levels provide smaller cells
+    precision : int
+        S2 cell precision (0-30), where higher values provide smaller cells
     """
 
     MIN_PRECISION = 0
     MAX_PRECISION = 30
     DEFAULT_PRECISION = 10
 
-    def __init__(self, precision: int | None = None, level: int | None = None):
+    def __init__(self, precision: int = 10):
         """
         Initialize S2 grid.
 
         Parameters
         ----------
         precision : int, optional
-            S2 cell precision level (0-30).
-            This is the standardized parameter name across all grid systems.
-        level : int, optional
-            Deprecated alias for precision. Use 'precision' instead.
-            Level 0: ~85,000 km edge length
-            Level 10: ~1,300 km edge length
-            Level 20: ~20 m edge length
-            Level 30: ~1 cm edge length
+            S2 cell precision level (0-30), by default 10.
+            Precision 0: ~85,000 km edge length
+            Precision 10: ~1,300 km edge length
+            Precision 20: ~20 m edge length
+            Precision 30: ~1 cm edge length
         """
-        # Handle parameter aliases with deprecation warning
-        if precision is None and level is None:
-            raise ValueError("Must specify either 'precision' or 'level' parameter")
-        elif precision is not None and level is not None:
-            raise ValueError(
-                "Cannot specify both 'precision' and 'level'. Use 'precision' instead."
-            )
-        elif level is not None:
-            warnings.warn(
-                "The 'level' parameter is deprecated. Use 'precision' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            precision = level
-
         if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
             raise ValueError(
                 f"S2 precision must be between {self.MIN_PRECISION} and "
@@ -73,7 +55,6 @@ class S2Grid(BaseGrid):
             )
 
         super().__init__(precision)
-        self.level = precision  # Keep for backwards compatibility
 
     @property
     def area_km2(self) -> float:
@@ -92,7 +73,7 @@ class S2Grid(BaseGrid):
         # S2 has 6 root cells (one per cube face)
         # At each level, cells are divided into 4 children
         # Total cells at level L = 6 × 4^L
-        total_cells = 6 * (4**self.level)
+        total_cells = 6 * (4**self.precision)
 
         # Average area per cell
         return earth_surface_km2 / total_cells
@@ -144,13 +125,13 @@ class S2Grid(BaseGrid):
         """
         # Use s2sphere for accurate S2 cell computation
         lat_lng = s2sphere.LatLng.from_degrees(lat, lon)
-        cell_id = s2sphere.CellId.from_lat_lng(lat_lng).parent(self.level)
+        cell_id = s2sphere.CellId.from_lat_lng(lat_lng).parent(self.precision)
         cell = s2sphere.Cell(cell_id)
 
         polygon = self._create_cell_polygon(cell)
         identifier = cell_id.to_token()
 
-        return GridCell(identifier, polygon, self.level)
+        return GridCell(identifier, polygon, self.precision)
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -203,7 +184,7 @@ class S2Grid(BaseGrid):
                     neighbor_polygon = self._create_cell_polygon(neighbor_cell)
                     neighbor_token = neighbor_id.to_token()
                     neighbors.append(
-                        GridCell(neighbor_token, neighbor_polygon, self.level)
+                        GridCell(neighbor_token, neighbor_polygon, self.precision)
                     )
 
             # Get vertex neighbors (4 additional neighbors at corners)
@@ -212,7 +193,7 @@ class S2Grid(BaseGrid):
                 for vertex_neighbor_id in vertex_neighbors:
                     if (
                         vertex_neighbor_id is not None
-                        and vertex_neighbor_id.level() == self.level
+                        and vertex_neighbor_id.level() == self.precision
                     ):
                         # Avoid duplicates
                         neighbor_token = vertex_neighbor_id.to_token()
@@ -220,7 +201,9 @@ class S2Grid(BaseGrid):
                             neighbor_cell = s2sphere.Cell(vertex_neighbor_id)
                             neighbor_polygon = self._create_cell_polygon(neighbor_cell)
                             neighbors.append(
-                                GridCell(neighbor_token, neighbor_polygon, self.level)
+                                GridCell(
+                                    neighbor_token, neighbor_polygon, self.precision
+                                )
                             )
 
             return neighbors
@@ -242,7 +225,7 @@ class S2Grid(BaseGrid):
         list[GridCell]
             List of 4 child cells
         """
-        if self.level >= 30:
+        if self.precision >= 30:
             return []  # No children at maximum level
 
         try:
@@ -254,7 +237,9 @@ class S2Grid(BaseGrid):
                 child_cell = s2sphere.Cell(child_id)
                 child_polygon = self._create_cell_polygon(child_cell)
                 child_token = child_id.to_token()
-                children.append(GridCell(child_token, child_polygon, self.level + 1))
+                children.append(
+                    GridCell(child_token, child_polygon, self.precision + 1)
+                )
 
             return children
         except Exception as e:
@@ -275,7 +260,7 @@ class S2Grid(BaseGrid):
         GridCell | None
             Parent cell, or None if already at level 0
         """
-        if self.level <= 0:
+        if self.precision <= 0:
             return None
 
         try:
@@ -285,7 +270,7 @@ class S2Grid(BaseGrid):
             parent_polygon = self._create_cell_polygon(parent_cell)
             parent_token = parent_id.to_token()
 
-            return GridCell(parent_token, parent_polygon, self.level - 1)
+            return GridCell(parent_token, parent_polygon, self.precision - 1)
         except Exception as e:
             warnings.warn(f"Failed to get parent: {e}", stacklevel=2)
             return None
@@ -322,8 +307,8 @@ class S2Grid(BaseGrid):
 
             # Get covering cells
             region_coverer = s2sphere.RegionCoverer()
-            region_coverer.min_level = self.level
-            region_coverer.max_level = self.level
+            region_coverer.min_level = self.precision
+            region_coverer.max_level = self.precision
             region_coverer.max_cells = 1000  # Limit number of cells
 
             covering = region_coverer.get_covering(rect)
@@ -333,7 +318,7 @@ class S2Grid(BaseGrid):
                 cell = s2sphere.Cell(cell_id)
                 polygon = self._create_cell_polygon(cell)
                 token = cell_id.to_token()
-                cells.append(GridCell(token, polygon, self.level))
+                cells.append(GridCell(token, polygon, self.precision))
 
             return cells
         except Exception as e:
@@ -377,8 +362,8 @@ class S2Grid(BaseGrid):
 
             # Get covering cells
             region_coverer = s2sphere.RegionCoverer()
-            region_coverer.min_level = self.level
-            region_coverer.max_level = self.level
+            region_coverer.min_level = self.precision
+            region_coverer.max_level = self.precision
             region_coverer.max_cells = max_cells
 
             covering = region_coverer.get_covering(s2_polygon)
@@ -388,7 +373,7 @@ class S2Grid(BaseGrid):
                 cell = s2sphere.Cell(cell_id)
                 cell_polygon = self._create_cell_polygon(cell)
                 token = cell_id.to_token()
-                cells.append(GridCell(token, cell_polygon, self.level))
+                cells.append(GridCell(token, cell_polygon, self.precision))
 
             return cells
         except Exception as e:
@@ -403,4 +388,4 @@ class S2Grid(BaseGrid):
         return cells
 
     def __repr__(self):
-        return f"S2Grid(level={self.level})"
+        return f"S2Grid(precision={self.precision})"

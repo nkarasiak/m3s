@@ -103,6 +103,61 @@ Maidenhead = GridWrapper(MaidenheadGrid)
 PlusCode = GridWrapper(PlusCodeGrid)
 EAQuad = GridWrapper(EAQuadGrid)
 
+# Registry mapping canonical names to grid singletons, for dynamic access.
+_GRID_REGISTRY: dict[str, GridWrapper] = {
+    "geohash": Geohash,
+    "mgrs": MGRS,
+    "h3": H3,
+    "s2": S2,
+    "quadkey": Quadkey,
+    "slippy": Slippy,
+    "csquares": CSquares,
+    "gars": GARS,
+    "maidenhead": Maidenhead,
+    "pluscode": PlusCode,
+    "eaquad": EAQuad,
+}
+
+
+def grids() -> list[str]:
+    """Sorted names of the available grid systems (for use with :func:`grid`)."""
+    return sorted(_GRID_REGISTRY)
+
+
+def grid(name: str, precision: int | None = None) -> GridWrapper:
+    """
+    Look up a grid system by name.
+
+    Enables dynamic / config-driven access without importing each singleton::
+
+        g = m3s.grid("h3", precision=7)
+        cells = g.from_geometry(polygon)
+
+    Parameters
+    ----------
+    name : str
+        Grid system name (case-insensitive), e.g. ``"h3"``. See :func:`grids`.
+    precision : int, optional
+        If given, return a wrapper bound to this precision.
+
+    Returns
+    -------
+    GridWrapper
+        The grid singleton (or a precision-bound copy when ``precision`` is set).
+
+    Raises
+    ------
+    ValueError
+        If ``name`` is not a known grid system.
+    """
+    try:
+        wrapper = _GRID_REGISTRY[name.lower()]
+    except KeyError:
+        valid = ", ".join(grids())
+        raise ValueError(f"Unknown grid system {name!r}. Valid systems: {valid}")
+    return wrapper.with_precision(precision) if precision is not None else wrapper
+
+
 __version__ = "0.5.2"
 __all__ = [
     # Simplified API: Grid singletons
@@ -117,6 +172,9 @@ __all__ = [
     "Maidenhead",
     "PlusCode",
     "EAQuad",
+    # Dynamic grid access
+    "grid",
+    "grids",
     # Core grid systems (for advanced use)
     "BaseGrid",
     "GeohashGrid",
