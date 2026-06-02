@@ -1,16 +1,49 @@
 M3S: Multi Spatial Subdivision System
 =====================================
 
-.. raw:: html
+**Unified spatial grid systems for Python — one consistent API across 12 indexing systems.**
 
-   <div style="text-align: center; margin: 20px 0;">
-       <h2 style="color: #336790; margin-bottom: 10px;">Unified Spatial Grid Systems for Python</h2>
-       <p style="font-size: 1.2em; color: #666; margin-bottom: 30px;">
-           A comprehensive toolkit for working with multiple spatial indexing systems
-       </p>
-   </div>
+.. image:: https://img.shields.io/pypi/v/m3s.svg
+   :target: https://pypi.org/project/m3s/
+   :alt: PyPI version
+.. image:: https://img.shields.io/pypi/pyversions/m3s.svg
+   :target: https://pypi.org/project/m3s/
+   :alt: Supported Python versions
+.. image:: https://img.shields.io/github/license/nkarasiak/m3s.svg
+   :target: https://github.com/nkarasiak/m3s/blob/main/LICENSE
+   :alt: License
 
-M3S (Multi Spatial Subdivision System) is a powerful Python library that provides an intuitive interface for working with 11 spatial grid systems including **H3**, **Geohash**, **S2**, **MGRS**, and more.
+.. grid:: 3
+   :gutter: 2
+   :margin: 2 0 0 0
+
+   .. grid-item::
+
+      .. button-ref:: quickstart
+         :ref-type: doc
+         :color: primary
+         :expand:
+
+         🚀 Get started
+
+   .. grid-item::
+
+      .. button-ref:: auto_examples/index
+         :ref-type: doc
+         :color: secondary
+         :expand:
+
+         🗺️ Example gallery
+
+   .. grid-item::
+
+      .. button-link:: https://github.com/nkarasiak/m3s
+         :color: secondary
+         :expand:
+
+         ⭐ GitHub
+
+M3S (Multi Spatial Subdivision System) is a Python library that provides an intuitive interface for working with **12 spatial grid systems** including **H3**, **Geohash**, **S2**, **MGRS**, **A5**, and more.
 
 **New in v0.5.1**: Simplified API with direct grid access, universal geometry handling, and intelligent auto-precision selection. No instantiation required—just ``import m3s`` and start working!
 
@@ -21,7 +54,7 @@ M3S (Multi Spatial Subdivision System) is a powerful Python library that provide
    .. grid-item-card:: 🌍 Multi-Grid Support
       :class-header: bg-light
 
-      Support for 10+ spatial grid systems including Geohash, MGRS, H3, S2, QuadKey, and more with a consistent API.
+      Support for 12 spatial grid systems including Geohash, MGRS, H3, S2, QuadKey, and more with a consistent API.
 
    .. grid-item-card:: ⚡ Performance Optimized
       :class-header: bg-light
@@ -130,7 +163,7 @@ Compare same location across multiple grid systems:
 Supported Grid Systems
 ======================
 
-M3S supports **11 spatial grid systems** with unified precision parameters:
+M3S supports **12 spatial grid systems** with unified precision parameters:
 
 .. list-table::
    :header-rows: 1
@@ -180,6 +213,14 @@ M3S supports **11 spatial grid systems** with unified precision parameters:
      - Open Location Codes
      - Address replacement, geocoding
      - 2-15
+   * - **EA-Quad**
+     - Equal-area quadtree (power-of-two km cells)
+     - Equal-area analysis, sampling
+     - 0-10
+   * - **A5**
+     - Pentagonal equal-area DGGS (dodecahedron)
+     - Equal-area global tiling
+     - 0-30
 
 Key Features
 ============

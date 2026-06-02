@@ -29,7 +29,7 @@ print(f"CRS: {gdf.crs}")
 
 # Generate H3 grid cells
 print("\nGenerating H3 grid (resolution 8)...")
-h3_grid = H3Grid(resolution=8)
+h3_grid = H3Grid(precision=8)
 h3_result = h3_grid.intersects(gdf)
 
 print(f"Generated {len(h3_result)} H3 cells")

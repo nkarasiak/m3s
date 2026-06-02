@@ -318,8 +318,7 @@ print()
 print("=" * 80)
 print("Summary: Choosing the Right Strategy")
 print("=" * 80)
-print(
-    """
+print("""
 1. Use-Case Based (Strategy 3):
    → Best for: Standard spatial analysis tasks
    → Pros: High confidence, battle-tested presets
@@ -350,5 +349,4 @@ General guidance:
 - Use area/distance (1/4) when you have specific size requirements
 - Use count-based (2) for bounded cell count needs
 - Use performance-based (5) when speed is critical
-"""
-)
+""")

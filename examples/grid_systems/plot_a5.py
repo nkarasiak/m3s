@@ -1,14 +1,16 @@
 """
-C-squares grid
-==============
+A5 grid
+=======
 
-Concise Spatial Query and Representation System — a hierarchical
-latitude/longitude grid used to index and exchange marine and biodiversity
-data.
+A5 is a global pentagonal Discrete Global Grid System: the Earth is wrapped onto
+a dodecahedron whose 12 faces are tiled with equilateral pentagons, then
+subdivided (aperture-4) on a true equal-area projection. Pentagons let every
+cell nest exactly into its parent while keeping a constant ground area at each
+resolution — see https://a5geo.org/. M3S wraps the official ``pya5`` library.
 
-A larger region is used here because C-squares cells are coarse; coordinates
-are in GIS-native ``(lon, lat)`` order. The example renders a static basemap
-image and then the same cells on an interactive Leaflet map.
+Cells are built over central Paris using GIS-native ``(lon, lat)`` order. The
+example renders a static basemap image and then the same cells on an
+interactive Leaflet map.
 """
 
 import folium
@@ -17,9 +19,8 @@ from folium.plugins import Fullscreen
 
 import m3s
 
-# Western Europe region (C-squares cells are degree-scale)
-bbox = (0.0, 46.0, 10.0, 52.0)
-cells = m3s.CSquares.from_geometry(bbox, precision=3)
+bbox = (2.30, 48.84, 2.40, 48.94)
+cells = m3s.A5.from_geometry(bbox, precision=12)  # precision 12 -> ~2 km² cells
 gdf = cells.to_gdf()
 
 # %%
@@ -30,7 +31,7 @@ gdf = cells.to_gdf()
 gdf_web = gdf.to_crs(epsg=3857)
 
 fig, ax = plt.subplots(figsize=(7, 7))
-gdf_web.plot(ax=ax, facecolor="#0072B2", edgecolor="black", linewidth=0.4, alpha=0.45)
+gdf_web.plot(ax=ax, facecolor="#999933", edgecolor="black", linewidth=0.4, alpha=0.45)
 
 # Add a light CartoDB Positron basemap; fall back to a plain background offline.
 try:
@@ -42,24 +43,24 @@ except Exception as exc:  # pragma: no cover - basemap is best-effort
     ax.set_facecolor("#e8e8e8")
 
 ax.set_axis_off()
-ax.set_title(f"C-squares — {len(cells)} cells @ precision 3")
+ax.set_title(f"A5 — {len(cells)} pentagonal cells @ precision 12 (~2 km²)")
 plt.tight_layout()
 plt.show()
 
-print(f"C-squares: {len(cells)} cells, total area {cells.total_area_km2:.2f} km²")
+print(f"A5: {len(cells)} cells, total area {cells.total_area_km2:.2f} km²")
 
 # %%
 # Interactive map
 # ---------------
 #
-# The same cells on a pannable Leaflet map. Hover a cell to read its
+# The same pentagonal cells on a pannable Leaflet map. Hover a cell to read its
 # identifier and area.
 minx, miny, maxx, maxy = gdf.total_bounds
 fmap = folium.Map(tiles="CartoDB positron")
 folium.GeoJson(
     gdf,
     style_function=lambda _f: {
-        "fillColor": "#0072B2",
+        "fillColor": "#999933",
         "color": "black",
         "weight": 1,
         "fillOpacity": 0.45,

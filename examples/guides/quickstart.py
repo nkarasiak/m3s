@@ -1,23 +1,24 @@
 """
-M3S Quick Start - New Simplified API
-=====================================
+Quickstart
+==========
 
-This example demonstrates the new simplified API for quick start.
+The simplified, GIS-native M3S API — the recommended entry point.
 
-The new API provides:
-- Direct access to grid systems via m3s.H3, m3s.Geohash, etc.
-- Universal from_geometry() method handling any geometry type
+It provides:
+
+- Direct access to grid systems via ``m3s.H3``, ``m3s.Geohash``, etc.
+- A universal ``from_geometry()`` method handling any geometry type
 - Auto-precision selection for optimal coverage
 - Easy conversions between grid systems
 - Convenient collection operations
 
-.. note::
-    All existing APIs remain functional for backward compatibility.
+All coordinate tuples use GIS-native ``(lon, lat)`` order.
 """
 
-import m3s
-from shapely.geometry import Point, Polygon
 import geopandas as gpd
+from shapely.geometry import Polygon
+
+import m3s
 
 # %%
 # Example 1: Universal from_geometry() - works with any geometry type
@@ -151,42 +152,7 @@ gdf = cells.to_gdf(include_utm=True)
 print(f"Converted to {len(ids_list)} IDs, {len(polygons_list)} polygons")
 
 # %%
-# Example 12: Hierarchical operations
-# ------------------------------------
-
-# Get children at higher precision
-cell = m3s.Geohash.from_geometry((-74.0, 40.7))
-neighbors = m3s.Geohash.neighbors(cell)
-
-# This requires parent/child methods - only works for grids that support it
-# children = neighbors.refine(precision=7)
-# print(f"Refined to {len(children)} children cells")
-
-# %%
-# Example 13: Comparison with old API
-# ------------------------------------
-
-print("\n" + "=" * 60)
-print("Comparison: Old API vs New API")
-print("=" * 60)
-
-# Old API (still works!)
-print("\nOld API:")
-from m3s import GeohashGrid
-
-grid = GeohashGrid(precision=5)
-old_cell = grid.get_cell_from_point(40.7, -74.0)
-print(f"Cell: {old_cell.identifier}")
-
-# New API (much simpler!)
-print("\nNew API:")
-new_cell = m3s.Geohash.from_geometry((-74.0, 40.7))
-print(f"Cell: {new_cell.id}")
-
-print("\nBoth APIs work! New API is simpler for quick start.")
-
-# %%
-# Example 14: Advanced workflow with chaining
+# Example 12: Advanced workflow with chaining
 # --------------------------------------------
 
 # Complex workflow: geometry → cells → neighbors → convert → export
@@ -206,8 +172,7 @@ print(f"\nChained workflow result: {len(result)} cells")
 # 3. Auto-precision: intelligent defaults based on coverage optimization
 # 4. Easy conversions: .to_h3(), .to_geohash(), etc.
 # 5. Convenient operations: .filter(), .to_gdf(), .to_ids(), etc.
-# 6. Full backward compatibility: old API still works
 
 print("\n" + "=" * 60)
-print("New API makes M3S easier to use while maintaining full power!")
+print("The simplified API makes M3S easy to use without sacrificing power!")
 print("=" * 60)

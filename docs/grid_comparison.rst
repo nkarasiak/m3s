@@ -1,189 +1,342 @@
 Choosing a Grid
 ===============
 
-This guide helps you choose the right spatial grid system for your use case.
+M3S ships **12 spatial grid systems**. They differ along a few axes that
+actually matter in practice: cell *shape*, whether cells are *equal-area*,
+whether they *nest exactly* (a child grid tiles its parent perfectly), how far
+toward the *poles* they reach, and whether sizes are labelled in *kilometres*.
 
-Quick Decision Guide
---------------------
+This guide gets you to the right one fast.
 
-Need precise military coordinates?
-   **MGRS** - UTM-based, 100km to 1m precision
+.. tip::
 
-Need uniform hexagons for analytics?
-   **H3** - Perfect for ride-sharing, logistics, data aggregation
+   **New: EA-Quad.** The :class:`~m3s.EAQuadGrid` is the only grid in M3S that is
+   simultaneously **square**, **equal-area**, **exactly nesting** (aperture-4
+   quadtree), **global to ±90°**, *and* **labelled in kilometres** (powers of two,
+   1–1024 km). See :doc:`auto_examples/grid_systems/plot_eaquad`.
 
-Need simple database indexing?
-   **Geohash** - Fast, supported by Redis, MongoDB, Elasticsearch
+30-Second Picker
+----------------
 
-Need web map tiles?
-   **Quadkey** (Bing Maps) or **Slippy** (OpenStreetMap)
+.. grid:: 1 2 2 3
+   :gutter: 3
 
-Need global spherical accuracy?
-   **S2** - Google's planetary-scale system, or **A5** - pentagonal DGGS
+   .. grid-item-card:: 🟰 Equal-area analytics
 
-Need marine data indexing?
-   **C-squares** - International standard for oceanography
+      **EA-Quad** — square, km-sized cells with identical ground area worldwide.
+      Ideal for zonal statistics, rasterisation and density maps.
 
-Grid System Comparison
------------------------
+   .. grid-item-card:: ⬠ Equal-area pentagons
+
+      **A5** — pentagonal DGGS on a dodecahedron; true equal-area with exact
+      hierarchical nesting, global from whole-world down to <30 mm².
+
+   .. grid-item-card:: 🗄️ Database indexing
+
+      **Geohash** — fast prefix search; native support in Redis, MongoDB,
+      Elasticsearch.
+
+   .. grid-item-card:: 📊 Hex aggregation
+
+      **H3** — uniform hexagons, always 6 neighbours. Ride-sharing, logistics,
+      data science.
+
+   .. grid-item-card:: 🌍 Planetary scale
+
+      **S2** — spherical quad-tree from global down to centimetre, no polar
+      singularities.
+
+   .. grid-item-card:: 🗺️ Web map tiles
+
+      **Quadkey** (Bing) or **Slippy** (OpenStreetMap) — the standard
+      ``z/x/y`` Web Mercator tiles.
+
+   .. grid-item-card:: 🎖️ Military / surveying
+
+      **MGRS** — UTM-based, 100 km down to 1 m. **GARS** for coarser area
+      reference.
+
+   .. grid-item-card:: 🌊 Marine & fisheries
+
+      **C-squares** — the international standard for oceanographic and marine
+      biology data.
+
+   .. grid-item-card:: 📍 Address replacement
+
+      **Plus Codes** — short, open codes that work anywhere, no street names
+      needed.
+
+   .. grid-item-card:: 📻 Amateur radio
+
+      **Maidenhead** — ham-radio locator standard, optimised for voice QSO
+      logging.
+
+Feature Matrix
+--------------
+
+The five properties that separate the grids. **EA-Quad is the only system that
+ticks every column.**
 
 .. list-table::
    :header-rows: 1
-   :widths: 12 12 15 15 46
+   :widths: 16 16 12 12 12 12 12
+
+   * - Grid
+     - Cell shape
+     - Equal-area
+     - Exact nesting
+     - Global ±90°
+     - Km-labelled
+     - Precision
+   * - **EA-Quad**
+     - Square
+     - ✅
+     - ✅
+     - ✅
+     - ✅
+     - 0–10
+   * - **A5**
+     - Pentagon
+     - ✅
+     - ✅
+     - ✅
+     - ❌
+     - 0–30
+   * - **Geohash**
+     - Rectangle
+     - ❌
+     - ✅
+     - ✅
+     - ❌
+     - 1–12
+   * - **H3**
+     - Hexagon
+     - ≈
+     - ❌
+     - ✅
+     - ❌
+     - 0–15
+   * - **S2**
+     - Quadrilateral
+     - ≈
+     - ✅
+     - ✅
+     - ❌
+     - 0–30
+   * - **MGRS**
+     - Square (UTM)
+     - ❌
+     - ❌
+     - ❌
+     - ✅
+     - 1–5
+   * - **Quadkey**
+     - Square (Mercator)
+     - ❌
+     - ✅
+     - ❌
+     - ❌
+     - 1–23
+   * - **Slippy**
+     - Square (Mercator)
+     - ❌
+     - ✅
+     - ❌
+     - ❌
+     - 0–20
+   * - **C-squares**
+     - Rectangle
+     - ❌
+     - ✅
+     - ✅
+     - ❌
+     - 1–5
+   * - **GARS**
+     - Rectangle
+     - ❌
+     - ❌
+     - ✅
+     - ❌
+     - 1–3
+   * - **Maidenhead**
+     - Rectangle
+     - ❌
+     - ✅
+     - ✅
+     - ❌
+     - 1–4
+   * - **Plus Codes**
+     - Rectangle
+     - ❌
+     - ✅
+     - ✅
+     - ❌
+     - 2–15
+
+.. note::
+
+   ``≈`` means *approximately* equal-area: H3 and S2 cells are near-uniform but
+   not exactly equal-area. ``MGRS`` is metric and nests decimally **within** a
+   UTM zone, but zone seams and polar gaps break global nesting and ±90°
+   coverage.
+
+Sizes & Primary Use
+-------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 14 16 24 46
 
    * - Grid System
-     - Cell Shape
      - Precision Range
      - Typical Sizes
      - Primary Use Case
+   * - **EA-Quad**
+     - 0–10
+     - P0: 1024 km (~1.05M km²), P4: 64 km (4096 km²), P10: 1 km (1 km²)
+     - Equal-area analytics, seamless global tiling, zonal/raster statistics
+   * - **A5**
+     - 0–30
+     - P0: ~42.5M km² (12 cells), P8: ~520 km², P12: ~2 km², P20: ~31 m²
+     - Equal-area pentagonal DGGS, hierarchical analysis, planetary-scale indexing
    * - **Geohash**
-     - Rectangle
-     - 1-12
-     - P5: ~5km, P8: ~150m, P10: ~1m
+     - 1–12
+     - P5: ~5 km, P8: ~150 m, P10: ~1 m
      - Database indexing, proximity search, caching
    * - **H3**
-     - Hexagon
-     - 0-15
-     - P5: ~250km², P8: ~0.7km², P12: ~3m²
+     - 0–15
+     - P5: ~250 km², P8: ~0.7 km², P12: ~3 m²
      - Ride-sharing, analytics, uniform tessellation
    * - **S2**
-     - Quadrilateral
-     - 0-30
-     - P10: ~500km², P20: ~0.5km², P25: ~2m²
+     - 0–30
+     - P10: ~500 km², P20: ~0.5 km², P25: ~2 m²
      - Global apps, planetary-scale systems
    * - **MGRS**
-     - Square (UTM)
-     - 1-5
-     - P1: 100km, P3: 100m, P5: 1m
+     - 1–5
+     - P1: 100 km, P3: 100 m, P5: 1 m
      - Military, surveying, high-precision reference
    * - **Quadkey**
-     - Square
-     - 1-23
-     - P10: ~1000km², P15: ~30km², P18: ~4km²
+     - 1–23
+     - P10: ~1000 km², P15: ~30 km², P18: ~4 km²
      - Bing Maps, web mapping, tile services
    * - **Slippy**
-     - Square
-     - 0-20
-     - P5: ~2500km², P10: ~78km², P15: ~2.4km²
+     - 0–20
+     - P5: ~2500 km², P10: ~78 km², P15: ~2.4 km²
      - OpenStreetMap, web maps, tile servers
-   * - **A5**
-     - Pentagon
-     - 0-15
-     - P3: ~12000km², P7: ~47km², P10: ~0.4km²
-     - Climate modeling, global analysis, DGGS
    * - **C-squares**
-     - Rectangle
-     - 1-5
-     - P1: 100° (~12,000km²), P3: 1° (~123km²)
+     - 1–5
+     - P1: 100° (~12,000 km²), P3: 1° (~123 km²)
      - Marine biology, oceanography, fisheries
    * - **GARS**
-     - Rectangle
-     - 1-3
-     - P1: 30' (~3000km²), P3: 5' (~28km²)
+     - 1–3
+     - P1: 30' (~3000 km²), P3: 5' (~28 km²)
      - Military, area reference
    * - **Maidenhead**
-     - Rectangle
-     - 1-4
-     - P1: 20°×10°, P2: 2°×1°, P3: ~5km²
+     - 1–4
+     - P1: 20°×10°, P2: 2°×1°, P3: ~5 km²
      - Amateur radio, QSO logging
    * - **Plus Codes**
-     - Rectangle
-     - 2-15
-     - P4: ~12m, P6: ~60cm
+     - 2–15
+     - P4: ~12 m, P6: ~60 cm
      - Address replacement, geocoding
 
-How to Choose
--------------
+Choose By…
+----------
 
-By Use Case
-~~~~~~~~~~~
+.. dropdown:: …Use case
+   :icon: goal
 
-**Global Analysis**
-   **S2** - Hierarchical quad-tree, works at all scales from global to centimeter
+   **Equal-area analysis**
+      **EA-Quad** — square km cells with identical ground area everywhere;
+      values are directly comparable across latitudes without reweighting.
 
-   **A5** - Pentagonal tessellation, no polar singularities, uniform globally
+   **Global analysis**
+      **S2** — hierarchical quad-tree, works at every scale from global to
+      centimetre.
 
-**Analytics & Data Science**
-   **H3** - Hexagonal cells, uniform 6 neighbors, optimized for aggregation
+   **Analytics & data science**
+      **H3** — hexagonal cells, uniform 6 neighbours, optimised for aggregation.
 
-   **Geohash** - Fast database indexing, proximity search, Z-order spatial indexing
+      **Geohash** — fast database indexing, proximity search, Z-order indexing.
 
-**Web Mapping**
-   **Quadkey** - Bing Maps standard, simple quad-tree addressing
+   **Web mapping**
+      **Quadkey** — Bing Maps standard, simple quad-tree addressing.
 
-   **Slippy** - OpenStreetMap tiles, universal (zoom, x, y) format
+      **Slippy** — OpenStreetMap tiles, universal ``z/x/y`` format.
 
-**Military & Surveying**
-   **MGRS** - NATO standard, UTM-based accuracy, 100km to 1m
+   **Military & surveying**
+      **MGRS** — NATO standard, UTM accuracy, 100 km to 1 m.
 
-   **GARS** - Coarser area reference, 30' to 5' cells
+      **GARS** — coarser area reference, 30' to 5' cells.
 
-**Marine & Environmental**
-   **C-squares** - International standard for marine biological data
+   **Marine & environmental**
+      **C-squares** — international standard for marine biological data.
 
-**Address Replacement**
-   **Plus Codes** - Open-source, works anywhere, short codes for nearby locations
+   **Address replacement**
+      **Plus Codes** — open-source, works anywhere, short codes.
 
-**Amateur Radio**
-   **Maidenhead** - Ham radio standard, optimized for voice communication
+   **Amateur radio**
+      **Maidenhead** — ham-radio standard for voice communication.
 
-By Cell Shape
-~~~~~~~~~~~~~
+.. dropdown:: …Cell shape
+   :icon: package
 
-**Hexagons**
-   **H3** - Always 6 neighbors, uniform coverage, best for analytics
+   **Squares (equal-area)**
+      **EA-Quad** — equal ground area worldwide, exact quadtree nesting.
 
-**Pentagons**
-   **A5** - Global coverage without polar distortion
+   **Squares (UTM)**
+      **MGRS** — accurate distance/area within a zone.
 
-**Squares (UTM-based)**
-   **MGRS** - Accurate distance/area calculations
+   **Squares (Web Mercator)**
+      **Quadkey**, **Slippy** — web mapping tiles.
 
-**Squares (Web Mercator)**
-   **Quadkey**, **Slippy** - Web mapping tiles
+   **Pentagons (equal-area)**
+      **A5** — true equal-area DGGS on a dodecahedron, exact hierarchical nesting.
 
-**Rectangles**
-   **Geohash**, **C-squares**, **GARS**, **Maidenhead**, **Plus Codes**
+   **Hexagons**
+      **H3** — always 6 neighbours, near-uniform coverage.
 
-**Spherical Quadrilaterals**
-   **S2** - Google's spherical geometry
+   **Spherical quadrilaterals**
+      **S2** — Google's spherical geometry.
 
-By Precision Needs
-~~~~~~~~~~~~~~~~~~
+   **Rectangles**
+      **Geohash**, **C-squares**, **GARS**, **Maidenhead**, **Plus Codes**.
 
-**High Precision (meters)**
-   **MGRS** (1m), **S2** (high levels), **H3** (res 12+)
+.. dropdown:: …Precision needs
+   :icon: sliders
 
-**Medium Precision (kilometers)**
-   **H3**, **Geohash**, **Quadkey**, **S2**
+   **High precision (metres)**
+      **MGRS** (1 m), **S2** (high levels), **H3** (res 12+), **Plus Codes**.
 
-**Coarse Precision (100+ km)**
-   **MGRS** (P1), **C-squares** (P1), **GARS**
+   **Medium precision (kilometres)**
+      **EA-Quad**, **H3**, **Geohash**, **Quadkey**, **S2**.
 
-Examples
---------
+   **Coarse precision (100+ km)**
+      **EA-Quad** (P0–P3), **MGRS** (P1), **C-squares** (P1), **GARS**.
 
-Visual Comparisons
-~~~~~~~~~~~~~~~~~~
+See It in Action
+----------------
 
-See the Example Gallery for detailed visual comparisons:
+The Example Gallery has one example per grid, each with a static image and an
+interactive map:
 
-* :doc:`auto_examples/grid_systems/index` - One example per grid system, each tessellating the same area
-* :doc:`auto_examples/precision_selection_example` - Learn intelligent precision selection
-* :doc:`auto_examples/new_grids_example` - Explore C-squares, GARS, Maidenhead, Plus Codes
-* :doc:`auto_examples/quadkey_s2_example` - Web mapping grid systems
+* :doc:`auto_examples/grid_systems/index` — one example per grid, each
+  tessellating the same area with a static and an interactive map
+* :doc:`auto_examples/grid_systems/plot_eaquad` — the EA-Quad equal-area grid
+* :doc:`auto_examples/grid_systems/plot_a5` — the A5 equal-area pentagonal grid
+* :doc:`auto_examples/guides/quickstart` — the simplified, GIS-native API
+* :doc:`auto_examples/guides/precision_selection_example` — intelligent precision
+  selection
+* :doc:`auto_examples/guides/grid_enhancements_example` — conversion, relationship
+  analysis, and multi-resolution operations
 
-Code Examples
-~~~~~~~~~~~~~
-
-Compare multiple grids for the same location:
+Compare grids for the same location in code:
 
 .. code-block:: python
 
    from m3s import GridBuilder, PrecisionSelector
 
-   # Compare same area with different grids
-   for system in ['geohash', 'h3', 's2', 'mgrs']:
+   for system in ['eaquad', 'h3', 's2', 'geohash']:
        selector = PrecisionSelector(system)
        rec = selector.for_use_case('neighborhood')
 
@@ -196,26 +349,27 @@ Compare multiple grids for the same location:
        cell = result.single
        print(f"{system:10s} P{rec.precision}: {cell.identifier} ({cell.area_km2:.2f} km²)")
 
-Summary
--------
+Cheat Sheet
+-----------
 
-**Start Here:**
+* Equal-area square cells in kilometres → **EA-Quad**
+* Most analytics tasks → **H3**
+* Database indexing → **Geohash**
+* Web mapping → **Slippy** or **Quadkey**
+* Military / surveying → **MGRS**
+* Global science → **S2**
+* Marine data → **C-squares**
 
-1. Read this guide to understand your options
-2. Check the :doc:`quickstart` for basic usage
-3. Explore the :doc:`auto_examples/index` for visual examples
-4. See the :doc:`api` for complete documentation
+Next steps: the :doc:`quickstart` for basic usage, the
+:doc:`auto_examples/index` for visual examples, and the :doc:`api` for full
+reference.
 
-**Still Unsure?**
+Official references:
 
-* For most analytics tasks → **H3**
-* For database indexing → **Geohash**
-* For web mapping → **Slippy** or **Quadkey**
-* For military/surveying → **MGRS**
-* For global science → **S2** or **A5**
-
-For more information on specific grid systems, see their official documentation:
-
+* EA-Quad — uses the EASE-Grid 2.0 *projection* only (EPSG:6933); its cells are
+  **not** NSIDC EASE-Grid pixels. EASE-Grid 2.0:
+  https://nsidc.org/data/user-resources/help-center/guide-ease-grids
+* A5 — pentagonal DGGS: https://a5geo.org/
 * H3: https://h3geo.org/
 * S2: https://s2geometry.io/
 * Geohash: https://en.wikipedia.org/wiki/Geohash

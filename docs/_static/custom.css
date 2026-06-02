@@ -1,0 +1,52 @@
+/* M3S documentation - custom styling layered over the PyData Sphinx theme. */
+
+:root {
+  --m3s-accent: #336790;
+  --m3s-accent-hover: #285377;
+}
+
+html[data-theme="dark"] {
+  --m3s-accent: #6ea8d8;
+  --m3s-accent-hover: #8cbce4;
+}
+
+/* Use the brand accent for primary links and the active nav state. */
+html[data-theme="light"] {
+  --pst-color-primary: var(--m3s-accent);
+  --pst-color-link: var(--m3s-accent);
+  --pst-color-link-hover: var(--m3s-accent-hover);
+}
+
+/* Cards: subtle lift on hover so the landing-page grid feels interactive. */
+.bd-content .sd-card {
+  border: 1px solid var(--pst-color-border, #d0d7de);
+  border-radius: 0.6rem;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.bd-content .sd-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.10);
+}
+
+/* Gallery thumbnails: framed, with a matching hover lift. */
+.sphx-glr-thumbcontainer {
+  border-radius: 0.6rem;
+  border: 1px solid var(--pst-color-border, #d0d7de);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.sphx-glr-thumbcontainer:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+
+/* Slightly tighter, more readable measure for body prose. */
+.bd-article-container {
+  max-width: 60rem;
+}
+
+/* Inline code: gentle tint so identifiers stand out from prose. */
+code.literal {
+  border-radius: 0.3rem;
+  padding: 0.1em 0.35em;
+}

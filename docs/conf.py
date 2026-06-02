@@ -7,8 +7,6 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath(".."))
-# Make the shared interactive-map helper importable from gallery examples.
-sys.path.insert(0, os.path.abspath("../examples"))
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -16,7 +14,9 @@ sys.path.insert(0, os.path.abspath("../examples"))
 project = "M3S"
 copyright = "2025, Nicolas Karasiak"
 author = "Nicolas Karasiak"
-release = "0.4.4"
+
+# Single source of truth: read the version from the installed package.
+from m3s import __version__ as release  # noqa: E402
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -95,9 +95,9 @@ intersphinx_mapping = {
 html_theme_options = {
     # Logo and branding
     "logo": {
-        "text": "M3S 🌍",
-        "image_light": None,
-        "image_dark": None,
+        "image_light": "_static/logo.svg",
+        "image_dark": "_static/logo-dark.svg",
+        "alt_text": "M3S documentation - home",
     },
 
     # Header and navigation
@@ -169,13 +169,13 @@ html_context = {
 
 html_title = f"{project} v{release} Documentation"
 html_short_title = project
-html_logo = None
-html_favicon = None
+html_logo = None  # provided via theme "logo" option (light/dark variants)
+html_favicon = "_static/favicon.svg"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_css_files = []
+html_css_files = ["custom.css"]
 
 # -- Sphinx Gallery configuration -------------------------------------------
 try:
@@ -184,11 +184,21 @@ try:
 except ImportError:
     sorter = None
 
+try:
+    from sphinx_gallery.sorting import ExplicitOrder
+    # Render the per-grid "Grid Systems" gallery first, then the API guides.
+    subsection_order = ExplicitOrder([
+        '../examples/grid_systems',
+        '../examples/guides',
+    ])
+except ImportError:
+    subsection_order = None
+
 sphinx_gallery_conf = {
     'examples_dirs': '../examples',   # path to your example scripts
     'gallery_dirs': 'auto_examples',  # path to where to save gallery generated output
     'filename_pattern': r'.*\.py',     # pattern to identify example files
-    'ignore_pattern': r'__init__\.py|parallel_processing_example\.py|_grid_interactive\.py',
+    'ignore_pattern': r'__init__\.py',
     'plot_gallery': True,             # whether to execute examples and create plots
     'download_all_examples': False,   # whether to create download links
     'first_notebook_cell': '%matplotlib inline',
@@ -200,3 +210,5 @@ sphinx_gallery_conf = {
 
 if sorter:
     sphinx_gallery_conf['within_subsection_order'] = sorter
+if subsection_order:
+    sphinx_gallery_conf['subsection_order'] = subsection_order
