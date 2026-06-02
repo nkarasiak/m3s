@@ -5,9 +5,11 @@ H3 grid
 Uber's hexagonal hierarchical index. Hexagons give uniform adjacency (every
 cell has six neighbours), which suits movement and coverage analysis.
 
-Cells are built over central Paris using GIS-native ``(lon, lat)`` order. The
-example renders a static basemap image and then the same cells on an
-interactive Leaflet map.
+Like the `h3geo.org <https://h3geo.org/>`_ explorer, this example overlays
+**three nested resolutions** (5, 6, 7) over central Paris: the coarsest
+resolution draws the thickest, darkest border and each finer resolution tiles
+inside it with a thinner, lighter line. Cells are unfilled so the nesting is
+visible. GIS-native ``(lon, lat)`` order is used throughout.
 """
 
 import folium
@@ -17,18 +19,39 @@ from folium.plugins import Fullscreen
 import m3s
 
 bbox = (2.30, 48.84, 2.40, 48.94)
-cells = m3s.H3.from_geometry(bbox, precision=7)
-gdf = cells.to_gdf()
+
+# Coarse -> fine. Coarsest gets the thickest, darkest border.
+RESOLUTIONS = [5, 6, 7]
+WEIGHTS = [4.0, 2.0, 0.8]
+SHADES = ["#000000", "#555555", "#999999"]
+
+# Build the coarsest layer over the bbox, then tile the finer layers across the
+# coarse cells' full extent so every coarse cell is completely nested.
+coarse_gdf = m3s.H3.from_geometry(bbox, precision=RESOLUTIONS[0]).to_gdf()
+extent = tuple(coarse_gdf.total_bounds)  # (minlon, minlat, maxlon, maxlat)
+layers = [(RESOLUTIONS[0], coarse_gdf)]
+layers += [
+    (r, m3s.H3.from_geometry(extent, precision=r).to_gdf()) for r in RESOLUTIONS[1:]
+]
 
 # %%
 # Static map
 # ----------
-
-# Reproject to Web Mercator (EPSG:3857) so cells line up with XYZ basemap tiles.
-gdf_web = gdf.to_crs(epsg=3857)
+#
+# The three resolutions overlaid, no fill — coarse cells enclose the finer
+# tiles nested inside them.
 
 fig, ax = plt.subplots(figsize=(7, 7))
-gdf_web.plot(ax=ax, facecolor="#117733", edgecolor="black", linewidth=0.4, alpha=0.45)
+for (res, gdf), weight, shade in zip(layers, WEIGHTS, SHADES):
+    gdf.to_crs(epsg=3857).plot(
+        ax=ax, facecolor="none", edgecolor=shade, linewidth=weight
+    )
+
+# Extent from the coarsest layer so every nested level is fully in view.
+coarse_web = layers[0][1].to_crs(epsg=3857)
+xmin, ymin, xmax, ymax = coarse_web.total_bounds
+ax.set_xlim(xmin, xmax)
+ax.set_ylim(ymin, ymax)
 
 # Add a light CartoDB Positron basemap; fall back to a plain background offline.
 try:
@@ -40,34 +63,93 @@ except Exception as exc:  # pragma: no cover - basemap is best-effort
     ax.set_facecolor("#e8e8e8")
 
 ax.set_axis_off()
-ax.set_title(f"H3 — {len(cells)} cells @ resolution 7")
+ax.set_title("H3 — nested resolutions 5 / 6 / 7 over Paris")
 plt.tight_layout()
 plt.show()
 
-print(f"H3: {len(cells)} cells, total area {cells.total_area_km2:.2f} km²")
+for res, gdf in layers:
+    print(f"H3 resolution {res}: {len(gdf)} cells")
 
 # %%
 # Interactive map
 # ---------------
 #
-# The same cells on a pannable Leaflet map. Hover a cell to read its
-# identifier and area.
-minx, miny, maxx, maxy = gdf.total_bounds
-fmap = folium.Map(tiles="CartoDB positron")
-folium.GeoJson(
-    gdf,
-    style_function=lambda _f: {
-        "fillColor": "#117733",
-        "color": "black",
-        "weight": 1,
-        "fillOpacity": 0.45,
-    },
-    tooltip=folium.GeoJsonTooltip(
-        fields=["cell_id", "area_km2"],
-        aliases=["Cell", "Area (km²)"],
-        localize=True,
-    ),
-).add_to(fmap)
+# A dynamic, `h3geo.org <https://h3geo.org/>`_-style explorer: the H3 resolution
+# follows the zoom level and cells are generated **in the browser** for whatever
+# is in view. Zoom in for finer cells, zoom out for coarser — no resolution
+# picker. Powered by `h3-js <https://github.com/uber/h3-js>`_, the same library
+# behind h3geo.org.
+fmap = folium.Map(location=[48.86, 2.35], zoom_start=11, tiles="CartoDB positron")
 Fullscreen().add_to(fmap)
-fmap.fit_bounds([[miny, minx], [maxy, maxx]], padding=(20, 20))
+
+fmap.get_root().header.add_child(
+    folium.Element(
+        '<script src="https://cdn.jsdelivr.net/npm/h3-js@4.1.0/dist/'
+        'h3-js.umd.js"></script>'
+    )
+)
+
+_H3_JS = """
+window.addEventListener('load', function () {
+  var map = __MAP__;
+  var grid = L.layerGroup().addTo(map);
+  var badge = L.control({position: 'topright'});
+  badge.onAdd = function () {
+    this._d = L.DomUtil.create('div', '');
+    this._d.style.cssText = 'background:#fff;padding:4px 8px;border-radius:4px;' +
+      'font:12px sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.3)';
+    return this._d;
+  };
+  badge.addTo(map);
+
+  // Zoom -> H3 resolution. Tune the offset to taste.
+  function resForZoom(z) { return Math.max(0, Math.min(12, Math.round(z) - 5)); }
+
+  function refresh() {
+    grid.clearLayers();
+    var b = map.getBounds();
+    var ring = [
+      [b.getSouth(), b.getWest()], [b.getSouth(), b.getEast()],
+      [b.getNorth(), b.getEast()], [b.getNorth(), b.getWest()],
+      [b.getSouth(), b.getWest()]
+    ];
+    var res = resForZoom(map.getZoom());
+    var cells = h3.polygonToCells([ring], res);
+    while (cells.length > 3000 && res > 0) {
+      res -= 1; cells = h3.polygonToCells([ring], res);
+    }
+    // Finer level (res + 1), drawn first with a light, thin border so the
+    // current level's darker cells sit on top and the nesting stays visible.
+    var fine = h3.polygonToCells([ring], res + 1);
+    if (fine.length <= 12000) {
+      for (var j = 0; j < fine.length; j++) {
+        L.polygon(h3.cellToBoundary(fine[j]),
+          {color: '#bbb', weight: 0.5, fill: false}).addTo(grid);
+      }
+    }
+    for (var i = 0; i < cells.length; i++) {
+      var h = cells[i];
+      // Transparent fill (not fill:false) so the whole cell area is hoverable,
+      // not just its border.
+      var poly = L.polygon(h3.cellToBoundary(h),
+        {color: '#222', weight: 1, fill: true, fillOpacity: 0});
+      poly.bindTooltip('H3 ' + h + '<br>res ' + res, {sticky: true});
+      poly.on('mouseover', function () {
+        this.setStyle({fillColor: '#ffeb3b', fillOpacity: 0.55});
+        this.bringToFront();
+      });
+      poly.on('mouseout', function () { this.setStyle({fillOpacity: 0}); });
+      poly.addTo(grid);
+    }
+    badge._d.innerHTML = '<b>H3</b> &middot; res ' + res + ' &middot; ' +
+      cells.length + ' cells <span style="color:#999">(+ res ' +
+      (res + 1) + ')</span>';
+  }
+  map.on('moveend', refresh);
+  map.whenReady(refresh);
+});
+"""
+fmap.get_root().script.add_child(
+    folium.Element(_H3_JS.replace("__MAP__", fmap.get_name()))
+)
 fmap
