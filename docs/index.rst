@@ -274,6 +274,7 @@ Documentation
    :caption: Guides
 
    grid_comparison
+   grid_picker
 
 .. toctree::
    :maxdepth: 2

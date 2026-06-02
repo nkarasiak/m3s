@@ -8,6 +8,12 @@ toward the *poles* they reach, and whether sizes are labelled in *kilometres*.
 
 This guide gets you to the right one fast.
 
+.. admonition:: Prefer to answer a few questions?
+   :class: seealso
+
+   Try the interactive :doc:`grid_picker` — pick what you need and it ranks the
+   best-fitting grids live.
+
 .. tip::
 
    **New: EA-Quad.** The :class:`~m3s.EAQuadGrid` is the only grid in M3S that is
