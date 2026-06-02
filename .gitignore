@@ -73,6 +73,9 @@ docs/_build/
 docs/auto_examples/
 docs/_static/
 
+# PNGs written to disk by gallery example scripts on build (regenerable)
+examples/guides/*.png
+
 # PyBuilder
 .pybuilder/
 target/
@@ -210,3 +213,8 @@ __marimo__/
 
 # Claude Code
 .claude/
+.playwright-mcp/
+
+# Local preview / scratch
+.preview/
+logs/

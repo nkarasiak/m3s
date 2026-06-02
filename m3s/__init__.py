@@ -30,6 +30,7 @@ from .api import (
     PrecisionRecommendation,
     PrecisionSelector,
 )
+from .a5 import A5Grid
 from .base import BaseGrid
 
 # New grid system enhancements
@@ -91,6 +92,7 @@ from .slippy import SlippyGrid
 # Simplified API: Grid system singletons for direct access.
 # Default precision and valid range come from each grid class (DEFAULT_PRECISION
 # / MIN_PRECISION / MAX_PRECISION), so the wrapper needs no per-grid config here.
+A5 = GridWrapper(A5Grid)
 Geohash = GridWrapper(GeohashGrid)
 MGRS = GridWrapper(MGRSGrid)
 H3 = GridWrapper(H3Grid)
@@ -105,6 +107,7 @@ EAQuad = GridWrapper(EAQuadGrid)
 
 # Registry mapping canonical names to grid singletons, for dynamic access.
 _GRID_REGISTRY: dict[str, GridWrapper] = {
+    "a5": A5,
     "geohash": Geohash,
     "mgrs": MGRS,
     "h3": H3,
@@ -161,6 +164,7 @@ def grid(name: str, precision: int | None = None) -> GridWrapper:
 __version__ = "0.5.2"
 __all__ = [
     # Simplified API: Grid singletons
+    "A5",
     "Geohash",
     "MGRS",
     "H3",
@@ -177,6 +181,7 @@ __all__ = [
     "grids",
     # Core grid systems (for advanced use)
     "BaseGrid",
+    "A5Grid",
     "GeohashGrid",
     "MGRSGrid",
     "H3Grid",

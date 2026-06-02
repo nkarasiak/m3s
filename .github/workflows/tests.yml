@@ -18,37 +18,21 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-
     - name: Install uv
       uses: astral-sh/setup-uv@v5
-
-    - name: Cache uv and pip
-      uses: actions/cache@v4
       with:
-        path: |
-          ~/.cache/uv
-          ~/.cache/pip
-        key: ${{ runner.os }}-py${{ matrix.python-version }}-uv-${{ hashFiles('uv.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-py${{ matrix.python-version }}-uv-
-          ${{ runner.os }}-py
-
-    - name: Install dependencies
-      run: |
-        uv pip install --system -e ".[test]"
+        enable-cache: true
 
     - name: Run tests (with coverage)
       if: matrix.python-version == '3.13'
-      run: |
+      run: >
+        uv run --python ${{ matrix.python-version }} --no-default-groups --extra test
         pytest tests/ -v --cov=m3s --cov-report=xml --cov-report=term
 
     - name: Run tests
       if: matrix.python-version != '3.13'
-      run: |
+      run: >
+        uv run --python ${{ matrix.python-version }} --no-default-groups --extra test
         pytest tests/ -v
 
     - name: Upload coverage

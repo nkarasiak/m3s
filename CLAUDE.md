@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-M3S (Multi Spatial Subdivision System) is a Python package that provides a unified interface for working with hierarchical spatial grid systems. It supports 10 different grid systems: Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, C-squares, GARS, Maidenhead, and Plus Codes.
+M3S (Multi Spatial Subdivision System) is a Python package that provides a unified interface for working with hierarchical spatial grid systems. It supports 12 different grid systems: Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, C-squares, GARS, Maidenhead, Plus Codes, EA-Quad, and A5.
 
 **Grid System Enhancements:**
 - **Grid Conversion Utilities**: Convert between different grid systems with multiple methods (centroid, overlap, containment)
@@ -13,36 +13,41 @@ M3S (Multi Spatial Subdivision System) is a Python package that provides a unifi
 
 ## Development Commands
 
+This project uses **uv** for dependency and environment management. All commands
+run inside the uv-managed dev environment: run `uv sync` once to create it
+(`.venv`, interpreter pinned by `.python-version`), then prefix tools with
+`uv run`.
+
+### Development Installation
+```bash
+uv sync                                   # Create/refresh the dev environment (.venv) from uv.lock
+uv sync --no-default-groups --extra test  # Test-only environment
+uv sync --no-default-groups --extra docs  # Docs/gallery build environment
+```
+
 ### Testing
 ```bash
-pytest                    # Run all tests
-pytest tests/test_*.py    # Run specific test file
-pytest -v                 # Verbose output
-pytest --cov=m3s          # Run with coverage
+uv run pytest                    # Run all tests
+uv run pytest tests/test_*.py    # Run specific test file
+uv run pytest -v                 # Verbose output
+uv run pytest --cov=m3s          # Run with coverage
 ```
 
 ### Code Quality
 ```bash
-black m3s tests examples       # Format code
-ruff check m3s tests examples  # Lint code  
-ruff check --fix m3s tests examples  # Auto-fix linting issues
-mypy m3s                       # Type checking
-isort m3s tests examples       # Sort imports
+uv run black m3s tests examples       # Format code
+uv run ruff check m3s tests examples  # Lint code
+uv run ruff check --fix m3s tests examples  # Auto-fix linting issues
+uv run mypy m3s                       # Type checking
+uv run isort m3s tests examples       # Sort imports
 ```
 
 ### Documentation
 ```bash
 cd docs
-make html              # Build HTML documentation
-make clean             # Clean build directory
-sphinx-build . _build  # Alternative build command
-```
-
-### Development Installation
-```bash
-uv pip install -e ".[dev]"      # Install with development dependencies
-uv pip install -e ".[parallel]" # Install with parallel processing support
-uv pip install -e ".[gpu]"      # Install with GPU acceleration support
+uv run make html                           # Build HTML documentation
+uv run make clean                          # Clean build directory
+uv run sphinx-build -b html . _build/html  # Alternative build command
 ```
 
 ## Architecture Overview
@@ -82,10 +87,11 @@ New modules for enhanced functionality:
 ### UTM Integration
 The system automatically calculates and includes UTM zone information for optimal spatial analysis. UTM zones are determined from cell centroids and cached for performance.
 
-> **Note:** An experimental A5 pentagonal DGGS implementation lives under
-> `m3s/a5/` and `m3s/archive/` but is **not** part of the public API (not
-> exported from `m3s/__init__.py`, excluded from the built package). Treat it
-> as archived/in-progress, not a supported grid system.
+> **Note:** A5 (`m3s/a5.py`) is a supported grid backed by the official
+> [`pya5`](https://a5geo.org/) library — a thin `BaseGrid` adapter that
+> delegates the pentagonal/dodecahedral math to `pya5`. Earlier hand-rolled A5
+> experiments survive only under `m3s/archive/` and are excluded from the built
+> package, linting and type checking; treat those as archived, not the A5 grid.
 
 ## Testing Structure
 
@@ -100,9 +106,9 @@ Tests are organized by grid system and functionality in `tests/` directory:
 
 Run specific tests:
 ```bash
-pytest tests/test_geohash.py          # Test single grid system
-pytest tests/test_h3.py -v            # Test H3 with verbose output
-pytest tests/test_conversion.py::test_convert_cell  # Test specific function
+uv run pytest tests/test_geohash.py          # Test single grid system
+uv run pytest tests/test_h3.py -v            # Test H3 with verbose output
+uv run pytest tests/test_conversion.py::test_convert_cell  # Test specific function
 ```
 
 ## Development Guidelines
@@ -142,8 +148,8 @@ When implementing new grid systems:
 Build documentation:
 ```bash
 cd docs
-make html       # Output in docs/_build/html
-make clean      # Clean build artifacts
+uv run make html       # Output in docs/_build/html
+uv run make clean      # Clean build artifacts
 ```
 
 ## Key Features Usage
@@ -185,9 +191,9 @@ adaptive_grid = create_adaptive_grid(base_grid, bounds, levels)
 ### Before Committing
 Always run code quality checks:
 ```bash
-black m3s tests examples              # Format code
-isort m3s tests examples               # Sort imports
-ruff check --fix m3s tests examples    # Fix linting issues
-mypy m3s                               # Type checking
-pytest                                 # Run all tests
+uv run black m3s tests examples              # Format code
+uv run isort m3s tests examples               # Sort imports
+uv run ruff check --fix m3s tests examples    # Fix linting issues
+uv run mypy m3s                               # Type checking
+uv run pytest                                 # Run all tests
 ```

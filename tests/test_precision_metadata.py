@@ -22,6 +22,7 @@ from m3s.api.precision import (
 
 # Public grid singletons -> their backing grid class.
 SINGLETON_NAMES = [
+    "A5",
     "Geohash",
     "MGRS",
     "H3",

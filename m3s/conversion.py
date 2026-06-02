@@ -11,6 +11,7 @@ from typing import Any
 
 import pandas as pd
 
+from .a5 import A5Grid
 from .base import BaseGrid, GridCell
 from .csquares import CSquaresGrid
 from .eaquad import EAQuadGrid
@@ -35,6 +36,7 @@ class GridConverter:
 
     # Mapping of grid system names to classes
     GRID_SYSTEMS = {
+        "a5": A5Grid,
         "geohash": GeohashGrid,
         "mgrs": MGRSGrid,
         "h3": H3Grid,
@@ -53,6 +55,7 @@ class GridConverter:
     # This is distinct from each grid's own ``DEFAULT_PRECISION`` (the natural
     # API default); do not conflate the two.
     DEFAULT_PRECISIONS = {
+        "a5": 9,  # pentagonal, ~130 km²
         "geohash": 5,  # ~4,892 km²
         "mgrs": 1,  # ~100 km²
         "h3": 7,  # ~5.16 km²
