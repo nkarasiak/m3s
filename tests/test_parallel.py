@@ -164,7 +164,7 @@ class TestParallelGridEngine:
         grids = [
             GeohashGrid(precision=4),
             GeohashGrid(precision=5),
-            H3Grid(resolution=6),
+            H3Grid(precision=6),
         ]
         grid_names = ["geohash_4", "geohash_5", "h3_6"]
 

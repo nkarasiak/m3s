@@ -11,8 +11,10 @@ from typing import Any
 
 import pandas as pd
 
+from .a5 import A5Grid
 from .base import BaseGrid, GridCell
 from .csquares import CSquaresGrid
+from .eaquad import EAQuadGrid
 from .gars import GARSGrid
 from .geohash import GeohashGrid
 from .h3 import H3Grid
@@ -34,6 +36,7 @@ class GridConverter:
 
     # Mapping of grid system names to classes
     GRID_SYSTEMS = {
+        "a5": A5Grid,
         "geohash": GeohashGrid,
         "mgrs": MGRSGrid,
         "h3": H3Grid,
@@ -44,10 +47,15 @@ class GridConverter:
         "gars": GARSGrid,
         "maidenhead": MaidenheadGrid,
         "pluscode": PlusCodeGrid,
+        "eaquad": EAQuadGrid,
     }
 
-    # Default precision/resolution mappings for equivalent area coverage
+    # Default precision/resolution mappings chosen for roughly *equivalent area
+    # coverage across grids* (so a conversion lands at a comparable cell size).
+    # This is distinct from each grid's own ``DEFAULT_PRECISION`` (the natural
+    # API default); do not conflate the two.
     DEFAULT_PRECISIONS = {
+        "a5": 9,  # pentagonal, ~130 km²
         "geohash": 5,  # ~4,892 km²
         "mgrs": 1,  # ~100 km²
         "h3": 7,  # ~5.16 km²
@@ -58,6 +66,7 @@ class GridConverter:
         "gars": 2,  # ~464 km²
         "maidenhead": 4,  # ~232 km²
         "pluscode": 4,  # ~12.5m resolution in this implementation
+        "eaquad": 4,  # 64 km cells -> 4096 km²
     }
 
     def __init__(self) -> None:

@@ -4,11 +4,11 @@ Base classes and interfaces for spatial grids.
 
 from abc import ABC, abstractmethod
 from functools import cached_property
-from typing import Any
+from typing import Any, ClassVar
 
 import geopandas as gpd
 import pyproj
-from shapely.geometry import Point, Polygon, mapping
+from shapely.geometry import Point, Polygon, box, mapping
 from shapely.ops import transform
 
 from .cache import get_spatial_cache
@@ -216,6 +216,59 @@ class GridCell:
             },
         }
 
+    # Area unit conversion factors from square kilometres.
+    _AREA_UNITS: ClassVar[dict[str, float]] = {
+        "km2": 1.0,
+        "m2": 1_000_000.0,
+        "ha": 100.0,
+        "mi2": 0.3861021585424458,
+    }
+
+    def area(self, unit: str = "km2") -> float:
+        """
+        Cell area in the requested unit.
+
+        Parameters
+        ----------
+        unit : str, optional
+            One of ``"km2"`` (default), ``"m2"``, ``"ha"``, ``"mi2"``.
+
+        Returns
+        -------
+        float
+            Area expressed in ``unit``.
+
+        Raises
+        ------
+        ValueError
+            If ``unit`` is not recognised.
+        """
+        try:
+            return self.area_km2 * self._AREA_UNITS[unit]
+        except KeyError:
+            valid = ", ".join(self._AREA_UNITS)
+            raise ValueError(f"Unknown area unit {unit!r}. Valid units: {valid}")
+
+    def _to_gdf(self) -> "gpd.GeoDataFrame":
+        """One-row GeoDataFrame for this cell (used by plot/explore)."""
+        return gpd.GeoDataFrame(
+            {
+                "cell_id": [self.identifier],
+                "precision": [self.precision],
+                "area_km2": [self.area_km2],
+                "geometry": [self.polygon],
+            },
+            crs="EPSG:4326",
+        )
+
+    def explore(self, **kwargs: Any) -> Any:
+        """Render the cell on an interactive Leaflet map (GeoPandas.explore)."""
+        return self._to_gdf().explore(**kwargs)
+
+    def plot(self, **kwargs: Any) -> Any:
+        """Plot the cell with matplotlib (GeoPandas.plot)."""
+        return self._to_gdf().plot(**kwargs)
+
 
 class BaseGrid(ABC):
     """
@@ -227,15 +280,42 @@ class BaseGrid(ABC):
     Required interface (abstract): ``area_km2``, ``get_cell_from_point``,
     ``get_cell_from_identifier``, ``get_neighbors``, ``get_cells_in_bbox``.
 
-    Optional hierarchy interface: ``get_children``, ``get_parent`` and
-    ``get_covering_cells`` are implemented only by hierarchical grids
-    (H3, S2, Quadkey, Slippy). Operations that depend on them
-    (``GridCellCollection.refine``/``coarsen``) raise ``NotImplementedError``
-    on grids that do not provide them.
+    Optional hierarchy interface: ``get_children`` and ``get_parent`` are
+    implemented by the hierarchical grids (H3, S2, Quadkey, Slippy, EAQuad,
+    Geohash, PlusCode, CSquares); ``get_covering_cells`` by S2 and Slippy. The
+    remaining grids (MGRS, GARS, Maidenhead) are not hierarchical, so operations
+    that depend on the interface (``GridCellCollection.refine``/``coarsen``,
+    the h3-style ``cell_to_children``/``cell_to_parent``) raise
+    ``NotImplementedError`` on them.
+
+    Per-grid precision metadata (``MIN_PRECISION``, ``MAX_PRECISION``,
+    ``DEFAULT_PRECISION``) is the single source of truth for valid precision
+    bounds and the API default. Concrete grids **must** set all three as class
+    attributes, and each grid's ``__init__`` validator reads them, so the bounds
+    and the validation can never drift. Consumers (``GridWrapper``,
+    ``AreaCalculator``, precision finders) derive ranges from these attributes
+    rather than maintaining their own copies.
     """
+
+    # Single source of truth for precision bounds / default (subclasses set).
+    MIN_PRECISION: ClassVar[int]
+    MAX_PRECISION: ClassVar[int]
+    DEFAULT_PRECISION: ClassVar[int]
 
     def __init__(self, precision: int):
         self.precision = precision
+
+    @classmethod
+    def precision_range(cls) -> tuple[int, int]:
+        """
+        Inclusive ``(min, max)`` valid precision for this grid system.
+
+        Returns
+        -------
+        tuple[int, int]
+            ``(MIN_PRECISION, MAX_PRECISION)`` for the grid.
+        """
+        return (cls.MIN_PRECISION, cls.MAX_PRECISION)
 
     @property
     @abstractmethod
@@ -348,6 +428,65 @@ class BaseGrid(ABC):
         """
         point = Point(lon, lat)
         return polygon.contains(point)
+
+    def _cells_in_bbox_regular(
+        self,
+        min_lat: float,
+        min_lon: float,
+        max_lat: float,
+        max_lon: float,
+        lat_step: float,
+        lon_step: float,
+        lat_origin: float = -90.0,
+        lon_origin: float = -180.0,
+    ) -> list[GridCell]:
+        """
+        Enumerate cells of a regular lon/lat grid intersecting a bounding box.
+
+        For grids whose cells form a regular axis-aligned lon/lat lattice
+        (constant ``lat_step``/``lon_step`` from a fixed origin), this returns
+        every intersecting cell deterministically by visiting each candidate
+        cell's centre exactly once. Unlike point-sampling it cannot miss
+        boundary cells and has no sample-count cap.
+
+        Parameters
+        ----------
+        min_lat, min_lon, max_lat, max_lon : float
+            Bounding box in WGS84 degrees.
+        lat_step, lon_step : float
+            Cell size in degrees along latitude and longitude.
+        lat_origin, lon_origin : float, optional
+            Lattice origin (south-west corner of cell index 0), by default the
+            global south-west corner (-90, -180).
+
+        Returns
+        -------
+        list[GridCell]
+            Cells at this grid's precision whose polygon intersects the box.
+        """
+        col_lo = int((min_lon - lon_origin) // lon_step)
+        col_hi = int((max_lon - lon_origin) // lon_step)
+        row_lo = int((min_lat - lat_origin) // lat_step)
+        row_hi = int((max_lat - lat_origin) // lat_step)
+
+        target = box(min_lon, min_lat, max_lon, max_lat)
+        cells: dict[str, GridCell] = {}
+        for col in range(col_lo, col_hi + 1):
+            for row in range(row_lo, row_hi + 1):
+                clat = lat_origin + (row + 0.5) * lat_step
+                clon = lon_origin + (col + 0.5) * lon_step
+                # Clamp a centre that overruns the domain into the valid range.
+                clat = min(max(clat, -90.0), 90.0)
+                clon = min(max(clon, -180.0), 180.0)
+                try:
+                    cell = self.get_cell_from_point(clat, clon)
+                except Exception:
+                    continue
+                if cell.identifier in cells:
+                    continue
+                if cell.polygon.intersects(target):
+                    cells[cell.identifier] = cell
+        return list(cells.values())
 
     def _get_additional_columns(self, cell: GridCell) -> dict[str, Any]:
         """

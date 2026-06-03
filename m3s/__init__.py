@@ -30,6 +30,7 @@ from .api import (
     PrecisionRecommendation,
     PrecisionSelector,
 )
+from .a5 import A5Grid
 from .base import BaseGrid
 
 # New grid system enhancements
@@ -42,6 +43,7 @@ from .conversion import (
     list_grid_systems,
 )
 from .csquares import CSquaresGrid
+from .eaquad import EAQuadGrid
 from .gars import GARSGrid
 from .geohash import GeohashGrid
 from .h3 import H3Grid
@@ -87,24 +89,82 @@ from .relationships import (
 from .s2 import S2Grid
 from .slippy import SlippyGrid
 
-# Simplified API: Grid system singletons for direct access
-Geohash = GridWrapper(GeohashGrid, default_precision=5)
-# Max precision is 5, use 3 as default.
-MGRS = GridWrapper(MGRSGrid, default_precision=3)
-H3 = GridWrapper(H3Grid, default_precision=7, precision_param_name="resolution")
-S2 = GridWrapper(S2Grid, default_precision=10, precision_param_name="level")
-Quadkey = GridWrapper(QuadkeyGrid, default_precision=12, precision_param_name="level")
-Slippy = GridWrapper(SlippyGrid, default_precision=12, precision_param_name="zoom")
-CSquares = GridWrapper(CSquaresGrid, default_precision=5)
-# Max precision is 3, use 2 as default.
-GARS = GridWrapper(GARSGrid, default_precision=2)
-Maidenhead = GridWrapper(MaidenheadGrid, default_precision=4)
-# Max precision is 7, use 5 as default.
-PlusCode = GridWrapper(PlusCodeGrid, default_precision=5)
+# Simplified API: Grid system singletons for direct access.
+# Default precision and valid range come from each grid class (DEFAULT_PRECISION
+# / MIN_PRECISION / MAX_PRECISION), so the wrapper needs no per-grid config here.
+A5 = GridWrapper(A5Grid)
+Geohash = GridWrapper(GeohashGrid)
+MGRS = GridWrapper(MGRSGrid)
+H3 = GridWrapper(H3Grid)
+S2 = GridWrapper(S2Grid)
+Quadkey = GridWrapper(QuadkeyGrid)
+Slippy = GridWrapper(SlippyGrid)
+CSquares = GridWrapper(CSquaresGrid)
+GARS = GridWrapper(GARSGrid)
+Maidenhead = GridWrapper(MaidenheadGrid)
+PlusCode = GridWrapper(PlusCodeGrid)
+EAQuad = GridWrapper(EAQuadGrid)
+
+# Registry mapping canonical names to grid singletons, for dynamic access.
+_GRID_REGISTRY: dict[str, GridWrapper] = {
+    "a5": A5,
+    "geohash": Geohash,
+    "mgrs": MGRS,
+    "h3": H3,
+    "s2": S2,
+    "quadkey": Quadkey,
+    "slippy": Slippy,
+    "csquares": CSquares,
+    "gars": GARS,
+    "maidenhead": Maidenhead,
+    "pluscode": PlusCode,
+    "eaquad": EAQuad,
+}
+
+
+def grids() -> list[str]:
+    """Sorted names of the available grid systems (for use with :func:`grid`)."""
+    return sorted(_GRID_REGISTRY)
+
+
+def grid(name: str, precision: int | None = None) -> GridWrapper:
+    """
+    Look up a grid system by name.
+
+    Enables dynamic / config-driven access without importing each singleton::
+
+        g = m3s.grid("h3", precision=7)
+        cells = g.from_geometry(polygon)
+
+    Parameters
+    ----------
+    name : str
+        Grid system name (case-insensitive), e.g. ``"h3"``. See :func:`grids`.
+    precision : int, optional
+        If given, return a wrapper bound to this precision.
+
+    Returns
+    -------
+    GridWrapper
+        The grid singleton (or a precision-bound copy when ``precision`` is set).
+
+    Raises
+    ------
+    ValueError
+        If ``name`` is not a known grid system.
+    """
+    try:
+        wrapper = _GRID_REGISTRY[name.lower()]
+    except KeyError:
+        valid = ", ".join(grids())
+        raise ValueError(f"Unknown grid system {name!r}. Valid systems: {valid}")
+    return wrapper.with_precision(precision) if precision is not None else wrapper
+
 
 __version__ = "0.5.2"
 __all__ = [
     # Simplified API: Grid singletons
+    "A5",
     "Geohash",
     "MGRS",
     "H3",
@@ -115,8 +175,13 @@ __all__ = [
     "GARS",
     "Maidenhead",
     "PlusCode",
+    "EAQuad",
+    # Dynamic grid access
+    "grid",
+    "grids",
     # Core grid systems (for advanced use)
     "BaseGrid",
+    "A5Grid",
     "GeohashGrid",
     "MGRSGrid",
     "H3Grid",
@@ -127,6 +192,7 @@ __all__ = [
     "QuadkeyGrid",
     "S2Grid",
     "SlippyGrid",
+    "EAQuadGrid",
     # Modern API
     "GridBuilder",
     "GridWrapper",

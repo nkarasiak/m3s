@@ -18,6 +18,10 @@ class MaidenheadGrid(BaseGrid):
     coordinate system with alternating letter/number pairs.
     """
 
+    MIN_PRECISION = 1
+    MAX_PRECISION = 4
+    DEFAULT_PRECISION = 4
+
     def __init__(self, precision: int = 3):
         """
         Initialize MaidenheadGrid.
@@ -38,8 +42,11 @@ class MaidenheadGrid(BaseGrid):
         ValueError
             If precision is not between 1 and 4
         """
-        if not 1 <= precision <= 4:
-            raise ValueError("Maidenhead precision must be between 1 and 4")
+        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
+            raise ValueError(
+                f"Maidenhead precision must be between {self.MIN_PRECISION} and "
+                f"{self.MAX_PRECISION}"
+            )
         super().__init__(precision)
 
     @cached_property
@@ -299,10 +306,9 @@ class MaidenheadGrid(BaseGrid):
         list[GridCell]
             List of grid cells that intersect the bounding box
         """
-        cells = []
-        seen = set()
-
-        # Determine step size based on precision
+        # Maidenhead is a regular lon/lat lattice from the global SW corner
+        # (field "AA" starts at -90 lat, -180 lon); enumerate every
+        # intersecting cell deterministically rather than point-sampling.
         if self.precision == 1:
             lat_step, lon_step = 10.0, 20.0  # Field
         elif self.precision == 2:
@@ -312,31 +318,6 @@ class MaidenheadGrid(BaseGrid):
         else:  # precision == 4
             lat_step, lon_step = 1.0 / 240, 2.0 / 240  # Extended square
 
-        # Generate grid points with denser sampling to catch boundary cells
-        # Use smaller steps to ensure we sample within each potential cell
-        sample_factor = 3  # Sample 3 times denser than cell size
-        lat_sample_step = lat_step / sample_factor
-        lon_sample_step = lon_step / sample_factor
-
-        lat = min_lat
-        while lat <= max_lat + lat_step:
-            lon = min_lon
-            while lon <= max_lon + lon_step:
-                if -90 <= lat <= 90 and -180 <= lon <= 180:
-                    try:
-                        cell = self.get_cell_from_point(lat, lon)
-                        if cell.identifier not in seen:
-                            seen.add(cell.identifier)
-                            cells.append(cell)
-                    except Exception:
-                        # Skip invalid coordinates
-                        pass
-                lon += lon_sample_step
-            lat += lat_sample_step
-
-        # Filter cells to only those that actually intersect the target bbox
-        from shapely.geometry import box as shapely_box
-
-        target_bbox = shapely_box(min_lon, min_lat, max_lon, max_lat)
-
-        return [cell for cell in cells if cell.polygon.intersects(target_bbox)]
+        return self._cells_in_bbox_regular(
+            min_lat, min_lon, max_lat, max_lon, lat_step, lon_step
+        )

@@ -9,6 +9,15 @@ import math
 from dataclasses import dataclass
 from typing import Dict, Optional, Tuple
 
+from ..conversion import GridConverter
+from ..geohash import GeohashGrid
+
+# Name -> grid class. Reuses the conversion registry as the single name->class
+# map, plus the ``geohash_int`` alias used by the builder/parameters layer.
+# Precision ranges come from each class's MIN_PRECISION/MAX_PRECISION (the
+# single source of truth), so AreaCalculator never keeps its own range copy.
+_GRID_CLASSES = {**GridConverter.GRID_SYSTEMS, "geohash_int": GeohashGrid}
+
 
 @dataclass
 class PrecisionRecommendation:
@@ -60,6 +69,39 @@ class AreaCalculator:
     # Precomputed average cell areas in km² for each grid system
     # Values derived from grid system specifications and empirical testing
     AREA_TABLES = {
+        "a5": [  # resolution 0-30, from pya5 cell_area (authalic, km²)
+            4.25055e07,  # 0
+            8.50109e06,  # 1
+            2.12527e06,  # 2
+            531318.0,  # 3
+            132830.0,  # 4
+            33207.4,  # 5
+            8301.85,  # 6
+            2075.46,  # 7
+            518.866,  # 8
+            129.716,  # 9
+            32.4291,  # 10
+            8.10727,  # 11
+            2.02682,  # 12
+            0.506705,  # 13
+            0.126676,  # 14
+            0.031669,  # 15
+            0.00791726,  # 16
+            0.00197932,  # 17
+            0.000494829,  # 18
+            0.000123707,  # 19
+            3.09268e-05,  # 20
+            7.7317e-06,  # 21
+            1.93292e-06,  # 22
+            4.83231e-07,  # 23
+            1.20808e-07,  # 24
+            3.0202e-08,  # 25
+            7.55049e-09,  # 26
+            1.88762e-09,  # 27
+            4.71906e-10,  # 28
+            1.17976e-10,  # 29
+            2.94941e-11,  # 30
+        ],
         "geohash": [  # precision 1-12
             5003.771,
             625.471,
@@ -227,21 +269,19 @@ class AreaCalculator:
             0.76,  # 14 digits
             0.095,  # 15 digits
         ],
-    }
-
-    # Valid precision ranges for each grid system
-    PRECISION_RANGES = {
-        "geohash": (1, 12),
-        "h3": (0, 15),
-        "s2": (0, 30),
-        "quadkey": (1, 23),
-        "slippy": (0, 20),
-        "geohash_int": (1, 12),
-        "mgrs": (1, 6),
-        "csquares": (1, 5),
-        "gars": (1, 3),
-        "maidenhead": (1, 6),
-        "pluscode": (2, 15),
+        "eaquad": [  # precision 0-10, analytic: (2 ** (10 - p)) ** 2 km²
+            1048576.0,  # 0: 1024 km cells
+            262144.0,  # 1: 512 km
+            65536.0,  # 2: 256 km
+            16384.0,  # 3: 128 km
+            4096.0,  # 4: 64 km
+            1024.0,  # 5: 32 km
+            256.0,  # 6: 16 km
+            64.0,  # 7: 8 km
+            16.0,  # 8: 4 km
+            4.0,  # 9: 2 km
+            1.0,  # 10: 1 km
+        ],
     }
 
     def __init__(self, grid_system: str):
@@ -260,7 +300,11 @@ class AreaCalculator:
             )
         self.grid_system = grid_system
         self.area_table = self.AREA_TABLES[grid_system]
-        self.min_precision, self.max_precision = self.PRECISION_RANGES[grid_system]
+        # Range comes from the grid class (single source of truth), not a local
+        # copy, so it always matches the grid's own constructor validation.
+        self.min_precision, self.max_precision = _GRID_CLASSES[
+            grid_system
+        ].precision_range()
 
     def get_area(self, precision: int, latitude: Optional[float] = None) -> float:
         """
@@ -522,6 +566,17 @@ USE_CASE_PRESETS = {
         "building": 13,
         "room": 14,
     },
+    "eaquad": {  # precision 0-10 -> 1024..1 km cells
+        "global": 0,  # 1024 km
+        "continental": 2,  # 256 km
+        "country": 3,  # 128 km
+        "region": 5,  # 32 km
+        "city": 7,  # 8 km
+        "neighborhood": 8,  # 4 km
+        "street": 9,  # 2 km
+        "building": 10,  # 1 km (finest)
+        "room": 10,  # 1 km (finest)
+    },
 }
 
 
@@ -689,7 +744,14 @@ class PrecisionSelector:
                 f"{', '.join(valid_use_cases)}"
             )
 
+        # Clamp the curated preset to the grid's valid range: some presets name
+        # a finer level than a coarse grid (e.g. PlusCode/Maidenhead) supports,
+        # in which case the finest available precision is used.
         precision = USE_CASE_PRESETS[self.grid_system][use_case]
+        precision = max(
+            self.area_calculator.min_precision,
+            min(self.area_calculator.max_precision, precision),
+        )
 
         # Apply latitude adjustment for polar regions
         latitude = context.get("latitude") if context else None

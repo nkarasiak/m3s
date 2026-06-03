@@ -2,7 +2,6 @@
 H3 (Uber's Hexagonal Hierarchical Spatial Index) grid implementation.
 """
 
-import warnings
 from typing import Any, override
 
 import h3
@@ -20,7 +19,11 @@ class H3Grid(BaseGrid):
     providing uniform hexagonal cells with consistent neighbor relationships.
     """
 
-    def __init__(self, precision: int | None = None, resolution: int | None = None):
+    MIN_PRECISION = 0
+    MAX_PRECISION = 15
+    DEFAULT_PRECISION = 7
+
+    def __init__(self, precision: int = 7):
         """
         Initialize H3Grid.
 
@@ -28,11 +31,8 @@ class H3Grid(BaseGrid):
         ----------
         precision : int, optional
             H3 precision level (0-15), by default 7.
-            This is the standardized parameter name across all grid systems.
-        resolution : int, optional
-            Deprecated alias for precision. Use 'precision' instead.
 
-            Resolution scales:
+            Precision scales:
                 0 = ~4,250km edge length (continent scale)
                 1 = ~1,607km edge length
                 2 = ~606km edge length
@@ -53,32 +53,14 @@ class H3Grid(BaseGrid):
         Raises
         ------
         ValueError
-            If precision/resolution is not between 0 and 15
+            If precision is not between 0 and 15
         """
-        # Handle parameter aliases with deprecation warning
-        if precision is None and resolution is None:
-            precision = 7  # Default value
-        elif precision is not None and resolution is not None:
+        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
             raise ValueError(
-                "Cannot specify both 'precision' and 'resolution'. Use 'precision' "
-                "instead."
+                f"H3 precision must be between {self.MIN_PRECISION} and "
+                f"{self.MAX_PRECISION}"
             )
-        elif resolution is not None:
-            warnings.warn(
-                "The 'resolution' parameter is deprecated. Use 'precision' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            precision = resolution
-
-        if not 0 <= precision <= 15:
-            raise ValueError("H3 precision must be between 0 and 15")
         super().__init__(precision)
-
-    @property
-    def resolution(self) -> int:
-        """Alias for precision to match H3 terminology."""
-        return self.precision
 
     @property
     def area_km2(self) -> float:

@@ -18,18 +18,17 @@ class TestS2Grid:
     @pytest.fixture
     def grid_level_10(self):
         """Create an S2 grid with level 10."""
-        return S2Grid(level=10)
+        return S2Grid(precision=10)
 
     @pytest.fixture
     def grid_level_15(self):
         """Create an S2 grid with level 15."""
-        return S2Grid(level=15)
+        return S2Grid(precision=15)
 
     def test_initialization_valid_levels(self):
         """Test grid initialization with valid levels."""
         for level in [0, 10, 20, 30]:
-            grid = S2Grid(level=level)
-            assert grid.level == level
+            grid = S2Grid(precision=level)
             assert grid.precision == level
 
     def test_initialization_invalid_levels(self):
@@ -39,7 +38,7 @@ class TestS2Grid:
             with pytest.raises(
                 ValueError, match="S2 precision must be between 0 and 30"
             ):
-                S2Grid(level=level)
+                S2Grid(precision=level)
 
     def test_get_cell_from_point_nyc(self, grid_level_10):
         """Test getting cell from NYC coordinates."""
@@ -140,7 +139,7 @@ class TestS2Grid:
 
     def test_get_children_max_level(self):
         """Test getting children at maximum level."""
-        grid = S2Grid(level=30)  # Maximum level
+        grid = S2Grid(precision=30)  # Maximum level
         cell = grid.get_cell_from_point(40.7128, -74.0060)
         children = grid.get_children(cell)
 
@@ -156,7 +155,7 @@ class TestS2Grid:
 
     def test_get_parent_root_level(self):
         """Test getting parent at root level."""
-        grid = S2Grid(level=0)
+        grid = S2Grid(precision=0)
         cell = grid.get_cell_from_point(40.7128, -74.0060)
         parent = grid.get_parent(cell)
 
@@ -212,7 +211,7 @@ class TestS2Grid:
         cells = []
 
         for level in levels:
-            grid = S2Grid(level=level)
+            grid = S2Grid(precision=level)
             cell = grid.get_cell_from_point(lat, lon)
             cells.append(cell)
 
@@ -248,7 +247,7 @@ class TestS2Grid:
         """Test string representation of grid."""
         repr_str = repr(grid_level_10)
         assert "S2Grid" in repr_str
-        assert "level=10" in repr_str
+        assert "precision=10" in repr_str
 
 
 class TestS2GridEdgeCases:
@@ -257,11 +256,11 @@ class TestS2GridEdgeCases:
     @pytest.fixture
     def grid_level_10(self):
         """Create an S2 grid with level 10."""
-        return S2Grid(level=10)
+        return S2Grid(precision=10)
 
     def test_extreme_coordinates(self):
         """Test with extreme but valid coordinates."""
-        grid = S2Grid(level=5)
+        grid = S2Grid(precision=5)
 
         extreme_coords = [
             (85.0, 179.0),  # Near max lat/lon
@@ -275,7 +274,7 @@ class TestS2GridEdgeCases:
 
     def test_empty_bbox(self):
         """Test with empty bounding box."""
-        grid = S2Grid(level=10)
+        grid = S2Grid(precision=10)
 
         # Point bounding box (min == max)
         cells = grid.get_cells_in_bbox(40.7, -74.0, 40.7, -74.0)
@@ -332,7 +331,7 @@ class TestS2GridWithS2Sphere:
 
     def test_s2sphere_integration(self):
         """Test that s2sphere integration works correctly."""
-        grid = S2Grid(level=10)
+        grid = S2Grid(precision=10)
 
         # Get a cell
         cell = grid.get_cell_from_point(40.7128, -74.0060)
@@ -345,7 +344,7 @@ class TestS2GridWithS2Sphere:
 
     def test_s2sphere_hierarchy(self):
         """Test parent-child relationships with s2sphere."""
-        grid = S2Grid(level=10)
+        grid = S2Grid(precision=10)
         cell = grid.get_cell_from_point(40.7128, -74.0060)
 
         # Get children
@@ -354,7 +353,7 @@ class TestS2GridWithS2Sphere:
 
         # Each child should have the correct parent
         for child in children:
-            child_grid = S2Grid(level=child.precision)
+            child_grid = S2Grid(precision=child.precision)
             parent = child_grid.get_parent(child)
             # Parent token might be different due to S2 hierarchy,
             # but should be related
@@ -362,7 +361,7 @@ class TestS2GridWithS2Sphere:
 
     def test_s2sphere_covering(self):
         """Test polygon covering with s2sphere."""
-        grid = S2Grid(level=8)  # Use lower level for faster computation
+        grid = S2Grid(precision=8)  # Use lower level for faster computation
 
         # Create a polygon
         polygon = box(-74.1, 40.7, -74.0, 40.8)

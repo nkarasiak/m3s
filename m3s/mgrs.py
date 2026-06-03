@@ -21,6 +21,10 @@ class MGRSGrid(BaseGrid):
     uniform square grid cells based on UTM projections.
     """
 
+    MIN_PRECISION = 0
+    MAX_PRECISION = 5
+    DEFAULT_PRECISION = 3
+
     def __init__(self, precision: int = 1):
         """
         Initialize MGRSGrid.
@@ -43,8 +47,11 @@ class MGRSGrid(BaseGrid):
         ValueError
             If precision is not between 0 and 5
         """
-        if not 0 <= precision <= 5:
-            raise ValueError("MGRS precision must be between 0 and 5")
+        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
+            raise ValueError(
+                f"MGRS precision must be between {self.MIN_PRECISION} and "
+                f"{self.MAX_PRECISION}"
+            )
         super().__init__(precision)
         self.mgrs_converter = mgrs.MGRS()
 

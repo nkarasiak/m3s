@@ -11,15 +11,16 @@ The examples cover various grid systems including:
 * **Quadkey**: Microsoft's quadtree-based tile system
 * **S2**: Google's spherical geometry library
 * **Slippy**: Standard web map tiles (z/x/y)
+* **C-squares**: Marine/biodiversity latitude-longitude index
 * **Plus Codes**: Google's open location code system
 * **Maidenhead**: Ham radio grid locator system
 * **GARS**: Global Area Reference System
+* **EA-Quad**: Equal-area quadtree (power-of-two km cells)
 
 Each example includes:
 
 * Complete runnable code
-* Visual outputs when applicable
-* Performance insights
-* Usage recommendations
+* A static basemap image and an interactive Leaflet map
+* Cell count and area reporting
 
 Run any example by downloading the Python file and executing it in your environment with the required dependencies installed.

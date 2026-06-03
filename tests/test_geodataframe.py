@@ -72,7 +72,7 @@ class TestGeoDataFrameIntegration:
 
     def test_h3_intersects_basic(self, sample_gdf_4326):
         """Test basic GeoDataFrame intersection with H3Grid."""
-        grid = H3Grid(resolution=7)
+        grid = H3Grid(precision=7)
         result = grid.intersects(sample_gdf_4326)
 
         assert isinstance(result, gpd.GeoDataFrame)
@@ -209,7 +209,7 @@ class TestGeoDataFrameEdgeCases:
 
     def test_different_grid_types_same_gdf(self, sample_gdf_4326):
         """Test same GeoDataFrame with different grid types."""
-        grids = [GeohashGrid(precision=5), MGRSGrid(precision=2), H3Grid(resolution=7)]
+        grids = [GeohashGrid(precision=5), MGRSGrid(precision=2), H3Grid(precision=7)]
 
         results = []
         for grid in grids:

@@ -2,12 +2,12 @@
 Plus codes (Open Location Code) grid implementation.
 """
 
+from functools import cached_property
 from typing import override
 
 from shapely.geometry import Polygon
 
 from .base import BaseGrid, GridCell
-from functools import cached_property
 
 
 class PlusCodeGrid(BaseGrid):
@@ -17,6 +17,10 @@ class PlusCodeGrid(BaseGrid):
     Implements Google's open-source alternative to addresses using
     a base-20 encoding system to create hierarchical grid cells.
     """
+
+    MIN_PRECISION = 1
+    MAX_PRECISION = 7
+    DEFAULT_PRECISION = 5
 
     # Base-20 alphabet excluding vowels and some confusing characters
     ALPHABET = "23456789CFGHJMPQRVWX"
@@ -49,8 +53,11 @@ class PlusCodeGrid(BaseGrid):
         ValueError
             If precision is not between 1 and 7
         """
-        if not 1 <= precision <= 7:
-            raise ValueError("Plus code precision must be between 1 and 7")
+        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
+            raise ValueError(
+                f"Plus code precision must be between {self.MIN_PRECISION} and "
+                f"{self.MAX_PRECISION}"
+            )
         super().__init__(precision)
 
     @cached_property
@@ -213,7 +220,17 @@ class PlusCodeGrid(BaseGrid):
         -------
         GridCell
             The grid cell corresponding to the identifier
+
+        Raises
+        ------
+        ValueError
+            If the identifier contains characters outside the Plus Code
+            alphabet or is too short to encode a cell.
         """
+        normalized = identifier.replace("+", "").upper()
+        if len(normalized) < 2 or any(ch not in self.ALPHABET for ch in normalized):
+            raise ValueError(f"Invalid plus code identifier: {identifier!r}")
+
         south, west, north, east = self.decode(identifier)
         # Expand bounds slightly to ensure point containment for boundary cases
         cell_lat = north - south
@@ -280,6 +297,68 @@ class PlusCodeGrid(BaseGrid):
                     continue
 
         return neighbors
+
+    def get_children(self, cell: GridCell) -> list[GridCell]:
+        """
+        Get the child cells one precision level finer.
+
+        Plus Codes nest exactly: each level subdivides a cell into
+        ``BASE x BASE`` (20 x 20 = 400) children that tile it. Children are
+        produced by re-encoding each sub-cell centre at the finer precision,
+        so identifiers are always canonical.
+
+        Parameters
+        ----------
+        cell : GridCell
+            Parent cell.
+
+        Returns
+        -------
+        list[GridCell]
+            The child cells, or an empty list if already at the finest
+            precision.
+        """
+        if self.precision >= self.MAX_PRECISION:
+            return []
+        south, west, north, east = self.decode(cell.identifier)
+        child = type(self)(precision=self.precision + 1)
+        dlat = (north - south) / self.BASE
+        dlon = (east - west) / self.BASE
+        children: dict[str, GridCell] = {}
+        for i in range(self.BASE):
+            for j in range(self.BASE):
+                clat = south + (i + 0.5) * dlat
+                clon = west + (j + 0.5) * dlon
+                c = child.get_cell_from_point(clat, clon)
+                children[c.identifier] = c
+        return list(children.values())
+
+    def get_parent(self, cell: GridCell) -> GridCell:
+        """
+        Get the parent cell one precision level coarser.
+
+        Parameters
+        ----------
+        cell : GridCell
+            Child cell.
+
+        Returns
+        -------
+        GridCell
+            The parent cell that contains ``cell``.
+
+        Raises
+        ------
+        ValueError
+            If the cell is already at the coarsest precision.
+        """
+        if self.precision <= self.MIN_PRECISION:
+            raise ValueError(
+                "Cell has no parent (already at the coarsest plus code precision)"
+            )
+        south, west, north, east = self.decode(cell.identifier)
+        parent = type(self)(precision=self.precision - 1)
+        return parent.get_cell_from_point((south + north) / 2, (west + east) / 2)
 
     @override
     def get_cells_in_bbox(

@@ -35,14 +35,11 @@ ALL_SINGLETONS = [
     "PlusCode",
 ]
 
-HIERARCHICAL = ["H3", "S2", "Quadkey", "Slippy"]
+HIERARCHICAL = ["H3", "S2", "Quadkey", "Slippy", "Geohash", "PlusCode", "CSquares"]
 NON_HIERARCHICAL = [
-    "Geohash",
     "MGRS",
-    "CSquares",
     "GARS",
     "Maidenhead",
-    "PlusCode",
 ]
 
 
@@ -207,7 +204,9 @@ def test_h3_only_verbs_raise_on_other_backends(name):
 def test_hierarchical_parent_children_roundtrip(name):
     """Hierarchical backends round-trip a cell through children then parent."""
     grid = getattr(m3s, name)
-    res = grid._default_precision
+    # Use a resolution with room for a finer level (CSquares' default is its max).
+    lo, hi = grid._get_precision_range()
+    res = max(lo, min(grid._default_precision, hi - 1))
     cell = grid.latlng_to_cell(*PARIS, res)
     children = grid.cell_to_children(cell, res + 1)
     assert isinstance(children, GridCellCollection)

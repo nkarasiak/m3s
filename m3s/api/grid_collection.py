@@ -9,6 +9,8 @@ from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, Union
 
 import geopandas as gpd
 from shapely.geometry import Polygon
+from shapely.geometry.base import BaseGeometry
+from shapely.ops import unary_union
 
 from ..base import GridCell
 
@@ -126,6 +128,82 @@ class GridCellCollection:
             "total_area_km2": self.total_area_km2,
         }
 
+    def to_geojson(self) -> Dict[str, Any]:
+        """
+        Convert to a GeoJSON ``FeatureCollection``.
+
+        Returns
+        -------
+        Dict[str, Any]
+            GeoJSON FeatureCollection with one feature per cell.
+        """
+        return {
+            "type": "FeatureCollection",
+            "features": [c.to_geojson() for c in self.cells],
+        }
+
+    def save(self, path: str, driver: Optional[str] = None, **kwargs: Any) -> str:
+        """
+        Write the cells to a vector file (GeoJSON, GeoPackage, Shapefile, …).
+
+        Parameters
+        ----------
+        path : str
+            Output path. The driver is inferred from the extension when
+            ``driver`` is not given (``.geojson`` → GeoJSON, ``.gpkg`` →
+            GPKG, ``.shp`` → ESRI Shapefile).
+        driver : str, optional
+            Explicit OGR driver name, overriding extension inference.
+        **kwargs
+            Forwarded to ``GeoDataFrame.to_file``.
+
+        Returns
+        -------
+        str
+            The path written to.
+        """
+        if driver is None:
+            ext = path.rsplit(".", 1)[-1].lower() if "." in path else ""
+            driver = {
+                "geojson": "GeoJSON",
+                "json": "GeoJSON",
+                "gpkg": "GPKG",
+                "shp": "ESRI Shapefile",
+            }.get(ext)
+        self.to_gdf().to_file(path, driver=driver, **kwargs)
+        return path
+
+    # Visualization (thin delegates to GeoPandas)
+
+    def explore(self, **kwargs: Any) -> Any:
+        """
+        Render the cells on an interactive Leaflet map.
+
+        Thin delegate to ``GeoDataFrame.explore`` (folium). Any keyword
+        arguments (``column``, ``tooltip``, ``tiles``, …) are forwarded.
+
+        Returns
+        -------
+        folium.Map
+            Interactive map of the cells.
+        """
+        return self.to_gdf().explore(**kwargs)
+
+    def plot(self, **kwargs: Any) -> Any:
+        """
+        Plot the cells with matplotlib.
+
+        Thin delegate to ``GeoDataFrame.plot``; all keyword arguments are
+        forwarded. Reproject the result of :meth:`to_gdf` yourself if you
+        need a basemap-aligned CRS (e.g. EPSG:3857).
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes drawn on.
+        """
+        return self.to_gdf().plot(**kwargs)
+
     # Operations
 
     def filter(self, predicate: Callable[[GridCell], bool]) -> "GridCellCollection":
@@ -160,6 +238,38 @@ class GridCellCollection:
             List of function results
         """
         return [func(c) for c in self.cells]
+
+    def unique(self) -> "GridCellCollection":
+        """
+        Drop duplicate cells (by identifier), preserving order.
+
+        Returns
+        -------
+        GridCellCollection
+            New collection without duplicate cells.
+        """
+        seen: set[str] = set()
+        unique_cells = []
+        for cell in self.cells:
+            if cell.identifier not in seen:
+                seen.add(cell.identifier)
+                unique_cells.append(cell)
+        return GridCellCollection(unique_cells, self._grid)
+
+    def dissolve(self) -> BaseGeometry:
+        """
+        Merge all cell polygons into a single geometry.
+
+        Useful for the outer boundary of a covered region.
+
+        Returns
+        -------
+        shapely.geometry.base.BaseGeometry
+            Union of all cell polygons (empty ``Polygon`` if no cells).
+        """
+        if not self.cells:
+            return Polygon()
+        return unary_union([c.polygon for c in self.cells])
 
     def refine(self, precision: int) -> "GridCellCollection":
         """
@@ -360,6 +470,11 @@ class GridCellCollection:
     # Properties
 
     @property
+    def ids(self) -> List[str]:
+        """List of cell identifiers (alias for :meth:`to_ids`)."""
+        return self.to_ids()
+
+    @property
     def total_area_km2(self) -> float:
         """
         Total area of all cells in square kilometers.
@@ -397,6 +512,29 @@ class GridCellCollection:
     def __len__(self) -> int:
         """Return number of cells."""
         return len(self.cells)
+
+    def __add__(self, other: "GridCellCollection") -> "GridCellCollection":
+        """
+        Merge two collections, dropping duplicate cells (by identifier).
+
+        Returns
+        -------
+        GridCellCollection
+            Combined, de-duplicated collection. Keeps this collection's grid
+            wrapper when both share one.
+        """
+        if not isinstance(other, GridCellCollection):
+            return NotImplemented
+        grid = self._grid if self._grid is not None else other._grid
+        return GridCellCollection(self.cells + other.cells, grid).unique()
+
+    def __contains__(self, item: object) -> bool:
+        """Membership test by GridCell or identifier string."""
+        if isinstance(item, GridCell):
+            return any(c.identifier == item.identifier for c in self.cells)
+        if isinstance(item, str):
+            return any(c.identifier == item for c in self.cells)
+        return False
 
     def __iter__(self) -> Iterator[GridCell]:
         """Iterate over cells."""

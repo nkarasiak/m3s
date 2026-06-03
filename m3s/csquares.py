@@ -18,6 +18,10 @@ class CSquaresGrid(BaseGrid):
     decimal grid system.
     """
 
+    MIN_PRECISION = 1
+    MAX_PRECISION = 5
+    DEFAULT_PRECISION = 5
+
     def __init__(self, precision: int = 3):
         """
         Initialize CSquaresGrid.
@@ -39,8 +43,11 @@ class CSquaresGrid(BaseGrid):
         ValueError
             If precision is not between 1 and 5
         """
-        if not 1 <= precision <= 5:
-            raise ValueError("C-squares precision must be between 1 and 5")
+        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
+            raise ValueError(
+                f"C-squares precision must be between {self.MIN_PRECISION} and "
+                f"{self.MAX_PRECISION}"
+            )
         super().__init__(precision)
 
     @override
@@ -162,6 +169,78 @@ class CSquaresGrid(BaseGrid):
             # Return empty list if cell lookup fails
             return []
 
+    def get_children(self, cell: GridCell) -> list[GridCell]:
+        """
+        Get the child cells one precision level finer.
+
+        C-squares nest exactly, but the aperture varies by level (10 deg -> 5
+        deg is 2x2, 5 deg -> 1 deg is 5x5, etc.). Children are produced by
+        re-encoding each finer-cell centre, so identifiers stay canonical and
+        the per-level aperture is handled automatically.
+
+        Parameters
+        ----------
+        cell : GridCell
+            Parent cell.
+
+        Returns
+        -------
+        list[GridCell]
+            The child cells, or an empty list if already at the finest
+            precision.
+        """
+        if self.precision >= self.MAX_PRECISION:
+            return []
+        min_lat, min_lon, max_lat, max_lon = self._decode_csquare(cell.identifier)
+        child = type(self)(precision=self.precision + 1)
+        # Determine the child cell size from a sample child within the parent.
+        c_min_lat, c_min_lon, c_max_lat, c_max_lon = child._decode_csquare(
+            child.get_cell_from_point(
+                (min_lat + max_lat) / 2, (min_lon + max_lon) / 2
+            ).identifier
+        )
+        child_lat = c_max_lat - c_min_lat
+        child_lon = c_max_lon - c_min_lon
+        nlat = max(1, round((max_lat - min_lat) / child_lat))
+        nlon = max(1, round((max_lon - min_lon) / child_lon))
+        children: dict[str, GridCell] = {}
+        for i in range(nlat):
+            for j in range(nlon):
+                clat = min_lat + (i + 0.5) * child_lat
+                clon = min_lon + (j + 0.5) * child_lon
+                c = child.get_cell_from_point(clat, clon)
+                children[c.identifier] = c
+        return list(children.values())
+
+    def get_parent(self, cell: GridCell) -> GridCell:
+        """
+        Get the parent cell one precision level coarser.
+
+        Parameters
+        ----------
+        cell : GridCell
+            Child cell.
+
+        Returns
+        -------
+        GridCell
+            The parent cell that contains ``cell``.
+
+        Raises
+        ------
+        ValueError
+            If the cell is already at the coarsest precision.
+        """
+        if self.precision <= self.MIN_PRECISION:
+            raise ValueError(
+                "Cell has no parent (already at the coarsest C-squares precision)"
+            )
+        min_lat, min_lon, max_lat, max_lon = self._decode_csquare(cell.identifier)
+        parent = type(self)(precision=self.precision - 1)
+        return parent.get_cell_from_point(
+            (min_lat + max_lat) / 2, (min_lon + max_lon) / 2
+        )
+
     @override
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
@@ -185,41 +264,13 @@ class CSquaresGrid(BaseGrid):
         list[GridCell]
             List of C-squares cells that intersect the bounding box
         """
-        cells = set()
-
-        # Calculate cell size for current precision
+        # C-squares cells form a regular lon/lat lattice from the global SW
+        # corner; enumerate every intersecting cell deterministically rather
+        # than point-sampling.
         cell_size = self._get_cell_size(self.precision)
-
-        # Extend sampling area to catch boundary intersections
-        margin = cell_size * 0.5
-        extended_min_lat = max(-90, min_lat - margin)
-        extended_max_lat = min(90, max_lat + margin)
-        extended_min_lon = max(-180, min_lon - margin)
-        extended_max_lon = min(180, max_lon + margin)
-
-        # Create bbox polygon for intersection testing
-        bbox_polygon = Polygon(
-            [
-                (min_lon, min_lat),
-                (max_lon, min_lat),
-                (max_lon, max_lat),
-                (min_lon, max_lat),
-                (min_lon, min_lat),
-            ]
+        return self._cells_in_bbox_regular(
+            min_lat, min_lon, max_lat, max_lon, cell_size, cell_size
         )
-
-        lat = extended_min_lat
-        while lat < extended_max_lat:
-            lon = extended_min_lon
-            while lon < extended_max_lon:
-                cell = self.get_cell_from_point(lat, lon)
-                # Check if cell actually intersects with the original bbox
-                if cell.polygon.intersects(bbox_polygon):
-                    cells.add(cell)
-                lon += cell_size
-            lat += cell_size
-
-        return list(cells)
 
     def _encode_csquare(self, lat: float, lon: float, precision: int) -> str:
         """

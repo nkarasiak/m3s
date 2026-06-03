@@ -13,19 +13,19 @@ class TestH3Grid:
 
     def test_grid_initialization(self):
         """Initialize grid with valid resolution."""
-        grid = H3Grid(resolution=7)
+        grid = H3Grid(precision=7)
         assert grid.precision == 7
 
     def test_invalid_resolution(self):
         """Reject invalid resolution values."""
         with pytest.raises(ValueError):
-            H3Grid(resolution=-1)
+            H3Grid(precision=-1)
         with pytest.raises(ValueError):
-            H3Grid(resolution=16)
+            H3Grid(precision=16)
 
     def test_get_cell_from_point(self):
         """Return a cell for a point."""
-        grid = H3Grid(resolution=7)
+        grid = H3Grid(precision=7)
         cell = grid.get_cell_from_point(40.7128, -74.0060)
 
         assert cell is not None
@@ -35,7 +35,7 @@ class TestH3Grid:
 
     def test_get_cell_from_identifier(self):
         """Return a cell for an identifier."""
-        grid = H3Grid(resolution=7)
+        grid = H3Grid(precision=7)
 
         # Get a cell first to have a valid identifier
         test_cell = grid.get_cell_from_point(40.7128, -74.0060)
@@ -48,7 +48,7 @@ class TestH3Grid:
 
     def test_polygon_intersection(self):
         """Find cells intersecting a polygon."""
-        grid = H3Grid(resolution=6)
+        grid = H3Grid(precision=6)
 
         test_polygon = Polygon(
             [(-74.1, 40.7), (-74.0, 40.7), (-74.0, 40.8), (-74.1, 40.8), (-74.1, 40.7)]
@@ -68,7 +68,7 @@ class TestH3Grid:
 
     def test_get_neighbors(self):
         """Return neighbor cells."""
-        grid = H3Grid(resolution=7)
+        grid = H3Grid(precision=7)
         cell = grid.get_cell_from_point(40.7128, -74.0060)
         neighbors = grid.get_neighbors(cell)
 
@@ -79,7 +79,7 @@ class TestH3Grid:
 
     def test_get_cells_in_bbox(self):
         """Return cells in a bounding box."""
-        grid = H3Grid(resolution=8)
+        grid = H3Grid(precision=8)
         min_lat, min_lon = 40.7, -74.1
         max_lat, max_lon = 40.8, -74.0
 
@@ -91,7 +91,7 @@ class TestH3Grid:
 
     def test_resolution_info(self):
         """Return resolution metadata."""
-        grid = H3Grid(resolution=7)
+        grid = H3Grid(precision=7)
         info = grid.get_resolution_info()
 
         assert info["resolution"] == 7
@@ -102,7 +102,7 @@ class TestH3Grid:
 
     def test_edge_length_and_area(self):
         """Return edge length and area metrics."""
-        grid = H3Grid(resolution=7)
+        grid = H3Grid(precision=7)
 
         edge_length = grid.get_edge_length_km()
         area = grid.get_hexagon_area_km2()
@@ -111,13 +111,13 @@ class TestH3Grid:
         assert area > 0
 
         # Higher resolution should have smaller cells
-        grid_higher = H3Grid(resolution=8)
+        grid_higher = H3Grid(precision=8)
         assert grid_higher.get_edge_length_km() < edge_length
         assert grid_higher.get_hexagon_area_km2() < area
 
     def test_parent_child_relationships(self):
         """Traverse parent/child relationships."""
-        grid = H3Grid(resolution=7)
+        grid = H3Grid(precision=7)
         cell = grid.get_cell_from_point(40.7128, -74.0060)
 
         # Test getting children
@@ -133,7 +133,7 @@ class TestH3Grid:
 
     def test_compact_uncompact(self):
         """Compact and uncompact cell sets."""
-        grid = H3Grid(resolution=8)
+        grid = H3Grid(precision=8)
 
         # Get some cells
         cells = grid.get_cells_in_bbox(40.7, -74.1, 40.75, -74.05)
@@ -151,7 +151,7 @@ class TestH3Grid:
 
     def test_hexagon_properties(self):
         """Test that H3 cells are indeed hexagonal."""
-        grid = H3Grid(resolution=7)
+        grid = H3Grid(precision=7)
         cell = grid.get_cell_from_point(40.7128, -74.0060)
 
         # H3 hexagons should have 6 vertices (plus closing vertex = 7 coordinates)

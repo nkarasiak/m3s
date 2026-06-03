@@ -15,18 +15,17 @@ class TestQuadkeyGrid:
     @pytest.fixture
     def grid_level_10(self):
         """Create a Quadkey grid with level 10."""
-        return QuadkeyGrid(level=10)
+        return QuadkeyGrid(precision=10)
 
     @pytest.fixture
     def grid_level_15(self):
         """Create a Quadkey grid with level 15."""
-        return QuadkeyGrid(level=15)
+        return QuadkeyGrid(precision=15)
 
     def test_initialization_valid_levels(self):
         """Test grid initialization with valid levels."""
         for level in [1, 10, 15, 23]:
-            grid = QuadkeyGrid(level=level)
-            assert grid.level == level
+            grid = QuadkeyGrid(precision=level)
             assert grid.precision == level
 
     def test_initialization_invalid_levels(self):
@@ -36,7 +35,7 @@ class TestQuadkeyGrid:
             with pytest.raises(
                 ValueError, match="Quadkey precision must be between 1 and 23"
             ):
-                QuadkeyGrid(level=level)
+                QuadkeyGrid(precision=level)
 
     def test_get_cell_from_point_nyc(self, grid_level_10):
         """Test getting cell from NYC coordinates."""
@@ -178,7 +177,7 @@ class TestQuadkeyGrid:
 
     def test_get_children_max_level(self):
         """Test getting children at maximum level."""
-        grid = QuadkeyGrid(level=23)  # Maximum level
+        grid = QuadkeyGrid(precision=23)  # Maximum level
         cell = grid.get_cell_from_point(40.7128, -74.0060)
         children = grid.get_children(cell)
 
@@ -198,7 +197,7 @@ class TestQuadkeyGrid:
 
     def test_get_parent_root_level(self):
         """Test getting parent at root level."""
-        grid = QuadkeyGrid(level=1)
+        grid = QuadkeyGrid(precision=1)
         cell = grid.get_cell_from_point(40.7128, -74.0060)
 
         with pytest.raises(ValueError, match="Cell has no parent"):
@@ -270,7 +269,7 @@ class TestQuadkeyGrid:
         cells = []
 
         for level in levels:
-            grid = QuadkeyGrid(level=level)
+            grid = QuadkeyGrid(precision=level)
             cell = grid.get_cell_from_point(lat, lon)
             cells.append(cell)
 
@@ -298,7 +297,7 @@ class TestQuadkeyGrid:
         # Each child's parent should be the original cell
         for child in children:
             # Create a grid at the child's level to get parent
-            child_grid = QuadkeyGrid(level=child.precision)
+            child_grid = QuadkeyGrid(precision=child.precision)
             parent = child_grid.get_parent(child)
             assert parent.identifier == cell.identifier
 
@@ -355,7 +354,7 @@ class TestQuadkeyGrid:
         """Test string representation of grid."""
         repr_str = repr(grid_level_10)
         assert "QuadkeyGrid" in repr_str
-        assert "level=10" in repr_str
+        assert "precision=10" in repr_str
 
 
 class TestQuadkeyEdgeCases:
@@ -363,7 +362,7 @@ class TestQuadkeyEdgeCases:
 
     def test_extreme_coordinates(self):
         """Test with extreme but valid coordinates."""
-        grid = QuadkeyGrid(level=5)
+        grid = QuadkeyGrid(precision=5)
 
         extreme_coords = [
             (85.05, 179.99),  # Near max lat/lon
@@ -378,7 +377,7 @@ class TestQuadkeyEdgeCases:
 
     def test_coordinate_clamping(self):
         """Test that coordinates are properly clamped to valid ranges."""
-        grid = QuadkeyGrid(level=5)
+        grid = QuadkeyGrid(precision=5)
 
         # Test coordinates outside valid range (should be clamped)
         extreme_coords = [
@@ -395,7 +394,7 @@ class TestQuadkeyEdgeCases:
 
     def test_empty_bbox(self):
         """Test with empty bounding box."""
-        grid = QuadkeyGrid(level=10)
+        grid = QuadkeyGrid(precision=10)
 
         # Point bounding box (min == max)
         cells = grid.get_cells_in_bbox(40.7, -74.0, 40.7, -74.0)
@@ -405,7 +404,7 @@ class TestQuadkeyEdgeCases:
 
     def test_inverted_bbox(self):
         """Test with inverted bounding box coordinates."""
-        grid = QuadkeyGrid(level=10)
+        grid = QuadkeyGrid(precision=10)
 
         # Inverted bbox (min > max)
         cells = grid.get_cells_in_bbox(41.0, -73.0, 40.0, -74.0)
@@ -423,13 +422,13 @@ class TestQuadkeyProperties:
         lat, lon = 40.7128, -74.0060
 
         for level in levels:
-            grid = QuadkeyGrid(level=level)
+            grid = QuadkeyGrid(precision=level)
             cell = grid.get_cell_from_point(lat, lon)
             assert len(cell.identifier) == level
 
     def test_child_quadkey_prefix(self):
         """Test that child quadkeys start with parent quadkey."""
-        grid = QuadkeyGrid(level=10)
+        grid = QuadkeyGrid(precision=10)
         cell = grid.get_cell_from_point(40.7128, -74.0060)
         children = grid.get_children(cell)
 
@@ -439,7 +438,7 @@ class TestQuadkeyProperties:
 
     def test_quadkey_digits_only_0123(self):
         """Test that quadkeys contain only digits 0, 1, 2, 3."""
-        grid = QuadkeyGrid(level=10)
+        grid = QuadkeyGrid(precision=10)
 
         # Test multiple points
         test_points = [
@@ -455,7 +454,7 @@ class TestQuadkeyProperties:
 
     def test_spatial_locality(self):
         """Test that nearby points have similar quadkeys."""
-        grid = QuadkeyGrid(level=10)
+        grid = QuadkeyGrid(precision=10)
 
         # Two nearby points
         lat1, lon1 = 40.7128, -74.0060

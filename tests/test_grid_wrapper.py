@@ -52,21 +52,27 @@ class TestGridWrapper:
 
     def test_from_polygon(self):
         """Test from_geometry with Polygon."""
-        polygon = Polygon([(-74.02, 40.70), (-74.01, 40.70), (-74.01, 40.71), (-74.02, 40.71)])
+        polygon = Polygon(
+            [(-74.02, 40.70), (-74.01, 40.70), (-74.01, 40.71), (-74.02, 40.71)]
+        )
         cells = m3s.Geohash.from_geometry(polygon)
         assert isinstance(cells, m3s.GridCellCollection)
         assert len(cells) > 0
 
     def test_from_polygon_explicit(self):
         """Test from_polygon method."""
-        polygon = Polygon([(-74.02, 40.70), (-74.01, 40.70), (-74.01, 40.71), (-74.02, 40.71)])
+        polygon = Polygon(
+            [(-74.02, 40.70), (-74.01, 40.70), (-74.01, 40.71), (-74.02, 40.71)]
+        )
         cells = m3s.Geohash.from_polygon(polygon)
         assert isinstance(cells, m3s.GridCellCollection)
         assert len(cells) > 0
 
     def test_from_geodataframe(self):
         """Test from_geometry with GeoDataFrame."""
-        polygon = Polygon([(-74.02, 40.70), (-74.01, 40.70), (-74.01, 40.71), (-74.02, 40.71)])
+        polygon = Polygon(
+            [(-74.02, 40.70), (-74.01, 40.70), (-74.01, 40.71), (-74.02, 40.71)]
+        )
         gdf = gpd.GeoDataFrame({"geometry": [polygon]}, crs="EPSG:4326")
         cells = m3s.H3.from_geometry(gdf)
         assert isinstance(cells, m3s.GridCellCollection)
@@ -74,7 +80,9 @@ class TestGridWrapper:
 
     def test_with_precision(self):
         """Test with_precision method."""
-        cells = m3s.Geohash.with_precision(7).from_geometry((-74.02, 40.70, -74.01, 40.71))
+        cells = m3s.Geohash.with_precision(7).from_geometry(
+            (-74.02, 40.70, -74.01, 40.71)
+        )
         assert isinstance(cells, m3s.GridCellCollection)
         assert all(c.precision == 7 for c in cells.cells)
 
@@ -189,14 +197,18 @@ class TestPrecisionFinder:
 
     def test_find_precision_auto(self):
         """Test auto precision finding."""
-        polygon = Polygon([(-74.001, 40.700), (-73.999, 40.700), (-73.999, 40.701), (-74.001, 40.701)])
+        polygon = Polygon(
+            [(-74.001, 40.700), (-73.999, 40.700), (-73.999, 40.701), (-74.001, 40.701)]
+        )
         precision = m3s.Geohash.find_precision(polygon, method="auto")
         assert isinstance(precision, int)
         assert precision > 0
 
     def test_find_precision_target_count(self):
         """Test precision finding with target count."""
-        polygon = Polygon([(-74.001, 40.700), (-73.999, 40.700), (-73.999, 40.701), (-74.001, 40.701)])
+        polygon = Polygon(
+            [(-74.001, 40.700), (-73.999, 40.700), (-73.999, 40.701), (-74.001, 40.701)]
+        )
         precision = m3s.H3.find_precision(polygon, method=100)
         assert isinstance(precision, int)
         assert precision > 0
@@ -359,6 +371,8 @@ class TestContractAndInference:
         """Non-hierarchical grids raise NotImplementedError on coarsen."""
         import pytest
 
-        cells = m3s.Geohash.from_geometry((-74.02, 40.70, -74.01, 40.71))
+        # MGRS has no get_parent, so coarsen is unsupported. (Geohash, being
+        # natively hierarchical, now *does* support coarsen.)
+        cells = m3s.MGRS.from_geometry((-74.02, 40.70, -74.01, 40.71))
         with pytest.raises(NotImplementedError):
-            cells.coarsen(3)
+            cells.coarsen(1)

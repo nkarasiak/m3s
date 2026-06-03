@@ -500,9 +500,7 @@ class GridBuilder:
 
                 parents: List[GridCell] = []
                 for cell in cells:
-                    parent = self._get_parent_to_precision(
-                        grid, cell, parent_precision
-                    )
+                    parent = self._get_parent_to_precision(grid, cell, parent_precision)
                     if parent and parent.identifier not in [
                         p.identifier for p in parents
                     ]:
@@ -671,12 +669,5 @@ class GridBuilder:
 
         grid_class = grid_classes[system]
 
-        # Create grid with appropriate parameter name for each system
-        if system == "h3":
-            return grid_class(resolution=precision)  # type: ignore[no-any-return]
-        elif system in ["quadkey", "s2"]:
-            return grid_class(level=precision)  # type: ignore[no-any-return]
-        elif system == "slippy":
-            return grid_class(zoom=precision)  # type: ignore[no-any-return]
-        else:
-            return grid_class(precision=precision)  # type: ignore[no-any-return]
+        # Every grid accepts the standardized ``precision`` keyword.
+        return grid_class(precision=precision)  # type: ignore[abstract]

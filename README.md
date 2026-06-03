@@ -34,7 +34,7 @@ For development:
 ```bash
 git clone https://github.com/nkarasiak/m3s.git
 cd m3s
-uv pip install -e ".[dev]"
+uv sync          # create the dev environment (.venv) from uv.lock
 ```
 
 ## Quick Start
@@ -84,6 +84,18 @@ polygons = cells.to_polygons()
 # Find precision by use case
 precision = m3s.Geohash.find_precision_for_use_case('neighborhood')  # ~1-10 km²
 # Other use cases: 'building', 'block', 'city', 'region', 'country'
+
+# Dynamic, config-driven grid access by name
+grid = m3s.grid('h3', precision=7)       # -> same wrapper as m3s.H3
+print(m3s.grids())                       # ['csquares', 'eaquad', 'gars', 'h3', ...]
+
+# Visualize straight from a collection (delegates to GeoPandas/folium)
+cells.explore()                          # interactive Leaflet map
+cells.plot(edgecolor='black')            # static matplotlib axes
+
+# Persist and reload (round-trips through ids or a vector file)
+cells.save('cells.geojson')
+same = m3s.H3.from_ids(cells.to_ids())   # ids -> wrapper-aware collection
 ```
 
 **Available grid systems:**
@@ -110,7 +122,7 @@ precision = m3s.Geohash.find_precision_for_use_case('neighborhood')  # ~1-10 km�
 | Task | New Simplified API | Classic API |
 |------|-------------------|-------------|
 | **Get cell at point** | `m3s.Geohash.from_geometry((-74.0, 40.7))` | `GeohashGrid(precision=5).get_cell_from_point(40.7, -74.0)` |
-| **Get cells in area** | `m3s.H3.from_geometry(polygon)` | `H3Grid(resolution=7).intersects(gdf)` |
+| **Get cells in area** | `m3s.H3.from_geometry(polygon)` | `H3Grid(precision=7).intersects(gdf)` |
 | **Get neighbors** | `m3s.Geohash.neighbors(cell)` | `grid.get_neighbors(cell)` |
 | **Find precision** | `m3s.H3.find_precision_for_use_case('city')` | Manual selection |
 | **Convert grids** | `cells.to_h3()` | Use conversion utilities |
@@ -149,10 +161,10 @@ import geopandas as gpd
 grids = {
     'Geohash': GeohashGrid(precision=5),        # ~4,892 km² cells
     'MGRS': MGRSGrid(precision=1),              # 100 km² cells
-    'H3': H3Grid(resolution=7),                 # ~5.16 km² cells
-    'Quadkey': QuadkeyGrid(level=12),           # ~95.73 km² cells
-    'S2': S2Grid(level=10),                     # ~81.07 km² cells
-    'Slippy': SlippyGrid(zoom=12),              # ~95.73 km² cells
+    'H3': H3Grid(precision=7),                  # ~5.16 km² cells
+    'Quadkey': QuadkeyGrid(precision=12),       # ~95.73 km² cells
+    'S2': S2Grid(precision=10),                 # ~81.07 km² cells
+    'Slippy': SlippyGrid(precision=12),         # ~95.73 km² cells
     'C-squares': CSquaresGrid(precision=3),     # Marine data indexing
     'GARS': GARSGrid(precision=2),              # Global Area Reference System
     'Maidenhead': MaidenheadGrid(precision=3),  # Amateur radio locator
@@ -203,7 +215,7 @@ gdf = gpd.GeoDataFrame({
 ], crs="EPSG:4326")
 
 # Intersect with any grid system - includes UTM zone information for applicable grids
-grid = H3Grid(resolution=7)
+grid = H3Grid(precision=7)
 result = grid.intersects(gdf)
 print(f"Grid cells: {len(result)}")
 print(result[['cell_id', 'utm', 'city', 'population']].head())
@@ -215,7 +227,7 @@ print(result[['cell_id', 'utm', 'city', 'population']].head())
 # 2  8828872c0ffffff  32616    Chicago    2693976
 
 # Web mapping grids (Quadkey, Slippy) don't include UTM zones
-web_grid = SlippyGrid(zoom=12)
+web_grid = SlippyGrid(precision=12)
 web_result = web_grid.intersects(gdf)
 print(web_result[['cell_id', 'city']].head())
 # Output:
@@ -372,25 +384,25 @@ The UTM column contains EPSG codes (e.g., 32614 for UTM Zone 14N, 32723 for UTM 
 ```bash
 git clone https://github.com/nkarasiak/m3s.git
 cd m3s
-uv pip install -e ".[dev]"
+uv sync          # create the dev environment (.venv) from uv.lock
 ```
 
 ### Running Tests
 
 ```bash
-pytest
+uv run pytest
 ```
 
 ### Code Formatting
 
 ```bash
-black m3s tests examples
+uv run black m3s tests examples
 ```
 
 ### Type Checking
 
 ```bash
-mypy m3s
+uv run mypy m3s
 ```
 
 ## Contributing
