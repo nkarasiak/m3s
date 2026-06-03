@@ -5,11 +5,13 @@ H3 grid
 Uber's hexagonal hierarchical index. Hexagons give uniform adjacency (every
 cell has six neighbours), which suits movement and coverage analysis.
 
-Like the `h3geo.org <https://h3geo.org/>`_ explorer, this example overlays
-**three nested resolutions** (5, 6, 7) over central Paris: the coarsest
-resolution draws the thickest, darkest border and each finer resolution tiles
-inside it with a thinner, lighter line. Cells are unfilled so the nesting is
-visible. GIS-native ``(lon, lat)`` order is used throughout.
+The **interactive explorer** below behaves like the
+`h3geo.org <https://h3geo.org/>`_ map: the H3 resolution follows the zoom level
+and cells are generated **in the browser** for whatever is in view — zoom in for
+finer cells, zoom out for coarser, no resolution picker. Powered by
+`h3-js <https://github.com/uber/h3-js>`_, the same library behind h3geo.org. A
+static reference map of three nested resolutions (5 / 6 / 7) over Paris follows
+below. GIS-native ``(lon, lat)`` order is used throughout.
 """
 
 import folium
@@ -18,67 +20,13 @@ from folium.plugins import Fullscreen
 
 import m3s
 
-bbox = (2.30, 48.84, 2.40, 48.94)
-
-# Coarse -> fine. Coarsest gets the thickest, darkest border.
-RESOLUTIONS = [5, 6, 7]
-WEIGHTS = [4.0, 2.0, 0.8]
-SHADES = ["#000000", "#555555", "#999999"]
-
-# Build the coarsest layer over the bbox, then tile the finer layers across the
-# coarse cells' full extent so every coarse cell is completely nested.
-coarse_gdf = m3s.H3.from_geometry(bbox, precision=RESOLUTIONS[0]).to_gdf()
-extent = tuple(coarse_gdf.total_bounds)  # (minlon, minlat, maxlon, maxlat)
-layers = [(RESOLUTIONS[0], coarse_gdf)]
-layers += [
-    (r, m3s.H3.from_geometry(extent, precision=r).to_gdf()) for r in RESOLUTIONS[1:]
-]
-
 # %%
-# Static map
-# ----------
+# Interactive explorer
+# --------------------
 #
-# The three resolutions overlaid, no fill — coarse cells enclose the finer
-# tiles nested inside them.
-
-fig, ax = plt.subplots(figsize=(7, 7))
-for (res, gdf), weight, shade in zip(layers, WEIGHTS, SHADES):
-    gdf.to_crs(epsg=3857).plot(
-        ax=ax, facecolor="none", edgecolor=shade, linewidth=weight
-    )
-
-# Extent from the coarsest layer so every nested level is fully in view.
-coarse_web = layers[0][1].to_crs(epsg=3857)
-xmin, ymin, xmax, ymax = coarse_web.total_bounds
-ax.set_xlim(xmin, xmax)
-ax.set_ylim(ymin, ymax)
-
-# Add a light CartoDB Positron basemap; fall back to a plain background offline.
-try:
-    import contextily as cx
-
-    cx.add_basemap(ax, source=cx.providers.CartoDB.Positron, attribution_size=5)
-except Exception as exc:  # pragma: no cover - basemap is best-effort
-    print(f"Basemap unavailable ({exc}); drawing without tiles.")
-    ax.set_facecolor("#e8e8e8")
-
-ax.set_axis_off()
-ax.set_title("H3 — nested resolutions 5 / 6 / 7 over Paris")
-plt.tight_layout()
-plt.show()
-
-for res, gdf in layers:
-    print(f"H3 resolution {res}: {len(gdf)} cells")
-
-# %%
-# Interactive map
-# ---------------
-#
-# A dynamic, `h3geo.org <https://h3geo.org/>`_-style explorer: the H3 resolution
-# follows the zoom level and cells are generated **in the browser** for whatever
-# is in view. Zoom in for finer cells, zoom out for coarser — no resolution
-# picker. Powered by `h3-js <https://github.com/uber/h3-js>`_, the same library
-# behind h3geo.org.
+# Pan and zoom: the grid re-tiles live for the current view. Zoom in for finer
+# cells, out for coarser. The lighter, thinner cells preview the next finer
+# resolution so the hexagonal nesting stays visible.
 fmap = folium.Map(location=[48.86, 2.35], zoom_start=11, tiles="CartoDB positron")
 Fullscreen().add_to(fmap)
 
@@ -153,3 +101,56 @@ fmap.get_root().script.add_child(
     folium.Element(_H3_JS.replace("__MAP__", fmap.get_name()))
 )
 fmap
+
+# %%
+# Static reference map
+# --------------------
+#
+# The same three resolutions overlaid, no fill — coarse cells enclose the finer
+# tiles nested inside them. The coarsest resolution draws the thickest, darkest
+# border; each finer resolution tiles inside it with a thinner, lighter line.
+
+bbox = (2.30, 48.84, 2.40, 48.94)
+
+# Coarse -> fine. Coarsest gets the thickest, darkest border.
+RESOLUTIONS = [5, 6, 7]
+WEIGHTS = [4.0, 2.0, 0.8]
+SHADES = ["#000000", "#555555", "#999999"]
+
+# Build the coarsest layer over the bbox, then tile the finer layers across the
+# coarse cells' full extent so every coarse cell is completely nested.
+coarse_gdf = m3s.H3.from_geometry(bbox, precision=RESOLUTIONS[0]).to_gdf()
+extent = tuple(coarse_gdf.total_bounds)  # (minlon, minlat, maxlon, maxlat)
+layers = [(RESOLUTIONS[0], coarse_gdf)]
+layers += [
+    (r, m3s.H3.from_geometry(extent, precision=r).to_gdf()) for r in RESOLUTIONS[1:]
+]
+
+fig, ax = plt.subplots(figsize=(7, 7))
+for (res, gdf), weight, shade in zip(layers, WEIGHTS, SHADES):
+    gdf.to_crs(epsg=3857).plot(
+        ax=ax, facecolor="none", edgecolor=shade, linewidth=weight
+    )
+
+# Extent from the coarsest layer so every nested level is fully in view.
+coarse_web = layers[0][1].to_crs(epsg=3857)
+xmin, ymin, xmax, ymax = coarse_web.total_bounds
+ax.set_xlim(xmin, xmax)
+ax.set_ylim(ymin, ymax)
+
+# Add a light CartoDB Positron basemap; fall back to a plain background offline.
+try:
+    import contextily as cx
+
+    cx.add_basemap(ax, source=cx.providers.CartoDB.Positron, attribution_size=5)
+except Exception as exc:  # pragma: no cover - basemap is best-effort
+    print(f"Basemap unavailable ({exc}); drawing without tiles.")
+    ax.set_facecolor("#e8e8e8")
+
+ax.set_axis_off()
+ax.set_title("H3 — nested resolutions 5 / 6 / 7 over Paris")
+plt.tight_layout()
+plt.show()
+
+for res, gdf in layers:
+    print(f"H3 resolution {res}: {len(gdf)} cells")
