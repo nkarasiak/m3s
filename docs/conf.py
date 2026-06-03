@@ -120,7 +120,12 @@ html_theme_options = {
 
     # Sidebar
     "primary_sidebar_end": ["sidebar-ethical-ads"],
-    "secondary_sidebar_items": ["page-toc", "sourcelink"],
+    # Gallery example pages are visual and host full-bleed interactive maps;
+    # drop the page-TOC there so the map owns the full width.
+    "secondary_sidebar_items": {
+        "**": ["page-toc", "sourcelink"],
+        "auto_examples/**": [],
+    },
 
     # Search
     "search_bar_text": "Search documentation...",
@@ -172,10 +177,18 @@ html_short_title = project
 html_logo = None  # provided via theme "logo" option (light/dark variants)
 html_favicon = "_static/favicon.svg"
 
+# Remove the left section-nav sidebar on gallery example pages so interactive
+# maps get the full canvas. Navigation stays available via the top navbar and
+# the gallery index pages.
+html_sidebars = {
+    "auto_examples/**": [],
+}
+
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_css_files = ["custom.css"]
+html_js_files = ["hero-map.js"]
 
 # -- Sphinx Gallery configuration -------------------------------------------
 try:

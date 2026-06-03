@@ -50,3 +50,66 @@ code.literal {
   border-radius: 0.3rem;
   padding: 0.1em 0.35em;
 }
+
+/* Drop the breadcrumb's bottom margin and the article's top padding so the
+   hero map sits tight beneath the breadcrumb. */
+.bd-breadcrumbs {
+  margin-bottom: 0;
+}
+/* Match the theme's 4-class selector so this wins on source order without
+   !important (theme sets padding-top: 1.5rem here above 1200px). */
+.bd-main .bd-content .bd-article-container .bd-article {
+  padding-top: 0;
+}
+
+/* Interactive maps (folium) render as an <iframe> inside a generic
+   .output_html block. By default they inherit the narrow 60rem prose column
+   and a squat 60% aspect ratio. Break them out to a full-bleed, app-sized
+   viewport so the explorer is usable, not a thumbnail. The :has(iframe)
+   guard scopes this to map output only, leaving DataFrame HTML reprs alone.
+
+   A 100vw box centred on the article (which the theme centres in the viewport)
+   fills the full width. This is the no-JS fallback; hero-map.js then overrides
+   the width/left inline to land pixel-flush on both viewport edges regardless
+   of the scrollbar width (100vw alone overshoots by the scrollbar). */
+.bd-article-container .output_html:has(iframe) {
+  position: relative;
+  width: 100vw;
+  left: 50%;
+  margin-left: -50vw;
+  margin-top: 0.5rem;
+  margin-bottom: 2.5rem;
+}
+
+/* The full-bleed map is shifted out past these centred containers, but the
+   theme gives .bd-article-container `overflow: auto`, which clips the map back
+   to the narrow column. Let it (and the main column) paint past their edges on
+   map pages. Both axes must be set: a lone `overflow-x: visible` next to
+   `overflow-y: auto` computes back to auto and re-clips. */
+.bd-article-container:has(.output_html iframe),
+.bd-content:has(.output_html iframe),
+.bd-main:has(.output_html iframe) {
+  /* !important to beat the theme's higher-specificity
+     `.bd-main .bd-content .bd-article-container { overflow-x: auto }`. */
+  overflow: visible !important;
+}
+
+/* Folium fakes a 60% aspect ratio with padding on nested wrapper divs.
+   Replace it with a fixed, tall height. */
+.output_html:has(iframe) > div,
+.output_html:has(iframe) > div > div {
+  padding-bottom: 0 !important;
+  height: auto !important;
+}
+.output_html:has(iframe) > div > div {
+  height: 55vh !important;
+  min-height: 460px;
+}
+
+/* The full-bleed block runs edge to edge; the map fills the full viewport
+   width so the explorer reads as a deliberate hero. */
+.output_html:has(iframe) iframe {
+  width: 100% !important;
+  left: 0 !important;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.14);
+}
