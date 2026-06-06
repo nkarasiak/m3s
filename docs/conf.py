@@ -7,6 +7,11 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath(".."))
+# Gallery examples import the shared deck.gl explorer helper (_deckmap.py) from
+# their own directory; put it on the path so Sphinx-Gallery can run them.
+sys.path.insert(
+    0, os.path.join(os.path.dirname(__file__), "..", "examples", "grid_systems")
+)
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -211,7 +216,9 @@ sphinx_gallery_conf = {
     'examples_dirs': '../examples',   # path to your example scripts
     'gallery_dirs': 'auto_examples',  # path to where to save gallery generated output
     'filename_pattern': r'.*\.py',     # pattern to identify example files
-    'ignore_pattern': r'__init__\.py',
+    # Ignore underscore-prefixed helpers (e.g. _deckmap.py, _make_thumbs.py)
+    # so they are importable but not rendered as gallery examples.
+    'ignore_pattern': r'(?:^|[\\/])_[^\\/]*\.py$',
     'plot_gallery': True,             # whether to execute examples and create plots
     'download_all_examples': False,   # whether to create download links
     'first_notebook_cell': '%matplotlib inline',

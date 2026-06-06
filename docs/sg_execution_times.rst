@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:00.716** total execution time for 27 files **from all galleries**:
+**00:00.050** total execution time for 16 files **from all galleries**:
 
 .. container::
 
@@ -32,84 +32,51 @@ Computation times
    * - Example
      - Time
      - Mem (MB)
-   * - :ref:`sphx_glr_auto_examples_slippy_interactive_map.py` (``..\examples\slippy_interactive_map.py``)
-     - 00:00.335
+   * - :ref:`sphx_glr_auto_examples_grid_systems_plot_gars.py` (``..\examples\grid_systems\plot_gars.py``)
+     - 00:00.030
      - 0.0
-   * - :ref:`sphx_glr_auto_examples_csquares_interactive_map.py` (``..\examples\csquares_interactive_map.py``)
-     - 00:00.109
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_geohash_interactive_map.py` (``..\examples\geohash_interactive_map.py``)
-     - 00:00.099
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_maidenhead_interactive_map.py` (``..\examples\maidenhead_interactive_map.py``)
-     - 00:00.071
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_s2_interactive_map.py` (``..\examples\s2_interactive_map.py``)
-     - 00:00.035
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_pluscode_interactive_map.py` (``..\examples\pluscode_interactive_map.py``)
-     - 00:00.026
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_quadkey_interactive_map.py` (``..\examples\quadkey_interactive_map.py``)
-     - 00:00.021
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_gars_interactive_map.py` (``..\examples\gars_interactive_map.py``)
-     - 00:00.021
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_grid_enhancements_example.py` (``..\examples\grid_enhancements_example.py``)
-     - 00:00.000
+   * - :ref:`sphx_glr_auto_examples_grid_systems_plot_eaquad.py` (``..\examples\grid_systems\plot_eaquad.py``)
+     - 00:00.003
      - 0.0
    * - :ref:`sphx_glr_auto_examples_grid_systems_plot_csquares.py` (``..\examples\grid_systems\plot_csquares.py``)
-     - 00:00.000
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_grid_systems_plot_gars.py` (``..\examples\grid_systems\plot_gars.py``)
-     - 00:00.000
+     - 00:00.002
      - 0.0
    * - :ref:`sphx_glr_auto_examples_grid_systems_plot_geohash.py` (``..\examples\grid_systems\plot_geohash.py``)
-     - 00:00.000
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_grid_systems_plot_h3.py` (``..\examples\grid_systems\plot_h3.py``)
-     - 00:00.000
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_grid_systems_plot_maidenhead.py` (``..\examples\grid_systems\plot_maidenhead.py``)
-     - 00:00.000
+     - 00:00.002
      - 0.0
    * - :ref:`sphx_glr_auto_examples_grid_systems_plot_mgrs.py` (``..\examples\grid_systems\plot_mgrs.py``)
-     - 00:00.000
+     - 00:00.002
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_grid_systems_plot_h3.py` (``..\examples\grid_systems\plot_h3.py``)
+     - 00:00.002
      - 0.0
    * - :ref:`sphx_glr_auto_examples_grid_systems_plot_pluscode.py` (``..\examples\grid_systems\plot_pluscode.py``)
-     - 00:00.000
+     - 00:00.002
      - 0.0
-   * - :ref:`sphx_glr_auto_examples_grid_systems_plot_quadkey.py` (``..\examples\grid_systems\plot_quadkey.py``)
-     - 00:00.000
+   * - :ref:`sphx_glr_auto_examples_grid_systems_plot_a5.py` (``..\examples\grid_systems\plot_a5.py``)
+     - 00:00.002
      - 0.0
    * - :ref:`sphx_glr_auto_examples_grid_systems_plot_s2.py` (``..\examples\grid_systems\plot_s2.py``)
-     - 00:00.000
+     - 00:00.002
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_grid_systems_plot_quadkey.py` (``..\examples\grid_systems\plot_quadkey.py``)
+     - 00:00.001
      - 0.0
    * - :ref:`sphx_glr_auto_examples_grid_systems_plot_slippy.py` (``..\examples\grid_systems\plot_slippy.py``)
+     - 00:00.001
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_grid_systems_plot_maidenhead.py` (``..\examples\grid_systems\plot_maidenhead.py``)
+     - 00:00.001
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_guides_grid_enhancements_example.py` (``..\examples\guides\grid_enhancements_example.py``)
      - 00:00.000
      - 0.0
-   * - :ref:`sphx_glr_auto_examples_h3_interactive_map.py` (``..\examples\h3_interactive_map.py``)
+   * - :ref:`sphx_glr_auto_examples_guides_precision_selection_example.py` (``..\examples\guides\precision_selection_example.py``)
      - 00:00.000
      - 0.0
-   * - :ref:`sphx_glr_auto_examples_h3_north_america.py` (``..\examples\h3_north_america.py``)
+   * - :ref:`sphx_glr_auto_examples_guides_quickstart.py` (``..\examples\guides\quickstart.py``)
      - 00:00.000
      - 0.0
-   * - :ref:`sphx_glr_auto_examples_new_grids_example.py` (``..\examples\new_grids_example.py``)
-     - 00:00.000
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_precision_selection_example.py` (``..\examples\precision_selection_example.py``)
-     - 00:00.000
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_quadkey_s2_example.py` (``..\examples\quadkey_s2_example.py``)
-     - 00:00.000
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_quickstart.py` (``..\examples\quickstart.py``)
-     - 00:00.000
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_quickstart_new_api.py` (``..\examples\quickstart_new_api.py``)
-     - 00:00.000
-     - 0.0
-   * - :ref:`sphx_glr_auto_examples_utm_reprojection_example.py` (``..\examples\utm_reprojection_example.py``)
+   * - :ref:`sphx_glr_auto_examples_guides_utm_reprojection_example.py` (``..\examples\guides\utm_reprojection_example.py``)
      - 00:00.000
      - 0.0
