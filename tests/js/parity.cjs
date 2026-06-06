@@ -67,7 +67,24 @@ const FNS = {
     children: wasm.pc_children,
     parent: wasm.pc_parent,
   },
+  eaquad: {
+    point: wasm.eaq_cell_from_point,
+    fromId: wasm.eaq_cell_from_id,
+    neighbors: wasm.eaq_neighbors,
+    children: wasm.eaq_children,
+    parent: wasm.eaq_parent,
+  },
+  mgrs: {
+    point: wasm.mgrs_cell_from_point,
+    fromId: wasm.mgrs_cell_from_id,
+    neighbors: wasm.mgrs_neighbors,
+  },
 };
+
+// MGRS ring is a projected polygon (UTM round-trip); the GeographicLib-backed
+// core differs from the GEOTRANS/pyproj Python by ~0.5 m, so its ring is
+// compared with a ~metre tolerance. Ids/neighbours still match exactly.
+const RING_ABS_TOL = { mgrs: 1e-4 };
 
 const load = (g) =>
   JSON.parse(fs.readFileSync(path.join(GOLDEN, `${g}.json`), "utf8")).map(
@@ -79,6 +96,17 @@ const normRing = (ring) =>
     .map(([x, y]) => `${x.toFixed(6)},${y.toFixed(6)}`)
     .sort()
     .join("|");
+
+// Order-independent vertex match within an absolute degree tolerance.
+const ringsClose = (a, b, tol) => {
+  if (a.length !== b.length) return false;
+  const key = (p) => `${p[0].toFixed(3)},${p[1].toFixed(3)}`;
+  const sa = [...a].sort((p, q) => key(p).localeCompare(key(q)));
+  const sb = [...b].sort((p, q) => key(p).localeCompare(key(q)));
+  return sa.every(
+    (p, i) => Math.abs(p[0] - sb[i][0]) <= tol && Math.abs(p[1] - sb[i][1]) <= tol
+  );
+};
 
 const ids = (cells) => cells.map((c) => c.id).sort();
 
@@ -96,6 +124,8 @@ const ALL = [
   ...load("maidenhead"),
   ...load("csquares"),
   ...load("pluscode"),
+  ...load("eaquad"),
+  ...load("mgrs"),
 ];
 
 for (const [grid, rec] of ALL) {
@@ -109,7 +139,12 @@ for (const [grid, rec] of ALL) {
     const r = fns.fromId(rec.id);
     if (r.id !== rec.id) throw `fromId id`;
     if (r.precision !== rec.cell_precision) throw `fromId precision`;
-    if (normRing(r.ring) !== normRing(rec.ring)) throw `ring mismatch`;
+    const tol = RING_ABS_TOL[grid];
+    if (tol === undefined) {
+      if (normRing(r.ring) !== normRing(rec.ring)) throw `ring mismatch`;
+    } else if (!ringsClose(r.ring, rec.ring, tol)) {
+      throw `ring mismatch`;
+    }
 
     if (!eq(ids(fns.neighbors(rec.id)), rec.neighbors)) throw `neighbors`;
     if (rec.children !== undefined && !eq(ids(fns.children(rec.id)), rec.children))

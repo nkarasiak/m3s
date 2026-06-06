@@ -12,10 +12,12 @@ from pathlib import Path
 
 from m3s import (
     CSquaresGrid,
+    EAQuadGrid,
     GARSGrid,
     GeohashGrid,
     H3Grid,
     MaidenheadGrid,
+    MGRSGrid,
     PlusCodeGrid,
     QuadkeyGrid,
     SlippyGrid,
@@ -30,6 +32,11 @@ POINTS = [
     (-23.5505, -46.6333),  # Sao Paulo
 ]
 
+# MGRS excludes null island: (0,0) is equator + prime meridian + UTM zone edge,
+# a degenerate case the geoconvert backend can't represent (the Python mgrs/PROJ
+# backend can). Documented limitation; all other points/precisions match.
+MGRS_POINTS = [p for p in POINTS if p != (0.0, 0.0)]
+
 # name -> (grid class, precisions to freeze, hierarchical?).
 # Non-hierarchical grids (GARS, Maidenhead) have no children/parent.
 GRIDS = {
@@ -41,6 +48,8 @@ GRIDS = {
     "maidenhead": (MaidenheadGrid, [1, 2, 4], False),
     "csquares": (CSquaresGrid, [1, 3, 5], True),
     "pluscode": (PlusCodeGrid, [1, 4, 6], True),
+    "eaquad": (EAQuadGrid, [0, 4, 8], True),
+    "mgrs": (MGRSGrid, [0, 1, 3, 5], False),
 }
 
 OUT = Path(__file__).parent
@@ -69,19 +78,20 @@ def record(grid, lat, lon, precision, hierarchical):
     return rec
 
 
-def build(grid_cls, precisions, hierarchical):
+def build(grid_cls, precisions, hierarchical, points):
     out = []
     for p in precisions:
         grid = grid_cls(p)
-        for lat, lon in POINTS:
+        for lat, lon in points:
             out.append(record(grid, lat, lon, p, hierarchical))
     return out
 
 
 def main():
     for name, (grid_cls, precisions, hierarchical) in GRIDS.items():
+        points = MGRS_POINTS if name == "mgrs" else POINTS
         (OUT / f"{name}.json").write_text(
-            json.dumps(build(grid_cls, precisions, hierarchical), indent=2)
+            json.dumps(build(grid_cls, precisions, hierarchical, points), indent=2)
         )
     print(f"wrote golden vectors for {', '.join(GRIDS)} to {OUT}")
 

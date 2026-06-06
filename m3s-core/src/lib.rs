@@ -6,10 +6,12 @@
 //! the PyO3 and wasm-bindgen layers wrap them into shapely / GeoJSON.
 
 pub mod csquares_grid;
+pub mod eaquad_grid;
 pub mod gars_grid;
 pub mod geohash_grid;
 pub mod h3_grid;
 pub mod maidenhead_grid;
+pub mod mgrs_grid;
 pub mod pluscode_grid;
 pub mod quadkey_grid;
 pub mod slippy_grid;

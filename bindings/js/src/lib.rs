@@ -3,8 +3,9 @@
 //! in `examples/grid_systems/_grids/*.js` already consume.
 
 use m3s_core::{
-    csquares_grid as cs, gars_grid as gars, geohash_grid as gh, h3_grid as h3,
-    maidenhead_grid as mh, pluscode_grid as pc, quadkey_grid as qk, slippy_grid as sl, Cell,
+    csquares_grid as cs, eaquad_grid as eaq, gars_grid as gars, geohash_grid as gh,
+    h3_grid as h3, maidenhead_grid as mh, mgrs_grid as mgrs, pluscode_grid as pc,
+    quadkey_grid as qk, slippy_grid as sl, Cell,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -232,6 +233,50 @@ pub fn pc_children(id: &str) -> Result<JsValue, JsValue> {
 #[wasm_bindgen]
 pub fn pc_parent(id: &str) -> Result<JsValue, JsValue> {
     cell(pc::parent(id))
+}
+
+// ---- mgrs (non-hierarchical) ------------------------------------------------
+
+#[wasm_bindgen]
+pub fn mgrs_cell_from_point(lat: f64, lon: f64, precision: u8) -> Result<JsValue, JsValue> {
+    cell(mgrs::cell_from_point(lat, lon, precision))
+}
+
+#[wasm_bindgen]
+pub fn mgrs_cell_from_id(id: &str) -> Result<JsValue, JsValue> {
+    cell(mgrs::cell_from_id(id))
+}
+
+#[wasm_bindgen]
+pub fn mgrs_neighbors(id: &str) -> Result<JsValue, JsValue> {
+    cells(mgrs::neighbors(id))
+}
+
+// ---- eaquad -----------------------------------------------------------------
+
+#[wasm_bindgen]
+pub fn eaq_cell_from_point(lat: f64, lon: f64, precision: u8) -> Result<JsValue, JsValue> {
+    cell(eaq::cell_from_point(lat, lon, precision))
+}
+
+#[wasm_bindgen]
+pub fn eaq_cell_from_id(id: &str) -> Result<JsValue, JsValue> {
+    cell(eaq::cell_from_id(id))
+}
+
+#[wasm_bindgen]
+pub fn eaq_neighbors(id: &str) -> Result<JsValue, JsValue> {
+    cells(eaq::neighbors(id))
+}
+
+#[wasm_bindgen]
+pub fn eaq_children(id: &str) -> Result<JsValue, JsValue> {
+    cells(eaq::children(id))
+}
+
+#[wasm_bindgen]
+pub fn eaq_parent(id: &str) -> Result<JsValue, JsValue> {
+    cell(eaq::parent(id))
 }
 
 // ---- shared -----------------------------------------------------------------

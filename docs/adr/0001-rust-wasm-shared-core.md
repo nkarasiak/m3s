@@ -188,7 +188,19 @@ the deferred E remain. P0 can scaffold. Sequenced to de-risk early:
   NOT real OLC** (lon-then-lat, `+` after 2nd pair) so it was ported directly
   rather than via the `pluscodes` crate — the crate would not reproduce m3s ids.
   pluscode ring also carries m3s's epsilon boundary expansion.
-- **P2 — projected/medium.** eaquad (CEA port), mgrs.
+- **P2 — projected/medium.** ✅ *DONE (2026-06-06).* **eaquad**: EPSG:6933
+  ellipsoidal CEA forward + authalic-latitude inverse ported to pure Rust (no
+  PROJ), matches pyproj (ids exact, rings 6 dp). **mgrs**: used the `geoconvert`
+  crate (a GeographicLib port) — its toMGRS/toLatLon reproduce the
+  GEOTRANS-backed Python `mgrs` lib **byte-for-byte across all precisions 0-5**
+  (the feared hard part — solved). Ids + neighbours match exactly; the projected
+  ring (UTM round-trip) differs ~0.5 m between GeographicLib and pyproj, so the
+  mgrs ring is compared with a ~metre tolerance (strict everywhere else). Two
+  mgrs notes: geoconvert returns the cell *centre* where the Python lib returns
+  the SW corner (recovered by stepping back half a cell); and the (0,0)
+  null-island point is excluded for mgrs (equator+meridian+zone-edge degenerate
+  case geoconvert panics on, pyproj doesn't). geoconvert compiles to WASM.
+  **Python 151/151, JS 151/151 across 11 grids.**
 - **P3 — hard.** s2, a5 — or invoke the §4 fallback.
 - **P4 — cleanup.** Delete `_grids/*.js`, drop now-unused Python deps, update
   `CLAUDE.md`/`CONTEXT.md` so the registry derives precision bounds from the

@@ -5,7 +5,7 @@ Read this first on a cold restart. Full rationale lives in
 [`docs/adr/0001-rust-wasm-shared-core.md`](docs/adr/0001-rust-wasm-shared-core.md);
 domain vocabulary in [`CONTEXT.md`](CONTEXT.md).
 
-Last updated: 2026-06-06.
+Last updated: 2026-06-06 (P2 complete — 11/12 grids).
 
 ## 1. Goal
 
@@ -21,24 +21,24 @@ package — proving parity before any migration.
   R = 6371.0088 km). Replaces per-cell UTM-planar area; area numbers are
   deliberately re-baselined. `m3s-core/src/lib.rs::geodesic_area_km2`.
 - **B — Build:** maturin owns the build; `uv run` still drives test/lint.
-- **C — Crates:** audited. Only `geohash`, `geo-types`, `h3o` used so far. a5 has
-  an official Rust crate (`a5`/`felixpalmer/a5-rs`). s2 crate is the one real
-  risk (see §6).
+- **C — Crates:** audited. Used: `geohash`, `geo-types`, `h3o`, `geoconvert`
+  (GeographicLib port, for mgrs — compiles to WASM). a5 has an official Rust
+  crate (`a5`/`felixpalmer/a5-rs`). s2 crate is the one real risk (see §8/P3).
 - **D — Layout:** monorepo (this repo). Existing `m3s/` untouched.
 
-## 2. Progress: 8 of 12 grids done
+## 2. Progress: 11 of 12 grids done
 
 | Phase | Grids | Status |
 |-------|-------|--------|
 | P0 | geohash, h3 | ✅ pipeline proven end-to-end |
 | P1 | quadkey, slippy, gars, maidenhead, csquares, pluscode | ✅ done |
-| P2 | eaquad, mgrs | ⬜ next |
-| P3 | s2, a5 | ⬜ |
+| P2 | eaquad, mgrs | ✅ done |
+| P3 | s2, a5 | ⬜ next |
 | P4 | cleanup / Python migration | ⬜ |
 
-**Parity: Python 120/120, JS 120/120** (8 grids × 5 points × 3 precisions),
-plus 4 geodesic-area tests. All green. Nothing committed yet — everything is
-working-tree changes.
+**Parity: Python 151/151, JS 151/151**, plus 4 geodesic-area tests. All green.
+P0+P1 (8 grids) are committed on branch `feat/rust-wasm-core`; P2 (eaquad, mgrs)
+is working-tree, uncommitted.
 
 ## 3. Repo layout (new files)
 
@@ -55,6 +55,8 @@ m3s-core/                        the shared core crate (pure grid math)
   src/maidenhead_grid.rs
   src/csquares_grid.rs
   src/pluscode_grid.rs
+  src/eaquad_grid.rs             (EPSG:6933 CEA ported pure-Rust, no PROJ)
+  src/mgrs_grid.rs               (uses geoconvert = GeographicLib port)
 bindings/python/                 PyO3 -> Python extension module `m3s_core`
   Cargo.toml  pyproject.toml  src/lib.rs
 bindings/js/                     wasm-bindgen -> npm pkg (gitignored)
@@ -91,7 +93,9 @@ shapely `GridCell`; JS into `{ id, ring, precision }`. Bindings return
 
 One golden set, two consumers, one source crate ⇒ any divergence fails. Area is
 intentionally excluded from parity (it's the deliberate re-baseline; covered
-separately by `test_core_area.py`).
+separately by `test_core_area.py`). Ring vertices are compared exactly (6 dp) for
+every grid **except mgrs**, whose projected ring is compared with a ~metre
+tolerance (`RING_ABS_TOL`) — see the mgrs trap in §7.
 
 > Both test files iterate generically over a `FNS` map keyed by grid name and a
 > concatenated `CASES`/`ALL` list — adding a grid is just adding an entry, not
@@ -153,19 +157,20 @@ Then run the §6 commands. Green = done.
 - pluscode: **custom m3s variant, not real OLC** (lon-then-lat, `+` after 2nd
   pair); ring carries an epsilon boundary expansion; do NOT use the `pluscodes`
   crate.
+- eaquad: EPSG:6933 ellipsoidal CEA ported by hand (no PROJ in WASM); forward is
+  closed-form, inverse uses the authalic-latitude series. Matches pyproj to
+  6 dp. Longitude wraps at the antimeridian, latitude doesn't.
+- mgrs: uses `geoconvert` (GeographicLib). toMGRS/toLatLon match the Python
+  `mgrs` lib byte-exact. THREE gotchas: (1) geoconvert `to_latlon` returns the
+  cell *centre*, the Python lib returns the SW corner — recover SW by stepping
+  back half a cell in UTM before applying m3s's "SW-as-centre" polygon quirk;
+  (2) the ring (UTM round-trip) differs ~0.5 m vs pyproj, so mgrs ring uses
+  `RING_ABS_TOL = 1e-4`; (3) the (0,0) null-island point is excluded for mgrs
+  (geoconvert panics on that equator/meridian/zone-edge degenerate case).
 
 ## 8. What's next
 
-### P2 — eaquad, mgrs
-- **eaquad** (`m3s/eaquad.py`): EPSG:6933 cylindrical-equal-area + base-4
-  quadtree. No C PROJ in WASM → port the CEA forward/inverse closed-form by hand.
-  Constants (`XMIN/YMIN/XMAX/YMAX`) already in
-  `examples/grid_systems/_grids/eaquad.js`. Hierarchical (base-4 quad ids).
-- **mgrs** (`m3s/mgrs.py`): use the `utm` crate for the UTM/UPS projection; port
-  the MGRS band + 100 km square lettering from the Python (no solid Rust lib —
-  only the `mgrs2latlong` CLI exists). Non-hierarchical.
-
-### P3 — s2, a5
+### P3 — s2, a5  (the last 2 grids)
 - **s2** (`m3s/s2.py`): **blocker to verify first** — read the `s2` crate
   (v0.0.13, ~60% documented) source and confirm it exposes `RegionCoverer`
   (needed for `get_cells_in_bbox`/covering), neighbours, parent/child at the
@@ -184,8 +189,9 @@ Then run the §6 commands. Green = done.
   examples.
 
 ## 9. Open issues / watch-outs
-- **Not committed.** 8 grids of working-tree changes. Decide branch/commit
-  strategy before continuing (suggest a feature branch off `dev`).
+- **Branch `feat/rust-wasm-core`** off `dev`. P0+P1 committed+pushed; P2 (eaquad,
+  mgrs) committed on top. Unrelated pre-existing working-tree changes (CONTEXT.md,
+  examples edits, _prev*.py, etc.) are intentionally NOT part of these commits.
 - **csquares children rounding:** uses `f64::round` (half-away-from-zero) vs
   Python `round` (banker's). No parity failure seen, but a future precision/point
   could hit an exact `.5`; revisit if a child-count mismatch appears.

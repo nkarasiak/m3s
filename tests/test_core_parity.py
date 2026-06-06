@@ -71,6 +71,18 @@ FNS = {
         "children": mc.pc_children,
         "parent": mc.pc_parent,
     },
+    "eaquad": {
+        "point": mc.eaq_cell_from_point,
+        "from_id": mc.eaq_cell_from_id,
+        "neighbors": mc.eaq_neighbors,
+        "children": mc.eaq_children,
+        "parent": mc.eaq_parent,
+    },
+    "mgrs": {
+        "point": mc.mgrs_cell_from_point,
+        "from_id": mc.mgrs_cell_from_id,
+        "neighbors": mc.mgrs_neighbors,
+    },
 }
 
 
@@ -89,12 +101,34 @@ CASES = (
     + _load("maidenhead")
     + _load("csquares")
     + _load("pluscode")
+    + _load("eaquad")
+    + _load("mgrs")
 )
+
+
+# Most grids reproduce ring vertices exactly (compared rounded to 6 dp). MGRS is
+# the exception: its ring is a projected polygon built via a UTM round-trip, so
+# the GeographicLib-backed core and the GEOTRANS/pyproj-backed Python differ by
+# ~0.5 m. Ids and neighbours still match exactly; only the ring is compared with
+# a ~metre tolerance for mgrs. (See ADR 0001 / M3S_CORE_STATUS.md.)
+RING_ABS_TOL = {"mgrs": 1e-4}  # degrees (~11 m), comfortably covers ~0.5 m drift
 
 
 def _norm_ring(ring):
     """Order-independent, rounded vertex set for ring comparison."""
     return sorted((round(x, 6), round(y, 6)) for x, y in ring)
+
+
+def _rings_close(a, b, tol):
+    """Order-independent vertex match within an absolute degree tolerance."""
+    if len(a) != len(b):
+        return False
+    sa = sorted((round(x, 3), round(y, 3), x, y) for x, y in a)
+    sb = sorted((round(x, 3), round(y, 3), x, y) for x, y in b)
+    return all(
+        abs(pa[2] - pb[2]) <= tol and abs(pa[3] - pb[3]) <= tol
+        for pa, pb in zip(sa, sb)
+    )
 
 
 def _ids(cells):
@@ -116,7 +150,11 @@ def test_core_matches_golden(grid, rec):
     rid, ring, rprec = fns["from_id"](rec["id"])
     assert rid == rec["id"]
     assert rprec == rec["cell_precision"]
-    assert _norm_ring(ring) == _norm_ring(rec["ring"])
+    tol = RING_ABS_TOL.get(grid)
+    if tol is None:
+        assert _norm_ring(ring) == _norm_ring(rec["ring"])
+    else:
+        assert _rings_close(ring, rec["ring"], tol)
 
     # neighbours / children / parent: exact id-set parity (children/parent
     # only for hierarchical grids, which carry those keys in the golden).
