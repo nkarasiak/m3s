@@ -27,6 +27,7 @@ maps ``pya5`` onto the :class:`~m3s.base.BaseGrid` interface.
     same caveat the other global M3S grids carry).
 """
 
+import math
 from typing import override
 
 import a5
@@ -206,16 +207,27 @@ class A5Grid(BaseGrid):
         Notes
         -----
         Built on ``pya5``'s ``polygon_to_cells`` (centre-in-polygon
-        containment), expanded to this precision with ``uncompact``. The cells
+        containment), expanded to this precision with ``uncompact``. The box
+        edges are densified before the query because ``polygon_to_cells`` reads
+        them as geodesics, so a wide box's constant-latitude edges would
+        otherwise bow poleward and drop its mid-latitude interior. The cells
         covering the four corners and the centre of the box are always included,
         so a box smaller than a single cell still returns its covering cell(s).
         """
-        ring = [
+        corners = [
             (min_lon, min_lat),
             (max_lon, min_lat),
             (max_lon, max_lat),
             (min_lon, max_lat),
         ]
+        # Split each edge into <=10 deg segments so the ring hugs the lon/lat
+        # box rather than bowing along the geodesic between distant corners.
+        ring = []
+        for (x0, y0), (x1, y1) in zip(corners, corners[1:] + corners[:1], strict=True):
+            steps = max(1, math.ceil(max(abs(x1 - x0), abs(y1 - y0)) / 10))
+            for i in range(steps):
+                ring.append((x0 + (x1 - x0) * i / steps, y0 + (y1 - y0) * i / steps))
+
         compacted = a5.polygon_to_cells(ring, self.precision)
         ids = set(a5.uncompact(compacted, self.precision))
 
@@ -223,7 +235,7 @@ class A5Grid(BaseGrid):
         # covers a box smaller than itself; sample the corners + centre too.
         mid_lon = (min_lon + max_lon) / 2
         mid_lat = (min_lat + max_lat) / 2
-        for lon, lat in (*((x, y) for x, y in ring), (mid_lon, mid_lat)):
+        for lon, lat in (*corners, (mid_lon, mid_lat)):
             ids.add(a5.lonlat_to_cell((lon, lat), self.precision))
 
         return [self._make_cell(cell_id) for cell_id in ids]

@@ -31,6 +31,24 @@ window.__GRID__ = {
     if (lo < -180) rings.push(ring.map(function (p) { return [p[0] + 360, p[1]]; }));
     return rings;  // already [lon, lat]
   },
+  // polygonToCells reads ring edges as geodesics, so a wide bbox's constant-lat
+  // top/bottom edges bow poleward and the mid-latitude interior drops out (a
+  // whole-Europe view loses every central cell). Densify each edge to <=10 deg
+  // segments so the ring hugs the lon/lat box and the interior stays covered.
+  _viewRing: function (b) {
+    var pts = [], maxDeg = 10;
+    var edges = [[b.w, b.s, b.e, b.s], [b.e, b.s, b.e, b.n],
+                 [b.e, b.n, b.w, b.n], [b.w, b.n, b.w, b.s]];
+    for (var e = 0; e < edges.length; e++) {
+      var x0 = edges[e][0], y0 = edges[e][1], x1 = edges[e][2], y1 = edges[e][3];
+      var n = Math.max(1, Math.ceil(Math.max(Math.abs(x1 - x0),
+                                              Math.abs(y1 - y0)) / maxDeg));
+      for (var i = 0; i < n; i++) {
+        pts.push([x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n]);
+      }
+    }
+    return pts;  // [lon, lat]
+  },
   cells: function (res, b) {
     var A5 = window.A5, ids;
     // polygonToCells returns nothing for a hemisphere-spanning ring; enumerate
@@ -38,10 +56,9 @@ window.__GRID__ = {
     if (b.e - b.w >= 180) {
       ids = A5.uncompact(A5.getRes0Cells(), res);
     } else {
-      var ring = [[b.w, b.s], [b.e, b.s], [b.e, b.n], [b.w, b.n]];  // [lon, lat]
       // polygonToCells returns a compacted, mixed-resolution covering; uncompact
       // to a uniform grid at `res` so neighbouring cells share one resolution.
-      ids = A5.uncompact(A5.polygonToCells(ring, res), res);
+      ids = A5.uncompact(A5.polygonToCells(this._viewRing(b), res), res);
     }
     var out = [];
     for (var i = 0; i < ids.length; i++) {

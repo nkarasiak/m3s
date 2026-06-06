@@ -187,6 +187,20 @@ class TestA5Bbox:
         cells = grid.get_cells_in_bbox(48.850, 2.350, 48.851, 2.351)
         assert len(cells) >= 1
 
+    def test_wide_bbox_covers_interior(self):
+        """A wide box covers its mid-latitude interior, not just the edges.
+
+        ``polygon_to_cells`` reads the ring edges as geodesics, so without edge
+        densification a continent-wide box's constant-latitude edges bow
+        poleward and every central cell drops out (the reported A5 gap over
+        Europe). A mid-latitude interior point (away from the box centre, which
+        the corner/centre fallback would cover anyway) must be returned.
+        """
+        grid = A5Grid(precision=3)
+        cells = grid.get_cells_in_bbox(28.0, -60.0, 63.0, 80.0)
+        interior = grid.get_cell_from_point(50.0, 9.0)  # central Europe
+        assert interior.identifier in {c.identifier for c in cells}
+
 
 class TestA5Edges:
     """Edge cases and registration."""
