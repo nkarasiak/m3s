@@ -1,0 +1,7 @@
+# Rust workspace for the m3s shared core (ADR 0001).
+# The crate graph: m3s-core (pure grid math) -> {bindings/python (PyO3),
+# bindings/js (wasm-bindgen)}. The existing Python package at ./m3s is
+# untouched; the P0 tracer ships a separate `m3s_core` extension module.
+[workspace]
+resolver = "2"
+members = ["m3s-core", "bindings/python", "bindings/js"]

@@ -1,0 +1,11 @@
+[package]
+name = "m3s-core"
+version = "0.0.0"
+edition = "2021"
+description = "Shared grid math for m3s (Python + JS). P0 tracer: geohash + h3."
+license = "MIT"
+
+[dependencies]
+geohash = "0.13"
+geo-types = "0.7"
+h3o = "0.7"

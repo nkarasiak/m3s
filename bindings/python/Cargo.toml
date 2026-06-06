@@ -1,0 +1,13 @@
+[package]
+name = "m3s-core-py"
+version = "0.0.0"
+edition = "2021"
+license = "MIT"
+
+[lib]
+name = "m3s_core"
+crate-type = ["cdylib"]
+
+[dependencies]
+m3s-core = { path = "../../m3s-core" }
+pyo3 = { version = "0.24", features = ["extension-module"] }

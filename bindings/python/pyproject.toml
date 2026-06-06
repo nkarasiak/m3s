@@ -1,0 +1,14 @@
+[build-system]
+requires = ["maturin>=1.8,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "m3s-core"
+version = "0.0.0"
+description = "P0 tracer: Rust-backed geohash + h3 cells for m3s parity testing"
+requires-python = ">=3.10"
+classifiers = ["Programming Language :: Rust"]
+
+[tool.maturin]
+module-name = "m3s_core"
+manifest-path = "Cargo.toml"

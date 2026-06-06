@@ -1,0 +1,1101 @@
+[
+  {
+    "lat": 40.7128,
+    "lon": -74.006,
+    "precision": 1,
+    "id": "d",
+    "cell_precision": 1,
+    "ring": [
+      [
+        -90.0,
+        0.0
+      ],
+      [
+        -45.0,
+        0.0
+      ],
+      [
+        -45.0,
+        45.0
+      ],
+      [
+        -90.0,
+        45.0
+      ],
+      [
+        -90.0,
+        0.0
+      ]
+    ],
+    "neighbors": [
+      "3",
+      "6",
+      "7",
+      "9",
+      "c",
+      "e",
+      "f",
+      "g"
+    ],
+    "children": [
+      "d0",
+      "d1",
+      "d2",
+      "d3",
+      "d4",
+      "d5",
+      "d6",
+      "d7",
+      "d8",
+      "d9",
+      "db",
+      "dc",
+      "dd",
+      "de",
+      "df",
+      "dg",
+      "dh",
+      "dj",
+      "dk",
+      "dm",
+      "dn",
+      "dp",
+      "dq",
+      "dr",
+      "ds",
+      "dt",
+      "du",
+      "dv",
+      "dw",
+      "dx",
+      "dy",
+      "dz"
+    ]
+  },
+  {
+    "lat": 51.5074,
+    "lon": -0.1278,
+    "precision": 1,
+    "id": "g",
+    "cell_precision": 1,
+    "ring": [
+      [
+        -45.0,
+        45.0
+      ],
+      [
+        0.0,
+        45.0
+      ],
+      [
+        0.0,
+        90.0
+      ],
+      [
+        -45.0,
+        90.0
+      ],
+      [
+        -45.0,
+        45.0
+      ]
+    ],
+    "neighbors": [
+      "d",
+      "e",
+      "f",
+      "s",
+      "u"
+    ],
+    "children": [
+      "g0",
+      "g1",
+      "g2",
+      "g3",
+      "g4",
+      "g5",
+      "g6",
+      "g7",
+      "g8",
+      "g9",
+      "gb",
+      "gc",
+      "gd",
+      "ge",
+      "gf",
+      "gg",
+      "gh",
+      "gj",
+      "gk",
+      "gm",
+      "gn",
+      "gp",
+      "gq",
+      "gr",
+      "gs",
+      "gt",
+      "gu",
+      "gv",
+      "gw",
+      "gx",
+      "gy",
+      "gz"
+    ]
+  },
+  {
+    "lat": -33.8688,
+    "lon": 151.2093,
+    "precision": 1,
+    "id": "r",
+    "cell_precision": 1,
+    "ring": [
+      [
+        135.0,
+        -45.0
+      ],
+      [
+        180.0,
+        -45.0
+      ],
+      [
+        180.0,
+        0.0
+      ],
+      [
+        135.0,
+        0.0
+      ],
+      [
+        135.0,
+        -45.0
+      ]
+    ],
+    "neighbors": [
+      "n",
+      "p",
+      "q",
+      "w",
+      "x"
+    ],
+    "children": [
+      "r0",
+      "r1",
+      "r2",
+      "r3",
+      "r4",
+      "r5",
+      "r6",
+      "r7",
+      "r8",
+      "r9",
+      "rb",
+      "rc",
+      "rd",
+      "re",
+      "rf",
+      "rg",
+      "rh",
+      "rj",
+      "rk",
+      "rm",
+      "rn",
+      "rp",
+      "rq",
+      "rr",
+      "rs",
+      "rt",
+      "ru",
+      "rv",
+      "rw",
+      "rx",
+      "ry",
+      "rz"
+    ]
+  },
+  {
+    "lat": 0.0,
+    "lon": 0.0,
+    "precision": 1,
+    "id": "s",
+    "cell_precision": 1,
+    "ring": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        45.0,
+        0.0
+      ],
+      [
+        45.0,
+        45.0
+      ],
+      [
+        0.0,
+        45.0
+      ],
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    "neighbors": [
+      "7",
+      "e",
+      "g",
+      "k",
+      "m",
+      "t",
+      "u",
+      "v"
+    ],
+    "children": [
+      "s0",
+      "s1",
+      "s2",
+      "s3",
+      "s4",
+      "s5",
+      "s6",
+      "s7",
+      "s8",
+      "s9",
+      "sb",
+      "sc",
+      "sd",
+      "se",
+      "sf",
+      "sg",
+      "sh",
+      "sj",
+      "sk",
+      "sm",
+      "sn",
+      "sp",
+      "sq",
+      "sr",
+      "ss",
+      "st",
+      "su",
+      "sv",
+      "sw",
+      "sx",
+      "sy",
+      "sz"
+    ]
+  },
+  {
+    "lat": -23.5505,
+    "lon": -46.6333,
+    "precision": 1,
+    "id": "6",
+    "cell_precision": 1,
+    "ring": [
+      [
+        -90.0,
+        -45.0
+      ],
+      [
+        -45.0,
+        -45.0
+      ],
+      [
+        -45.0,
+        0.0
+      ],
+      [
+        -90.0,
+        0.0
+      ],
+      [
+        -90.0,
+        -45.0
+      ]
+    ],
+    "neighbors": [
+      "1",
+      "3",
+      "4",
+      "5",
+      "7",
+      "9",
+      "d",
+      "e"
+    ],
+    "children": [
+      "60",
+      "61",
+      "62",
+      "63",
+      "64",
+      "65",
+      "66",
+      "67",
+      "68",
+      "69",
+      "6b",
+      "6c",
+      "6d",
+      "6e",
+      "6f",
+      "6g",
+      "6h",
+      "6j",
+      "6k",
+      "6m",
+      "6n",
+      "6p",
+      "6q",
+      "6r",
+      "6s",
+      "6t",
+      "6u",
+      "6v",
+      "6w",
+      "6x",
+      "6y",
+      "6z"
+    ]
+  },
+  {
+    "lat": 40.7128,
+    "lon": -74.006,
+    "precision": 5,
+    "id": "dr5re",
+    "cell_precision": 5,
+    "ring": [
+      [
+        -74.0478515625,
+        40.693359375
+      ],
+      [
+        -74.00390625,
+        40.693359375
+      ],
+      [
+        -74.00390625,
+        40.7373046875
+      ],
+      [
+        -74.0478515625,
+        40.7373046875
+      ],
+      [
+        -74.0478515625,
+        40.693359375
+      ]
+    ],
+    "neighbors": [
+      "dr5r6",
+      "dr5r7",
+      "dr5rd",
+      "dr5rf",
+      "dr5rg",
+      "dr5rk",
+      "dr5rs",
+      "dr5ru"
+    ],
+    "children": [
+      "dr5re0",
+      "dr5re1",
+      "dr5re2",
+      "dr5re3",
+      "dr5re4",
+      "dr5re5",
+      "dr5re6",
+      "dr5re7",
+      "dr5re8",
+      "dr5re9",
+      "dr5reb",
+      "dr5rec",
+      "dr5red",
+      "dr5ree",
+      "dr5ref",
+      "dr5reg",
+      "dr5reh",
+      "dr5rej",
+      "dr5rek",
+      "dr5rem",
+      "dr5ren",
+      "dr5rep",
+      "dr5req",
+      "dr5rer",
+      "dr5res",
+      "dr5ret",
+      "dr5reu",
+      "dr5rev",
+      "dr5rew",
+      "dr5rex",
+      "dr5rey",
+      "dr5rez"
+    ],
+    "parent": "dr5r"
+  },
+  {
+    "lat": 51.5074,
+    "lon": -0.1278,
+    "precision": 5,
+    "id": "gcpvj",
+    "cell_precision": 5,
+    "ring": [
+      [
+        -0.1318359375,
+        51.50390625
+      ],
+      [
+        -0.087890625,
+        51.50390625
+      ],
+      [
+        -0.087890625,
+        51.5478515625
+      ],
+      [
+        -0.1318359375,
+        51.5478515625
+      ],
+      [
+        -0.1318359375,
+        51.50390625
+      ]
+    ],
+    "neighbors": [
+      "gcpuu",
+      "gcpuv",
+      "gcpuy",
+      "gcpvh",
+      "gcpvk",
+      "gcpvm",
+      "gcpvn",
+      "gcpvq"
+    ],
+    "children": [
+      "gcpvj0",
+      "gcpvj1",
+      "gcpvj2",
+      "gcpvj3",
+      "gcpvj4",
+      "gcpvj5",
+      "gcpvj6",
+      "gcpvj7",
+      "gcpvj8",
+      "gcpvj9",
+      "gcpvjb",
+      "gcpvjc",
+      "gcpvjd",
+      "gcpvje",
+      "gcpvjf",
+      "gcpvjg",
+      "gcpvjh",
+      "gcpvjj",
+      "gcpvjk",
+      "gcpvjm",
+      "gcpvjn",
+      "gcpvjp",
+      "gcpvjq",
+      "gcpvjr",
+      "gcpvjs",
+      "gcpvjt",
+      "gcpvju",
+      "gcpvjv",
+      "gcpvjw",
+      "gcpvjx",
+      "gcpvjy",
+      "gcpvjz"
+    ],
+    "parent": "gcpv"
+  },
+  {
+    "lat": -33.8688,
+    "lon": 151.2093,
+    "precision": 5,
+    "id": "r3gx2",
+    "cell_precision": 5,
+    "ring": [
+      [
+        151.171875,
+        -33.8818359375
+      ],
+      [
+        151.2158203125,
+        -33.8818359375
+      ],
+      [
+        151.2158203125,
+        -33.837890625
+      ],
+      [
+        151.171875,
+        -33.837890625
+      ],
+      [
+        151.171875,
+        -33.8818359375
+      ]
+    ],
+    "neighbors": [
+      "r3grp",
+      "r3grr",
+      "r3grx",
+      "r3gx0",
+      "r3gx1",
+      "r3gx3",
+      "r3gx8",
+      "r3gx9"
+    ],
+    "children": [
+      "r3gx20",
+      "r3gx21",
+      "r3gx22",
+      "r3gx23",
+      "r3gx24",
+      "r3gx25",
+      "r3gx26",
+      "r3gx27",
+      "r3gx28",
+      "r3gx29",
+      "r3gx2b",
+      "r3gx2c",
+      "r3gx2d",
+      "r3gx2e",
+      "r3gx2f",
+      "r3gx2g",
+      "r3gx2h",
+      "r3gx2j",
+      "r3gx2k",
+      "r3gx2m",
+      "r3gx2n",
+      "r3gx2p",
+      "r3gx2q",
+      "r3gx2r",
+      "r3gx2s",
+      "r3gx2t",
+      "r3gx2u",
+      "r3gx2v",
+      "r3gx2w",
+      "r3gx2x",
+      "r3gx2y",
+      "r3gx2z"
+    ],
+    "parent": "r3gx"
+  },
+  {
+    "lat": 0.0,
+    "lon": 0.0,
+    "precision": 5,
+    "id": "s0000",
+    "cell_precision": 5,
+    "ring": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.0439453125,
+        0.0
+      ],
+      [
+        0.0439453125,
+        0.0439453125
+      ],
+      [
+        0.0,
+        0.0439453125
+      ],
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    "neighbors": [
+      "7zzzz",
+      "ebpbp",
+      "ebpbr",
+      "kpbpb",
+      "kpbpc",
+      "s0001",
+      "s0002",
+      "s0003"
+    ],
+    "children": [
+      "s00000",
+      "s00001",
+      "s00002",
+      "s00003",
+      "s00004",
+      "s00005",
+      "s00006",
+      "s00007",
+      "s00008",
+      "s00009",
+      "s0000b",
+      "s0000c",
+      "s0000d",
+      "s0000e",
+      "s0000f",
+      "s0000g",
+      "s0000h",
+      "s0000j",
+      "s0000k",
+      "s0000m",
+      "s0000n",
+      "s0000p",
+      "s0000q",
+      "s0000r",
+      "s0000s",
+      "s0000t",
+      "s0000u",
+      "s0000v",
+      "s0000w",
+      "s0000x",
+      "s0000y",
+      "s0000z"
+    ],
+    "parent": "s000"
+  },
+  {
+    "lat": -23.5505,
+    "lon": -46.6333,
+    "precision": 5,
+    "id": "6gyf4",
+    "cell_precision": 5,
+    "ring": [
+      [
+        -46.669921875,
+        -23.5546875
+      ],
+      [
+        -46.6259765625,
+        -23.5546875
+      ],
+      [
+        -46.6259765625,
+        -23.5107421875
+      ],
+      [
+        -46.669921875,
+        -23.5107421875
+      ],
+      [
+        -46.669921875,
+        -23.5546875
+      ]
+    ],
+    "neighbors": [
+      "6gycc",
+      "6gycf",
+      "6gycg",
+      "6gyf1",
+      "6gyf3",
+      "6gyf5",
+      "6gyf6",
+      "6gyf7"
+    ],
+    "children": [
+      "6gyf40",
+      "6gyf41",
+      "6gyf42",
+      "6gyf43",
+      "6gyf44",
+      "6gyf45",
+      "6gyf46",
+      "6gyf47",
+      "6gyf48",
+      "6gyf49",
+      "6gyf4b",
+      "6gyf4c",
+      "6gyf4d",
+      "6gyf4e",
+      "6gyf4f",
+      "6gyf4g",
+      "6gyf4h",
+      "6gyf4j",
+      "6gyf4k",
+      "6gyf4m",
+      "6gyf4n",
+      "6gyf4p",
+      "6gyf4q",
+      "6gyf4r",
+      "6gyf4s",
+      "6gyf4t",
+      "6gyf4u",
+      "6gyf4v",
+      "6gyf4w",
+      "6gyf4x",
+      "6gyf4y",
+      "6gyf4z"
+    ],
+    "parent": "6gyf"
+  },
+  {
+    "lat": 40.7128,
+    "lon": -74.006,
+    "precision": 8,
+    "id": "dr5regw3",
+    "cell_precision": 8,
+    "ring": [
+      [
+        -74.00630950927734,
+        40.7127571105957
+      ],
+      [
+        -74.00596618652344,
+        40.7127571105957
+      ],
+      [
+        -74.00596618652344,
+        40.712928771972656
+      ],
+      [
+        -74.00630950927734,
+        40.712928771972656
+      ],
+      [
+        -74.00630950927734,
+        40.7127571105957
+      ]
+    ],
+    "neighbors": [
+      "dr5regw0",
+      "dr5regw1",
+      "dr5regw2",
+      "dr5regw4",
+      "dr5regw6",
+      "dr5regw8",
+      "dr5regw9",
+      "dr5regwd"
+    ],
+    "children": [
+      "dr5regw30",
+      "dr5regw31",
+      "dr5regw32",
+      "dr5regw33",
+      "dr5regw34",
+      "dr5regw35",
+      "dr5regw36",
+      "dr5regw37",
+      "dr5regw38",
+      "dr5regw39",
+      "dr5regw3b",
+      "dr5regw3c",
+      "dr5regw3d",
+      "dr5regw3e",
+      "dr5regw3f",
+      "dr5regw3g",
+      "dr5regw3h",
+      "dr5regw3j",
+      "dr5regw3k",
+      "dr5regw3m",
+      "dr5regw3n",
+      "dr5regw3p",
+      "dr5regw3q",
+      "dr5regw3r",
+      "dr5regw3s",
+      "dr5regw3t",
+      "dr5regw3u",
+      "dr5regw3v",
+      "dr5regw3w",
+      "dr5regw3x",
+      "dr5regw3y",
+      "dr5regw3z"
+    ],
+    "parent": "dr5regw"
+  },
+  {
+    "lat": 51.5074,
+    "lon": -0.1278,
+    "precision": 8,
+    "id": "gcpvj0du",
+    "cell_precision": 8,
+    "ring": [
+      [
+        -0.12805938720703125,
+        51.50733947753906
+      ],
+      [
+        -0.127716064453125,
+        51.50733947753906
+      ],
+      [
+        -0.127716064453125,
+        51.507511138916016
+      ],
+      [
+        -0.12805938720703125,
+        51.507511138916016
+      ],
+      [
+        -0.12805938720703125,
+        51.50733947753906
+      ]
+    ],
+    "neighbors": [
+      "gcpvj0de",
+      "gcpvj0dg",
+      "gcpvj0ds",
+      "gcpvj0dt",
+      "gcpvj0dv",
+      "gcpvj0e5",
+      "gcpvj0eh",
+      "gcpvj0ej"
+    ],
+    "children": [
+      "gcpvj0du0",
+      "gcpvj0du1",
+      "gcpvj0du2",
+      "gcpvj0du3",
+      "gcpvj0du4",
+      "gcpvj0du5",
+      "gcpvj0du6",
+      "gcpvj0du7",
+      "gcpvj0du8",
+      "gcpvj0du9",
+      "gcpvj0dub",
+      "gcpvj0duc",
+      "gcpvj0dud",
+      "gcpvj0due",
+      "gcpvj0duf",
+      "gcpvj0dug",
+      "gcpvj0duh",
+      "gcpvj0duj",
+      "gcpvj0duk",
+      "gcpvj0dum",
+      "gcpvj0dun",
+      "gcpvj0dup",
+      "gcpvj0duq",
+      "gcpvj0dur",
+      "gcpvj0dus",
+      "gcpvj0dut",
+      "gcpvj0duu",
+      "gcpvj0duv",
+      "gcpvj0duw",
+      "gcpvj0dux",
+      "gcpvj0duy",
+      "gcpvj0duz"
+    ],
+    "parent": "gcpvj0d"
+  },
+  {
+    "lat": -33.8688,
+    "lon": 151.2093,
+    "precision": 8,
+    "id": "r3gx2f77",
+    "cell_precision": 8,
+    "ring": [
+      [
+        151.20929718017578,
+        -33.868961334228516
+      ],
+      [
+        151.2096405029297,
+        -33.868961334228516
+      ],
+      [
+        151.2096405029297,
+        -33.86878967285156
+      ],
+      [
+        151.20929718017578,
+        -33.86878967285156
+      ],
+      [
+        151.20929718017578,
+        -33.868961334228516
+      ]
+    ],
+    "neighbors": [
+      "r3gx2f74",
+      "r3gx2f75",
+      "r3gx2f76",
+      "r3gx2f7d",
+      "r3gx2f7e",
+      "r3gx2f7h",
+      "r3gx2f7k",
+      "r3gx2f7s"
+    ],
+    "children": [
+      "r3gx2f770",
+      "r3gx2f771",
+      "r3gx2f772",
+      "r3gx2f773",
+      "r3gx2f774",
+      "r3gx2f775",
+      "r3gx2f776",
+      "r3gx2f777",
+      "r3gx2f778",
+      "r3gx2f779",
+      "r3gx2f77b",
+      "r3gx2f77c",
+      "r3gx2f77d",
+      "r3gx2f77e",
+      "r3gx2f77f",
+      "r3gx2f77g",
+      "r3gx2f77h",
+      "r3gx2f77j",
+      "r3gx2f77k",
+      "r3gx2f77m",
+      "r3gx2f77n",
+      "r3gx2f77p",
+      "r3gx2f77q",
+      "r3gx2f77r",
+      "r3gx2f77s",
+      "r3gx2f77t",
+      "r3gx2f77u",
+      "r3gx2f77v",
+      "r3gx2f77w",
+      "r3gx2f77x",
+      "r3gx2f77y",
+      "r3gx2f77z"
+    ],
+    "parent": "r3gx2f7"
+  },
+  {
+    "lat": 0.0,
+    "lon": 0.0,
+    "precision": 8,
+    "id": "s0000000",
+    "cell_precision": 8,
+    "ring": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        0.00034332275390625,
+        0.0
+      ],
+      [
+        0.00034332275390625,
+        0.000171661376953125
+      ],
+      [
+        0.0,
+        0.000171661376953125
+      ],
+      [
+        0.0,
+        0.0
+      ]
+    ],
+    "neighbors": [
+      "7zzzzzzz",
+      "ebpbpbpb",
+      "ebpbpbpc",
+      "kpbpbpbp",
+      "kpbpbpbr",
+      "s0000001",
+      "s0000002",
+      "s0000003"
+    ],
+    "children": [
+      "s00000000",
+      "s00000001",
+      "s00000002",
+      "s00000003",
+      "s00000004",
+      "s00000005",
+      "s00000006",
+      "s00000007",
+      "s00000008",
+      "s00000009",
+      "s0000000b",
+      "s0000000c",
+      "s0000000d",
+      "s0000000e",
+      "s0000000f",
+      "s0000000g",
+      "s0000000h",
+      "s0000000j",
+      "s0000000k",
+      "s0000000m",
+      "s0000000n",
+      "s0000000p",
+      "s0000000q",
+      "s0000000r",
+      "s0000000s",
+      "s0000000t",
+      "s0000000u",
+      "s0000000v",
+      "s0000000w",
+      "s0000000x",
+      "s0000000y",
+      "s0000000z"
+    ],
+    "parent": "s000000"
+  },
+  {
+    "lat": -23.5505,
+    "lon": -46.6333,
+    "precision": 8,
+    "id": "6gyf4bf8",
+    "cell_precision": 8,
+    "ring": [
+      [
+        -46.63352966308594,
+        -23.550567626953125
+      ],
+      [
+        -46.63318634033203,
+        -23.550567626953125
+      ],
+      [
+        -46.63318634033203,
+        -23.550395965576172
+      ],
+      [
+        -46.63352966308594,
+        -23.550395965576172
+      ],
+      [
+        -46.63352966308594,
+        -23.550567626953125
+      ]
+    ],
+    "neighbors": [
+      "6gyf4bdr",
+      "6gyf4bdx",
+      "6gyf4bdz",
+      "6gyf4bf2",
+      "6gyf4bf3",
+      "6gyf4bf9",
+      "6gyf4bfb",
+      "6gyf4bfc"
+    ],
+    "children": [
+      "6gyf4bf80",
+      "6gyf4bf81",
+      "6gyf4bf82",
+      "6gyf4bf83",
+      "6gyf4bf84",
+      "6gyf4bf85",
+      "6gyf4bf86",
+      "6gyf4bf87",
+      "6gyf4bf88",
+      "6gyf4bf89",
+      "6gyf4bf8b",
+      "6gyf4bf8c",
+      "6gyf4bf8d",
+      "6gyf4bf8e",
+      "6gyf4bf8f",
+      "6gyf4bf8g",
+      "6gyf4bf8h",
+      "6gyf4bf8j",
+      "6gyf4bf8k",
+      "6gyf4bf8m",
+      "6gyf4bf8n",
+      "6gyf4bf8p",
+      "6gyf4bf8q",
+      "6gyf4bf8r",
+      "6gyf4bf8s",
+      "6gyf4bf8t",
+      "6gyf4bf8u",
+      "6gyf4bf8v",
+      "6gyf4bf8w",
+      "6gyf4bf8x",
+      "6gyf4bf8y",
+      "6gyf4bf8z"
+    ],
+    "parent": "6gyf4bf"
+  }
+]

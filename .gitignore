@@ -218,3 +218,8 @@ __marimo__/
 # Local preview / scratch
 .preview/
 logs/
+
+# Rust / WASM shared core (ADR 0001)
+/target/
+bindings/js/pkg/
+*.whl
