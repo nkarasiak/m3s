@@ -19,6 +19,7 @@ the top of the page. deck.gl and any per-grid library load from a CDN in the
 reader's browser, so building the docs stays offline and fast.
 """
 
+import base64
 import html
 import json
 import pathlib
@@ -27,10 +28,40 @@ import pathlib
 # this module, so the example .py files stay free of inlined JavaScript.
 _GRIDS_DIR = pathlib.Path(__file__).parent / "_grids"
 
+# Web-target WASM build of the shared core (``wasm-pack build bindings/js
+# --target web --out-dir pkg-web``). Gitignored; build before rendering examples
+# that tile via the core.
+_PKG_WEB = pathlib.Path(__file__).parents[2] / "bindings" / "js" / "pkg-web"
+
 
 def read_grid_js(name):
     """Return the ``window.__GRID__`` JavaScript from ``_grids/<name>.js``."""
     return (_GRIDS_DIR / f"{name}.js").read_text(encoding="utf-8")
+
+
+def _wasm_loader():
+    """HTML that instantiates the core WASM in-page and exposes ``window.__M3S__``.
+
+    The examples render as offline self-contained ``<iframe srcdoc>`` (no base
+    URL to fetch from), so the wasm-bindgen glue and the ``.wasm`` are
+    base64-inlined and the module is instantiated from bytes. A classic script
+    sets ``__M3S_PENDING__`` *before* the harness runs (module scripts are
+    deferred), so the harness knows to wait for the ``m3s-ready`` event.
+    """
+    glue = (_PKG_WEB / "m3s_core_js.js").read_text(encoding="utf-8")
+    wasm = (_PKG_WEB / "m3s_core_js_bg.wasm").read_bytes()
+    glue_b64 = base64.b64encode(glue.encode("utf-8")).decode("ascii")
+    wasm_b64 = base64.b64encode(wasm).decode("ascii")
+    return (
+        "<script>window.__M3S_PENDING__ = true;</script>\n"
+        '<script type="module">\n'
+        f'import init, * as m3s from "data:text/javascript;base64,{glue_b64}";\n'
+        f'const _bytes = Uint8Array.from(atob("{wasm_b64}"), c => c.charCodeAt(0));\n'
+        "await init({module_or_path: _bytes});\n"
+        "window.__M3S__ = m3s;\n"
+        'window.dispatchEvent(new Event("m3s-ready"));\n'
+        "</script>"
+    )
 
 
 # deck.gl standalone (scripting) UMD bundle: exposes DeckGL, TileLayer,
@@ -122,12 +153,20 @@ function build(vs) {
 }
 
 const INIT = {longitude: __LON__, latitude: __LAT__, zoom: __ZOOM__};
-const deckgl = new DeckGL({
-  container: 'map', initialViewState: INIT, controller: true,
-  getTooltip: ({object}) => object && {html: object.tip},
-  layers: build(INIT),
-  onViewStateChange: ({viewState}) => deckgl.setProps({layers: build(viewState)})
-});
+function start() {
+  const deckgl = new DeckGL({
+    container: 'map', initialViewState: INIT,
+    controller: G.minZoom ? {minZoom: G.minZoom} : true,
+    getTooltip: ({object}) => object && {html: object.tip},
+    layers: build(INIT),
+    onViewStateChange: ({viewState}) => deckgl.setProps({layers: build(viewState)})
+  });
+}
+// When the grid's cells come from the WASM core, wait for it to instantiate.
+const ready = window.__M3S_PENDING__
+  ? new Promise(r => window.addEventListener('m3s-ready', r, {once: true}))
+  : Promise.resolve();
+ready.then(start);
 
 const fs = document.getElementById('fs');
 fs.onclick = () => {
@@ -158,6 +197,7 @@ __SCRIPTS__
 <div id="map"></div>
 <div id="fs" title="Fullscreen">&#9974;</div>
 <div id="badge"></div>
+__WASM__
 <script>__GRIDJS__</script>
 <script>__HARNESS__</script>
 </body></html>"""
@@ -201,6 +241,7 @@ class DeckExplorer:
         data=None,
         hover="#ffeb3b",
         height=600,
+        wasm=False,
     ):
         self.lon, self.lat = center
         self.zoom = zoom
@@ -209,6 +250,9 @@ class DeckExplorer:
         self.data = data
         self.hover = _rgb(hover)
         self.height = height
+        # When True, the grid's ``cells`` come from the shared core's WASM build
+        # (``window.__M3S__``), inlined into the iframe; the harness waits for it.
+        self.wasm = wasm
 
     def _doc(self):
         harness = (
@@ -226,6 +270,7 @@ class DeckExplorer:
         return (
             _DOC.replace("__SCRIPTS__", scripts)
             .replace("__DECK__", _DECK_CDN)
+            .replace("__WASM__", _wasm_loader() if self.wasm else "")
             .replace("__GRIDJS__", self.grid_js)
             .replace("__HARNESS__", harness)
         )

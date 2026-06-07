@@ -208,24 +208,26 @@ Then run the §6 commands. Green = done.
   `test_h3_verbs` boundary parity is `pytest.approx` (~1e-13) not byte-exact —
   same class of re-baseline as area (ADR §3).
 
-### P4b — browser examples → web WASM  ⬜ next (core bbox now unblocks it)
-Foundation proven: `wasm-pack build bindings/js --target web --out-dir pkg-web`
-builds (661 KB wasm; the h3o `geo` feature grew it; pkg-web is gitignored). It
-exports `<prefix>_cells_in_bbox(min_lat,min_lon,max_lat,max_lon,res)` + the
-per-cell fns, returning `{id, ring:[[lon,lat]...], precision}` — exactly the deck
-shape the tilers need.
+### P4b — browser examples → web WASM  🔶 mechanism done + verified (1/12 wired)
+**Build prerequisite:** `wasm-pack build bindings/js --target web --out-dir pkg-web`
+(gitignored) before building docs with wasm examples. It exports
+`<prefix>_cells_in_bbox(min_lat,min_lon,max_lat,max_lon,res)` + per-cell fns,
+returning `{id, ring:[[lon,lat]...], precision}`.
 
-Plan (not yet done — needs a browser to verify render):
-1. The examples render as offline self-contained `<iframe srcdoc>` (no base URL),
-   so the WASM must be **base64-inlined** + instantiated in-page (`init` accepts
-   bytes), not fetched. ~880 KB base64 per example HTML.
-2. `_deckmap.py`: embed the glue + base64 wasm as a `<script type="module">` that
-   sets a global (e.g. `window.__M3S__`), awaited before the harness builds.
-3. Rewrite each `_grids/<grid>.js` `cells(res, bounds)` to call
-   `__M3S__.<prefix>_cells_in_bbox(b.s, b.w, b.n, b.e, res)` and map `.ring`
-   to deck polys, dropping the CDN libs (h3-js, a5-js) + hand-math.
-4. Verify render in a browser (webapp-testing/Playwright), then delete the
-   hand-JS. mgrs has no core bbox (deferred) — keep its tiler or skip.
+**Solved + verified (geohash):** `_deckmap.py` now base64-inlines the wasm-bindgen
+glue + `.wasm` into the offline `<iframe srcdoc>` (`_wasm_loader()`), instantiates
+from bytes (no fetch), exposes `window.__M3S__`, and the harness gates its DeckGL
+init on the `m3s-ready` event (`DeckExplorer(..., wasm=True)`). `geohash.js` now
+just calls `__M3S__.gh_cells_in_bbox(b.s,b.w,b.n,b.e,p)` and maps `.ring` — the
+hand-rolled base-32 lattice math is gone. Verified via Playwright: WASM
+instantiates, the tiler returns valid cells, deck.gl renders the two-resolution
+grid (screenshot confirmed). ~960 KB HTML per wasm example (mostly base64 wasm).
+
+**Remaining (11/12 tilers):** mechanically apply the same template — rewrite each
+`_grids/<grid>.js` `cells()` to `__M3S__.<prefix>_cells_in_bbox(...).map(c => ({
+id:c.id, poly:c.ring.slice(0,-1), sub:... }))`, set `wasm=True` in its `plot_*`,
+drop the CDN lib (h3-js, a5-js) + hand-math. **mgrs** has no core bbox (deferred)
+— keep its hand-JS tiler. Verify a couple render, then delete the replaced JS.
 
 ## 10. P5 — core bbox / covering (in progress)
 
