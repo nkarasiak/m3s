@@ -199,7 +199,9 @@ class GridCell:
             return self.area_km2 * self._AREA_UNITS[unit]
         except KeyError:
             valid = ", ".join(self._AREA_UNITS)
-            raise ValueError(f"Unknown area unit {unit!r}. Valid units: {valid}")
+            raise ValueError(
+                f"Unknown area unit {unit!r}. Valid units: {valid}"
+            ) from None
 
     def _to_gdf(self) -> "gpd.GeoDataFrame":
         """One-row GeoDataFrame for this cell (used by plot/explore)."""

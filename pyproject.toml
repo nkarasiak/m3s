@@ -202,3 +202,11 @@ ignore = [
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+# Test helpers don't need numpy-style docstrings on every function.
+"tests/**" = ["D"]
+# Sphinx-Gallery example scripts: the module docstring is the rendered page
+# title/intro (not a period-terminated sentence), and gallery cells import
+# after the narrative, so the docstring and import-position rules don't apply.
+"examples/**" = ["D", "E402"]

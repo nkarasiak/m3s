@@ -18,6 +18,7 @@ README "Which API should I use?" section.
 """
 
 # Modern API
+from .a5 import A5Grid
 from .api import (
     AreaCalculator,
     GridBuilder,
@@ -30,7 +31,6 @@ from .api import (
     PrecisionRecommendation,
     PrecisionSelector,
 )
-from .a5 import A5Grid
 from .base import BaseGrid
 
 # New grid system enhancements
@@ -157,7 +157,9 @@ def grid(name: str, precision: int | None = None) -> GridWrapper:
         wrapper = _GRID_REGISTRY[name.lower()]
     except KeyError:
         valid = ", ".join(grids())
-        raise ValueError(f"Unknown grid system {name!r}. Valid systems: {valid}")
+        raise ValueError(
+            f"Unknown grid system {name!r}. Valid systems: {valid}"
+        ) from None
     return wrapper.with_precision(precision) if precision is not None else wrapper
 
 

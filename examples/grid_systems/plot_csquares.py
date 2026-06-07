@@ -12,9 +12,10 @@ The **interactive explorer** below is rendered with
 and cells are generated **in the browser** for whatever is in view. Two
 neighbouring precisions are shown at once — the current level with a darker,
 heavier border and the next finer level with a lighter, thinner one — so the
-decimal nesting stays visible. The quadrant + decimal-subdivision encoder is the exact one M3S uses (the
-shared ``m3s_core`` C-squares encoder), reproduced in JavaScript so the cell
-codes and edges match M3S. GIS-native ``(lon, lat)`` order is used throughout.
+decimal nesting stays visible. The quadrant + decimal-subdivision encoder is the
+exact one M3S uses (the shared ``m3s_core`` C-squares encoder), reproduced in
+JavaScript so the cell codes and edges match M3S. GIS-native ``(lon, lat)`` order
+is used throughout.
 """
 
 from _deckmap import DeckExplorer, read_grid_js

@@ -21,6 +21,9 @@ from _deckmap import DeckExplorer, read_grid_js
 # sphinx_gallery_thumbnail_path = '_static/thumbs/slippy.png'
 
 DeckExplorer(
-    center=(9.5, 48.5), zoom=5, grid_js=read_grid_js("slippy"), hover="#44AA99",
+    center=(9.5, 48.5),
+    zoom=5,
+    grid_js=read_grid_js("slippy"),
+    hover="#44AA99",
     wasm=True,
 )

@@ -23,4 +23,6 @@ from _deckmap import DeckExplorer, read_grid_js
 
 # sphinx_gallery_thumbnail_path = '_static/thumbs/gars.png'
 
-DeckExplorer(center=(2.5, 46.8), zoom=7, grid_js=read_grid_js("gars"), hover="#DDCC77", wasm=True)
+DeckExplorer(
+    center=(2.5, 46.8), zoom=7, grid_js=read_grid_js("gars"), hover="#DDCC77", wasm=True
+)

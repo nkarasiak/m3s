@@ -19,7 +19,7 @@ class LRUCache:
     used items when the cache reaches its maximum size.
     """
 
-    __slots__ = ('maxsize', 'cache', 'access_order')
+    __slots__ = ("maxsize", "cache", "access_order")
 
     def __init__(self, maxsize: int = 256):
         """
@@ -75,7 +75,7 @@ class SpatialCache:
     Specialized cache for spatial operations with geographic-aware key generation.
     """
 
-    __slots__ = ('_cache',)
+    __slots__ = ("_cache",)
 
     def __init__(self, maxsize: int = 512):
         """

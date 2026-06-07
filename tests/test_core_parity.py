@@ -12,9 +12,8 @@ ADR §3 re-bases area onto the core geodesic formula (covered by test_core_area)
 import json
 from pathlib import Path
 
-import pytest
-
 import m3s_core as mc
+import pytest
 
 GOLDEN = Path(__file__).parent / "golden"
 
@@ -101,9 +100,7 @@ FNS = {
 
 
 def _load(grid):
-    return [
-        (grid, rec) for rec in json.loads((GOLDEN / f"{grid}.json").read_text())
-    ]
+    return [(grid, rec) for rec in json.loads((GOLDEN / f"{grid}.json").read_text())]
 
 
 CASES = (
@@ -141,7 +138,7 @@ def _rings_close(a, b, tol):
     sb = sorted((round(x, 3), round(y, 3), x, y) for x, y in b)
     return all(
         abs(pa[2] - pb[2]) <= tol and abs(pa[3] - pb[3]) <= tol
-        for pa, pb in zip(sa, sb)
+        for pa, pb in zip(sa, sb, strict=True)
     )
 
 
@@ -149,9 +146,7 @@ def _ids(cells):
     return sorted(c[0] for c in cells)
 
 
-@pytest.mark.parametrize(
-    "grid,rec", CASES, ids=[f"{g}-{r['id']}" for g, r in CASES]
-)
+@pytest.mark.parametrize("grid,rec", CASES, ids=[f"{g}-{r['id']}" for g, r in CASES])
 def test_core_matches_golden(grid, rec):
     fns = FNS[grid]
 
@@ -196,8 +191,7 @@ BBOX_FNS = {
 
 def _load_bbox(grid):
     return [
-        (grid, rec)
-        for rec in json.loads((GOLDEN / f"{grid}_bbox.json").read_text())
+        (grid, rec) for rec in json.loads((GOLDEN / f"{grid}_bbox.json").read_text())
     ]
 
 

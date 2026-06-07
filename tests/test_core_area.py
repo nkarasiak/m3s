@@ -6,9 +6,8 @@ re-baseline reference; old UTM-planar numbers are intentionally not used.
 """
 
 import h3
-import pytest
-
 import m3s_core as mc
+import pytest
 
 
 @pytest.mark.parametrize("precision", [0, 5, 9])

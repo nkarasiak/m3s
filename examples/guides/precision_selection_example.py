@@ -259,6 +259,7 @@ print(f"   Actual edge length: {rec4.edge_length_m:.1f} m")
 
 print("\nComparing all recommendations:")
 print("-" * 80)
+rec3_area_km2 = rec3.metadata.get("region_area_km2", 0) / rec3.actual_cell_count
 comparison = pd.DataFrame(
     [
         {
@@ -277,7 +278,7 @@ comparison = pd.DataFrame(
             "Strategy": "Count-based",
             "Precision": rec3.precision,
             "Confidence": f"{rec3.confidence:.0%}",
-            "Area (km²)": f"{rec3.metadata.get('region_area_km2', 0) / rec3.actual_cell_count:.3f}",
+            "Area (km²)": f"{rec3_area_km2:.3f}",
         },
         {
             "Strategy": "Distance-based",
