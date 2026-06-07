@@ -27,7 +27,6 @@ dependencies = [
     "shapely>=2.0.0",
     "h3>=3.7.0",
     "geopandas>=0.13.0",
-    "s2sphere>=0.2.5",
     "psutil>=5.8.0",
 ]
 
@@ -142,7 +141,6 @@ module = [
     "shapely.*",
     "pandas",
     "h3",
-    "s2sphere",
 ]
 ignore_missing_imports = true
 

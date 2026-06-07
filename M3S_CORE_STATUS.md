@@ -275,9 +275,10 @@ and `parity.cjs`. Grids are added to `BBOX` (generate.py), `BBOX_FNS`
 - s2 — `s2_cells_in_bbox` via recursive face→children descent using
   `Rect::intersects_cell` (the `s2` crate has no `RegionCoverer`). Matches
   `s2sphere.RegionCoverer(min=max=precision)` exactly; WASM-safe (no
-  float_extras). Python bbox migrated. ⚠️ NOT yet: `get_covering_cells` (arbitrary
-  polygons, not just a rect) + s2sphere drop. Cap: core returns the complete set
-  vs RegionCoverer's `max_cells=1000` truncation for very large boxes.
+  float_extras). Python bbox migrated. ✅ s2sphere dropped: `get_covering_cells`
+  re-baselined to core bbox cells filtered by `polygon.intersects`. Cap note:
+  core bbox returns the complete set vs RegionCoverer's `max_cells=1000`
+  truncation for very large boxes.
 - mgrs — `mgrs_cells_in_bbox` reproduces the Python dense lat/lon point-sampling
   (MGRS is UTM, not a lattice): same f64 sample loop + 1.5-cell margin, cells
   kept by ring-envelope intersect, zone-edge/degenerate points skipped (Python's
@@ -308,12 +309,15 @@ algorithm for its col/row bounds or it over-scans a column at lattice seams.
     with an identical fallback); the dead `get_utm_transformer` +
     `calculate_polygon_area_km2` (obsolete since area is core-geodesic) removed.
     Gone from deps + mypy.
+  - ✅ **`s2sphere` dropped:** `get_covering_cells` re-baselined to the core's
+    bbox cells (`s2_cells_in_bbox`) filtered by `polygon.intersects` (the `s2`
+    crate has no Loop/Polygon region, so no RegionCoverer port); dead
+    `_create_cell_polygon` + `warnings` removed; the one s2sphere-patching
+    `test_s2` error test rewired to assert the covering intersects the polygon.
+    Gone from deps + mypy.
   - `h3` — large h3-verbs surface (`cell_to_*`, `cell_area`, compact, edge length)
-    + `test_h3`/`test_h3_verbs` oracles. Biggest; likely keep.
-  - `s2sphere` — `get_covering_cells` (arbitrary-polygon covering) +
-    `_create_cell_polygon` + `test_s2`. Needs core polygon-covering.
-- `get_covering_cells` (s2 polygon-cover, slippy rect) → core: low value (not in
-  the parity contract, not used by the browser examples). Defer.
+    + `test_h3`/`test_h3_verbs` oracles. Biggest remaining; kept (would need the
+    whole verbs API ported to core).
 
 ## 9. Open issues / watch-outs
 - **Branch `feat/rust-wasm-core`** off `dev`. P0–P3 (all 12 grids) committed+pushed.

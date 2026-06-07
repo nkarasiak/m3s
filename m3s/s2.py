@@ -7,11 +7,9 @@ by a 64-bit S2CellId, with cells organized using the Hilbert curve for
 optimal spatial locality.
 """
 
-import warnings
 from typing import override
 
 import m3s_core
-import s2sphere
 from shapely.geometry import Polygon
 
 from .base import BaseGrid, GridCell, cell_from_core
@@ -78,34 +76,6 @@ class S2Grid(BaseGrid):
 
         # Average area per cell
         return earth_surface_km2 / total_cells
-
-    def _create_cell_polygon(self, cell) -> Polygon:
-        """
-        Create a Shapely polygon from an S2 cell.
-
-        Parameters
-        ----------
-        cell : s2sphere.Cell
-            S2 cell object
-
-        Returns
-        -------
-        Polygon
-            Shapely polygon representing the cell boundary
-        """
-        # Use s2sphere to get actual cell vertices
-        vertices = []
-        for i in range(4):
-            vertex = cell.get_vertex(i)
-            # vertex is already an S2Point, convert to LatLng
-            lat_lng = s2sphere.LatLng.from_point(vertex)
-            lat = lat_lng.lat().degrees
-            lng = lat_lng.lng().degrees
-            vertices.append((lng, lat))
-
-        # Close the polygon
-        vertices.append(vertices[0])
-        return Polygon(vertices)
 
     @override
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
@@ -255,45 +225,21 @@ class S2Grid(BaseGrid):
         -------
         list[GridCell]
             List of cells covering the polygon
+
+        Notes
+        -----
+        Takes the level-``precision`` cells of the polygon's bounding box (from
+        the shared core's ``s2_cells_in_bbox``) and keeps those that actually
+        intersect the polygon, capped at ``max_cells``. This replaces the former
+        ``s2sphere.RegionCoverer`` path; the result is the set of cells covering
+        the polygon at this precision.
         """
-        if not hasattr(s2sphere, "Loop") or not hasattr(s2sphere, "Polygon"):
-            return self._covering_from_bbox(polygon, max_cells)
-
-        try:
-            # Convert Shapely polygon to S2Polygon
-            exterior_coords = list(polygon.exterior.coords)
-            s2_points = []
-
-            for lon, lat in exterior_coords[:-1]:  # Exclude last point (same as first)
-                s2_point = s2sphere.LatLng.from_degrees(lat, lon).to_point()
-                s2_points.append(s2_point)
-
-            s2_loop = s2sphere.Loop(s2_points)
-            s2_polygon = s2sphere.Polygon(s2_loop)
-
-            # Get covering cells
-            region_coverer = s2sphere.RegionCoverer()
-            region_coverer.min_level = self.precision
-            region_coverer.max_level = self.precision
-            region_coverer.max_cells = max_cells
-
-            covering = region_coverer.get_covering(s2_polygon)
-
-            cells = []
-            for cell_id in covering:
-                cell = s2sphere.Cell(cell_id)
-                cell_polygon = self._create_cell_polygon(cell)
-                token = cell_id.to_token()
-                cells.append(GridCell(token, cell_polygon, self.precision))
-
-            return cells
-        except Exception as e:
-            warnings.warn(f"Failed to get covering cells: {e}", stacklevel=2)
-            return self._covering_from_bbox(polygon, max_cells)
-
-    def _covering_from_bbox(self, polygon: Polygon, max_cells: int) -> list[GridCell]:
-        bounds = polygon.bounds
-        cells = self.get_cells_in_bbox(bounds[1], bounds[0], bounds[3], bounds[2])
+        min_lon, min_lat, max_lon, max_lat = polygon.bounds
+        cells = [
+            cell
+            for cell in self.get_cells_in_bbox(min_lat, min_lon, max_lat, max_lon)
+            if cell.polygon.intersects(polygon)
+        ]
         if max_cells > 0 and len(cells) > max_cells:
             return cells[:max_cells]
         return cells

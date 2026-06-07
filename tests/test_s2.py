@@ -2,7 +2,6 @@
 Tests for S2 grid system in M3S.
 """
 
-import warnings
 from unittest.mock import patch
 
 import pytest
@@ -302,19 +301,12 @@ class TestS2GridEdgeCases:
             with pytest.raises(Exception, match="Test error"):
                 grid_level_10.get_children(cell)
 
-    def test_error_handling_in_covering_cells(self, grid_level_10):
-        """Test error handling in covering cells computation."""
+    def test_covering_cells_intersect_polygon(self, grid_level_10):
+        """get_covering_cells returns level-precision cells intersecting the polygon."""
         polygon = box(-74.1, 40.7, -74.0, 40.8)
-
-        with patch("m3s.s2.s2sphere") as mock_s2:
-            mock_s2.LatLng.from_degrees.side_effect = Exception("Test error")
-
-            with warnings.catch_warnings(record=True) as w:
-                cells = grid_level_10.get_covering_cells(polygon)
-
-                # Should fallback to bounding box method
-                assert isinstance(cells, list)
-                assert len(w) > 0
+        cells = grid_level_10.get_covering_cells(polygon)
+        assert isinstance(cells, list) and cells
+        assert all(c.polygon.intersects(polygon) for c in cells)
 
 
 class TestS2GridWithS2Sphere:
