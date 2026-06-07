@@ -375,6 +375,7 @@ name = "m3s-core-js"
 version = "0.0.0"
 dependencies = [
  "m3s-core",
+ "paste",
  "serde",
  "serde-wasm-bindgen",
  "wasm-bindgen",
@@ -385,6 +386,7 @@ name = "m3s-core-py"
 version = "0.0.0"
 dependencies = [
  "m3s-core",
+ "paste",
  "pyo3",
 ]
 
@@ -476,6 +478,12 @@ name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
+
+[[package]]
+name = "paste"
+version = "1.0.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
 name = "pin-project-lite"

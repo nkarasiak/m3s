@@ -12,3 +12,4 @@ m3s-core = { path = "../../m3s-core" }
 wasm-bindgen = "0.2"
 serde = { version = "1", features = ["derive"] }
 serde-wasm-bindgen = "0.6"
+paste = "1"

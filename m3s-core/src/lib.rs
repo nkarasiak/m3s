@@ -122,6 +122,32 @@ pub(crate) fn cells_in_bbox_regular(
     out
 }
 
+/// Per-grid `(min, max, default)` precision bounds, keyed by canonical grid
+/// name — the registry's single source of truth, shared by both bindings so the
+/// Python and JS sides never hardcode (or drift on) their own copies.
+pub fn all_precision_bounds() -> Vec<(&'static str, u8, u8, u8)> {
+    macro_rules! pb {
+        ($name:literal, $m:ident) => {{
+            let (mn, mx, d) = $m::precision_bounds();
+            ($name, mn, mx, d)
+        }};
+    }
+    vec![
+        pb!("geohash", geohash_grid),
+        pb!("h3", h3_grid),
+        pb!("quadkey", quadkey_grid),
+        pb!("slippy", slippy_grid),
+        pb!("gars", gars_grid),
+        pb!("maidenhead", maidenhead_grid),
+        pb!("csquares", csquares_grid),
+        pb!("pluscode", pluscode_grid),
+        pb!("eaquad", eaquad_grid),
+        pb!("mgrs", mgrs_grid),
+        pb!("a5", a5_grid),
+        pb!("s2", s2_grid),
+    ]
+}
+
 /// Mean Earth radius (km), the value h3 uses for spherical area.
 const EARTH_RADIUS_KM: f64 = 6371.0088;
 

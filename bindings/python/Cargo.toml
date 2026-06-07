@@ -11,3 +11,4 @@ crate-type = ["cdylib"]
 [dependencies]
 m3s-core = { path = "../../m3s-core" }
 pyo3 = { version = "0.24", features = ["extension-module"] }
+paste = "1"

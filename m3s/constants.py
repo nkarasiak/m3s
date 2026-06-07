@@ -7,6 +7,8 @@ and maintainability across the codebase.
 
 import math
 
+import m3s_core
+
 # Earth model constants
 EARTH_RADIUS_KM = 6371.0088  # Mean Earth radius in kilometers
 EARTH_RADIUS_M = EARTH_RADIUS_KM * 1000  # Mean Earth radius in meters
@@ -40,18 +42,13 @@ DEFAULT_PRECISIONS = {
     "pluscode": 4,  # ~12.5m resolution in this implementation
 }
 
-# Precision/resolution limits for grid systems
+# Precision/resolution limits for grid systems, derived from the shared Rust
+# core (``m3s_core.all_precision_bounds``) so they cannot drift from the grid
+# math. The core is the single source of truth for precision bounds (ADR 0001
+# P4); this table is built from it at import rather than hand-maintained.
 PRECISION_LIMITS = {
-    "geohash": {"min": 1, "max": 12},
-    "h3": {"min": 0, "max": 15},
-    "quadkey": {"min": 1, "max": 23},
-    "s2": {"min": 0, "max": 30},
-    "slippy": {"min": 0, "max": 20},
-    "mgrs": {"min": 1, "max": 5},
-    "csquares": {"min": 1, "max": 5},
-    "gars": {"min": 1, "max": 3},
-    "maidenhead": {"min": 1, "max": 4},
-    "pluscode": {"min": 1, "max": 7},
+    name: {"min": mn, "max": mx}
+    for name, (mn, mx, _default) in m3s_core.all_precision_bounds().items()
 }
 
 # Cache configuration
