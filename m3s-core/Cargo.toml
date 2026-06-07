@@ -8,7 +8,8 @@ license = "MIT"
 [dependencies]
 geohash = "0.13"
 geo-types = "0.7"
-h3o = "0.7"
+# `geo` feature: h3o's polygon tiler (geom::TilerBuilder) for h3 cells_in_bbox.
+h3o = { version = "0.7", features = ["geo"] }
 geoconvert = "1.0.2"
 a5 = "0.8.0"
 # default-features off drops `float_extras` (libc FFI math, won't build to WASM)

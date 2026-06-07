@@ -188,31 +188,12 @@ class H3Grid(BaseGrid):
         list[GridCell]
             List of H3 cells that intersect the bounding box
         """
-        try:
-            # Create polygon for bounding box using LatLngPoly
-            bbox_coords = [
-                (min_lat, min_lon),
-                (min_lat, max_lon),
-                (max_lat, max_lon),
-                (max_lat, min_lon),
-            ]
-
-            # Get H3 cells that intersect with the polygon
-            try:
-                # Use experimental function with overlap mode for true intersection
-                h3_indices = h3.h3shape_to_cells_experimental(
-                    h3.LatLngPoly(bbox_coords), self.precision, contain="overlap"
-                )
-            except (AttributeError, TypeError):
-                # Fallback to standard function if experimental is not available
-                h3_indices = h3.polygon_to_cells(
-                    h3.LatLngPoly(bbox_coords), self.precision
-                )
-
-            return [self.get_cell_from_identifier(h3_index) for h3_index in h3_indices]
-        except Exception:
-            # Fallback to sampling method if polyfill fails
-            return self._get_cells_in_bbox_fallback(min_lat, min_lon, max_lat, max_lon)
+        return [
+            cell_from_core(c)
+            for c in m3s_core.h3_cells_in_bbox(
+                min_lat, min_lon, max_lat, max_lon, self.precision
+            )
+        ]
 
     def _get_cells_in_bbox_fallback(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float

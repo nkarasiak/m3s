@@ -208,31 +208,12 @@ class A5Grid(BaseGrid):
         covering the four corners and the centre of the box are always included,
         so a box smaller than a single cell still returns its covering cell(s).
         """
-        corners = [
-            (min_lon, min_lat),
-            (max_lon, min_lat),
-            (max_lon, max_lat),
-            (min_lon, max_lat),
+        return [
+            cell_from_core(c)
+            for c in m3s_core.a5_cells_in_bbox(
+                min_lat, min_lon, max_lat, max_lon, self.precision
+            )
         ]
-        # Split each edge into <=10 deg segments so the ring hugs the lon/lat
-        # box rather than bowing along the geodesic between distant corners.
-        ring = []
-        for (x0, y0), (x1, y1) in zip(corners, corners[1:] + corners[:1], strict=True):
-            steps = max(1, math.ceil(max(abs(x1 - x0), abs(y1 - y0)) / 10))
-            for i in range(steps):
-                ring.append((x0 + (x1 - x0) * i / steps, y0 + (y1 - y0) * i / steps))
-
-        compacted = a5.polygon_to_cells(ring, self.precision)
-        ids = set(a5.uncompact(compacted, self.precision))
-
-        # polygon_to_cells uses centre containment, so it can miss a cell that
-        # covers a box smaller than itself; sample the corners + centre too.
-        mid_lon = (min_lon + max_lon) / 2
-        mid_lat = (min_lat + max_lat) / 2
-        for lon, lat in (*corners, (mid_lon, mid_lat)):
-            ids.add(a5.lonlat_to_cell((lon, lat), self.precision))
-
-        return [self._make_cell(cell_id) for cell_id in ids]
 
     def get_parent(self, cell: GridCell) -> GridCell:
         """

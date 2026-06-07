@@ -69,6 +69,9 @@ BBOX = {
     "geohash": [2, 4],
     "pluscode": [2, 3],
     "eaquad": [4, 8],
+    "a5": [5, 10],
+    "h3": [5, 7],
+    "s2": [5, 10],
 }
 
 OUT = Path(__file__).parent

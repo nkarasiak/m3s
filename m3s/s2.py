@@ -223,35 +223,20 @@ class S2Grid(BaseGrid):
         -------
         list[GridCell]
             List of grid cells that intersect the bounding box
+
+        Notes
+        -----
+        Delegates to the shared core (``m3s_core.s2_cells_in_bbox``), which
+        enumerates every level-``precision`` cell intersecting the rectangle —
+        the same set ``s2sphere.RegionCoverer`` returns for a LatLngRect with
+        ``min_level == max_level == precision`` (verified against s2sphere).
         """
-        try:
-            # Create S2 region from bounding box
-            rect = s2sphere.LatLngRect(
-                s2sphere.LatLng.from_degrees(min_lat, min_lon),
-                s2sphere.LatLng.from_degrees(max_lat, max_lon),
+        return [
+            cell_from_core(c)
+            for c in m3s_core.s2_cells_in_bbox(
+                min_lat, min_lon, max_lat, max_lon, self.precision
             )
-
-            # Get covering cells
-            region_coverer = s2sphere.RegionCoverer()
-            region_coverer.min_level = self.precision
-            region_coverer.max_level = self.precision
-            region_coverer.max_cells = 1000  # Limit number of cells
-
-            covering = region_coverer.get_covering(rect)
-
-            cells = []
-            for cell_id in covering:
-                cell = s2sphere.Cell(cell_id)
-                polygon = self._create_cell_polygon(cell)
-                token = cell_id.to_token()
-                cells.append(GridCell(token, polygon, self.precision))
-
-            return cells
-        except Exception as e:
-            warnings.warn(
-                f"Failed to get cells in bbox using s2sphere: {e}", stacklevel=2
-            )
-            return []
+        ]
 
     def get_covering_cells(
         self, polygon: Polygon, max_cells: int = 100

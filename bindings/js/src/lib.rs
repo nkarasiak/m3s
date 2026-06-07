@@ -104,6 +104,17 @@ pub fn h3_parent(id: &str) -> Result<JsValue, JsValue> {
     cell(h3::parent(id))
 }
 
+#[wasm_bindgen]
+pub fn h3_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<JsValue, JsValue> {
+    cells(h3::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision))
+}
+
 // ---- quadkey ----------------------------------------------------------------
 
 #[wasm_bindgen]
@@ -339,6 +350,17 @@ pub fn a5_parent(id: &str) -> Result<JsValue, JsValue> {
     cell(a5::parent(id))
 }
 
+#[wasm_bindgen]
+pub fn a5_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<JsValue, JsValue> {
+    cells(a5::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision))
+}
+
 // ---- mgrs (non-hierarchical) ------------------------------------------------
 
 #[wasm_bindgen]
@@ -419,6 +441,17 @@ pub fn s2_children(id: &str) -> Result<JsValue, JsValue> {
 #[wasm_bindgen]
 pub fn s2_parent(id: &str) -> Result<JsValue, JsValue> {
     cell(s2::parent(id))
+}
+
+#[wasm_bindgen]
+pub fn s2_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<JsValue, JsValue> {
+    cells(s2::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision))
 }
 
 // ---- shared -----------------------------------------------------------------

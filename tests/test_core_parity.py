@@ -187,6 +187,9 @@ BBOX_FNS = {
     "geohash": mc.gh_cells_in_bbox,
     "pluscode": mc.pc_cells_in_bbox,
     "eaquad": mc.eaq_cells_in_bbox,
+    "a5": mc.a5_cells_in_bbox,
+    "h3": mc.h3_cells_in_bbox,
+    "s2": mc.s2_cells_in_bbox,
 }
 
 
@@ -206,6 +209,9 @@ BBOX_CASES = (
     + _load_bbox("geohash")
     + _load_bbox("pluscode")
     + _load_bbox("eaquad")
+    + _load_bbox("a5")
+    + _load_bbox("h3")
+    + _load_bbox("s2")
 )
 
 

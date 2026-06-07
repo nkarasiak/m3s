@@ -37,7 +37,7 @@ package — proving parity before any migration.
 | P2 | eaquad, mgrs | ✅ done |
 | P3 | a5, s2 | ✅ done — all 12 grids ported |
 | P4a | Python pkg onto core | ✅ done — all 12 grids' cell ops delegate to `m3s_core` |
-| P5 | core bbox/covering | 🔶 in progress — 8/12 bbox done (see §10) |
+| P5 | core bbox/covering | 🔶 in progress — 11/12 bbox done (see §10) |
 | P4b | browser examples → web WASM | ⬜ blocked on P5 |
 
 **Parity: Python 181/181, JS 181/181**, plus 4 geodesic-area tests. All green.
@@ -240,24 +240,42 @@ and `parity.cjs`. Grids are added to `BBOX` (generate.py), `BBOX_FNS`
   ⚠️ pyproj NOT yet dropped: `test_eaquad` still uses `_get_transformers` (pyproj)
   as a projection oracle (line ~259) and the now-dead `_make_cell`/`_make_polygon`
   remain. Drop both in the Task-#8 cleanup after rewiring that test.
+- a5 — `a5_cells_in_bbox` via the a5 crate's `polygon_to_cells` + `uncompact`
+  (densify ring + corner/centre sampling). Matched pya5 exactly. Python bbox
+  migrated to core. ⚠️ pya5 NOT yet dropped: still used by `area_km2`
+  (`a5.cell_area`), `_make_cell`, `MAX_RESOLUTION`, `identifier_to_precision`,
+  and `test_a5` oracles. Drop in Task-#8 (needs core a5 area/resolution + tests).
+- h3 — `h3_cells_in_bbox` via h3o's geom tiler (the `geo` feature) with
+  `ContainmentMode::IntersectsBoundary` == h3-py
+  `h3shape_to_cells_experimental(contain="overlap")`. Matched h3-py exactly
+  (87 cells @ res 7) and compiles to WASM. Python bbox migrated to core.
+  ⚠️ h3 lib NOT dropped: still used by `area_km2`, h3-verbs, compact, edge-length
+  + test oracles; orphaned `_get_cells_in_bbox_fallback` (~62 lines) remains.
+- s2 — `s2_cells_in_bbox` via recursive face→children descent using
+  `Rect::intersects_cell` (the `s2` crate has no `RegionCoverer`). Matches
+  `s2sphere.RegionCoverer(min=max=precision)` exactly; WASM-safe (no
+  float_extras). Python bbox migrated. ⚠️ NOT yet: `get_covering_cells` (arbitrary
+  polygons, not just a rect) + s2sphere drop. Cap: core returns the complete set
+  vs RegionCoverer's `max_cells=1000` truncation for very large boxes.
 
-Parity total now **197** (181 + 16 bbox).
+Parity total now **203** (181 + 22 bbox). **11/12 bbox in core** (all but mgrs).
 
 **Key parity lesson — `py_floordiv` (lib.rs):** CPython's float `//` is NOT
 `(a/b).floor()` (e.g. `180.0 // 0.1 == 1799`, not 1800, due to divmod's
 snap-to-nearest). `cells_in_bbox_regular` must use the reproduced CPython
 algorithm for its col/row bounds or it over-scans a column at lattice seams.
 
-**Remaining (4/12):**
-- **a5** (P5 next) — the Rust `a5` crate exposes `polygon_to_cells` +
-  `uncompact`; **drops `pya5`**.
-- **h3** — `h3o` has no polygon-fill; needs a Rust polygon→cells covering to
-  match `h3.polygon_to_cells` (hard) to **drop `h3`**.
-- **s2** — `s2` crate lacks `RegionCoverer`; needs reimplementing for
-  `cells_in_bbox` + `get_covering_cells` (hard) to **drop `s2sphere`**.
+**Remaining bbox (1/12):**
 - **mgrs** — DEFERRED: UTM, not a lon/lat lattice; its Python bbox stays
   point-sampling (drops no dep). Revisit only if browser MGRS tiling needs it.
-- **slippy `get_covering_cells`** — still Python; add to core in the migrate step.
+
+**Task #8 — covering + migration + dep-drops + cleanup:**
+- `get_covering_cells` (s2, slippy) → core (needs core polygon covering for s2,
+  rect-bbox for slippy).
+- Drop `pyproj` (eaquad), `pya5` (a5), `h3` (h3), `s2sphere` (s2): each needs its
+  remaining lib uses (area / resolution / verbs / `_make_*`) moved to core +
+  the `test_*` oracles that call those libs rewired. Remove dead code orphaned by
+  the migration: eaquad `_make_cell`/`_make_polygon`, h3 `_get_cells_in_bbox_fallback`.
 
 After the cores land: migrate each Python `get_cells_in_bbox`/`get_covering_cells`
 to delegate to `m3s_core` (pluscode already done), drop the freed deps, then P4b.

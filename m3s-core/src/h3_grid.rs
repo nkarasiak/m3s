@@ -5,6 +5,8 @@
 //! shapely polygon `H3Grid.get_cell_from_identifier` builds.
 
 use crate::Cell;
+use geo_types::{LineString, Polygon};
+use h3o::geom::{ContainmentMode, TilerBuilder};
 use h3o::{CellIndex, LatLng, Resolution};
 
 pub const MIN_PRECISION: u8 = 0;
@@ -80,4 +82,31 @@ pub fn parent(id: &str) -> Result<Cell, String> {
     cell.parent(parent_res)
         .map(cell_of)
         .ok_or_else(|| "H3 parent lookup failed".to_string())
+}
+
+/// All cells overlapping the bbox at `precision`. Mirrors
+/// `H3Grid.get_cells_in_bbox`, which calls `h3shape_to_cells_experimental` with
+/// `contain="overlap"` — the same algorithm as h3o's `IntersectsBoundary` tiler
+/// containment. The bbox ring is the lon/lat rectangle (CCW, closed).
+pub fn cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<Vec<Cell>, String> {
+    let resolution = res(precision)?;
+    let exterior = LineString::from(vec![
+        (min_lon, min_lat),
+        (max_lon, min_lat),
+        (max_lon, max_lat),
+        (min_lon, max_lat),
+        (min_lon, min_lat),
+    ]);
+    let poly = Polygon::new(exterior, vec![]);
+    let mut tiler = TilerBuilder::new(resolution)
+        .containment_mode(ContainmentMode::IntersectsBoundary)
+        .build();
+    tiler.add(poly).map_err(|e| e.to_string())?;
+    Ok(tiler.into_coverage().map(cell_of).collect())
 }

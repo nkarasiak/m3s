@@ -93,6 +93,19 @@ fn h3_parent(id: &str) -> PyResult<PyCell> {
     h3::parent(id).map(to_py).map_err(err)
 }
 
+#[pyfunction]
+fn h3_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> PyResult<Vec<PyCell>> {
+    h3::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision)
+        .map(to_py_vec)
+        .map_err(err)
+}
+
 // ---- quadkey ----------------------------------------------------------------
 
 #[pyfunction]
@@ -340,6 +353,19 @@ fn a5_parent(id: &str) -> PyResult<PyCell> {
     a5::parent(id).map(to_py).map_err(err)
 }
 
+#[pyfunction]
+fn a5_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> PyResult<Vec<PyCell>> {
+    a5::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision)
+        .map(to_py_vec)
+        .map_err(err)
+}
+
 // ---- mgrs (non-hierarchical) ------------------------------------------------
 
 #[pyfunction]
@@ -424,6 +450,19 @@ fn s2_parent(id: &str) -> PyResult<PyCell> {
     s2::parent(id).map(to_py).map_err(err)
 }
 
+#[pyfunction]
+fn s2_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> PyResult<Vec<PyCell>> {
+    s2::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision)
+        .map(to_py_vec)
+        .map_err(err)
+}
+
 // ---- shared -----------------------------------------------------------------
 
 #[pyfunction]
@@ -445,6 +484,7 @@ fn m3s_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(h3_neighbors, m)?)?;
     m.add_function(wrap_pyfunction!(h3_children, m)?)?;
     m.add_function(wrap_pyfunction!(h3_parent, m)?)?;
+    m.add_function(wrap_pyfunction!(h3_cells_in_bbox, m)?)?;
     m.add_function(wrap_pyfunction!(qk_cell_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(qk_cell_from_id, m)?)?;
     m.add_function(wrap_pyfunction!(qk_neighbors, m)?)?;
@@ -482,6 +522,7 @@ fn m3s_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(a5_neighbors, m)?)?;
     m.add_function(wrap_pyfunction!(a5_children, m)?)?;
     m.add_function(wrap_pyfunction!(a5_parent, m)?)?;
+    m.add_function(wrap_pyfunction!(a5_cells_in_bbox, m)?)?;
     m.add_function(wrap_pyfunction!(mgrs_cell_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(mgrs_cell_from_id, m)?)?;
     m.add_function(wrap_pyfunction!(mgrs_neighbors, m)?)?;
@@ -496,6 +537,7 @@ fn m3s_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(s2_neighbors, m)?)?;
     m.add_function(wrap_pyfunction!(s2_children, m)?)?;
     m.add_function(wrap_pyfunction!(s2_parent, m)?)?;
+    m.add_function(wrap_pyfunction!(s2_cells_in_bbox, m)?)?;
     m.add_function(wrap_pyfunction!(geodesic_area_km2, m)?)?;
     Ok(())
 }

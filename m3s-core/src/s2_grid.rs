@@ -15,6 +15,8 @@ use crate::Cell;
 use s2::cell::Cell as S2Cell;
 use s2::cellid::CellID;
 use s2::latlng::LatLng;
+use s2::rect::Rect;
+use s2::region::Region;
 
 pub const MIN_PRECISION: u8 = 0;
 pub const MAX_PRECISION: u8 = 30;
@@ -90,4 +92,48 @@ pub fn parent(id: &str) -> Result<Cell, String> {
         return Err("Cell has no parent (already at level 0)".into());
     }
     Ok(make_cell(cid.immediate_parent()))
+}
+
+/// Recursively collect every level-`target` cell whose S2 cell intersects the
+/// rect (face -> children descent, pruning non-intersecting subtrees).
+fn descend(rect: &Rect, cid: CellID, target: u64, out: &mut Vec<CellID>) {
+    if !rect.intersects_cell(&S2Cell::from(cid)) {
+        return;
+    }
+    if cid.level() == target {
+        out.push(cid);
+        return;
+    }
+    for child in cid.children() {
+        descend(rect, child, target, out);
+    }
+}
+
+/// All cells intersecting the bbox at `precision`. Mirrors
+/// `S2Grid.get_cells_in_bbox`: `s2sphere.RegionCoverer` with
+/// `min_level == max_level == precision` yields every level-`precision` cell
+/// covering the LatLngRect. The `s2` crate has no `RegionCoverer`, so this
+/// enumerates them directly via the same exact rect/cell intersection
+/// (`Rect::intersects_cell`). The Python cap of `max_cells = 1000` is not
+/// reproduced: this returns the complete set (only matters for boxes that would
+/// exceed 1000 level-precision cells, where RegionCoverer truncates).
+pub fn cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<Vec<Cell>, String> {
+    if !(MIN_PRECISION..=MAX_PRECISION).contains(&precision) {
+        return Err(format!(
+            "S2 precision must be between {MIN_PRECISION} and {MAX_PRECISION}"
+        ));
+    }
+    let rect = Rect::from_degrees(min_lat, min_lon, max_lat, max_lon);
+    let target = precision as u64;
+    let mut out: Vec<CellID> = Vec::new();
+    for face in 0..6u64 {
+        descend(&rect, CellID::from_face(face), target, &mut out);
+    }
+    Ok(out.into_iter().map(make_cell).collect())
 }
