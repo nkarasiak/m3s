@@ -118,7 +118,7 @@ existing Python/JS.
 | a5         | pentagon/dodecahedron          | `a5` (official `a5-rs`, Apache-2.0)| low  |
 | eaquad     | EPSG:6933 CEA + base-4 quad    | port CEA by hand                   | med  |
 | mgrs       | UTM/UPS + band lettering       | `utm` crate + port lettering       | med  |
-| s2         | spherical cells                | `s2` v0.0.13 (partial)             | high |
+| s2         | spherical cells                | `s2` v0.0.13 (no-default-features) | low  |
 
 Findings that changed the picture:
 
@@ -128,12 +128,19 @@ Findings that changed the picture:
   so consuming this crate makes m3s's A5 byte-for-byte upstream-correct in both
   Python and JS for free. This is the strongest grid in the set, not the
   weakest.
-- **s2 (still high — the one real blocker).** The `s2` crate is v0.0.13, only
-  ~60% documented, a partial Go→Rust port. Modules `cellid`, `cell`,
-  `cellunion`, `region`, `rect` exist, but **`RegionCoverer` is not confirmed**
-  — and m3s's S2 needs covering for `get_cells_in_bbox` / `get_covering_cells`
-  (`base.py` lists S2 + Slippy as the covering grids). Must read the source to
-  confirm covering + neighbors + parent/child before relying on it.
+- **s2 (was high → now done).** The `s2` crate v0.0.13 exposes everything the
+  parity contract needs: `CellID` token round-trip, `from(LatLng)` + `parent
+  (level)`, `Cell::vertex`, `edge_neighbors`, `vertex_neighbors`, `children`,
+  `immediate_parent`, `level`. The two worries didn't bite: (a) `RegionCoverer`
+  is only used by `get_cells_in_bbox`/`get_covering_cells`, which are *not* in
+  the golden parity contract (point/id/ring/neighbours/children/parent), so it
+  isn't needed for the port; (b) the crate's default `float_extras` feature
+  (libc FFI math, won't link on WASM) is only used by `ChordAngle::successor`,
+  off our path — building s2 with `default-features = false` drops it (and
+  `serde`) and compiles to both native and WASM. One quirk reproduced: m3s's
+  `get_neighbors` returns `[]` below precision 4 and the four edge neighbours at
+  precision ≥ 4 (an artifact of how `s2.py` calls `get_vertex_neighbors` at
+  levels 0..3 inside one try/except) — replicated exactly and verified.
 - **eaquad (med).** JS uses `proj4`; Rust/WASM cannot link C PROJ. EPSG:6933 is
   cylindrical equal-area — closed-form forward/inverse, port directly (constants
   `XMIN/YMIN` already in `_grids/eaquad.js`).
@@ -141,10 +148,8 @@ Findings that changed the picture:
   100km-square lettering has no solid library (only the `mgrs2latlong` CLI), so
   port the lettering from `mgrs.py`.
 
-Fallback if s2 blocks: ship the core **without** S2, keep it on its current
-native lib in Python only, document as a temporary exception (consistent with
-the `m3s/archive/` precedent in CLAUDE.md). JS lacks S2 until the crate is
-proven or the cells/covering are ported. A5 no longer needs this fallback.
+Fallback if s2 had blocked: ship the core without S2, Python-only, as a
+temporary exception. **Not needed** — s2 ported cleanly to both bindings.
 
 ## 5. Parity / no-regression strategy
 
@@ -207,8 +212,13 @@ the deferred E remain. P0 can scaffold. Sequenced to de-risk early:
   ~5.7e-14 deg (last-ULP libm sin/cos), so the ring comparison was switched from
   exact-6dp-string to an **absolute degree tolerance** (default 1e-9 ≈ 0.1 mm;
   mgrs 1e-4) in both parity tests — ids/neighbours/children/parent stay exact.
-  **Python 166/166, JS 166/166 across 11 grids.** Only s2 left, or the §4
-  fallback.
+  **Python 166/166, JS 166/166 across 11 grids.** Only s2 left.
+- **P3 — done. s2 ported (12/12 grids).** Wraps the `s2` crate v0.0.13 with
+  `default-features = false` (drops the WASM-hostile `float_extras`, see §4).
+  Compiles native + WASM. Neighbour quirk reproduced (empty < precision 4, four
+  edge neighbours at ≥ 4). Golden precisions 0/5/13.
+  **Python 181/181, JS 181/181 across all 12 grids** (plus 4 geodesic-area
+  tests). No grid needs the §4 fallback.
 - **P4 — cleanup.** Delete `_grids/*.js`, drop now-unused Python deps, update
   `CLAUDE.md`/`CONTEXT.md` so the registry derives precision bounds from the
   core.
@@ -229,11 +239,11 @@ the deferred E remain. P0 can scaffold. Sequenced to de-risk early:
   (consistent with the project's standing "use uv" rule), with `maturin develop`
   doing the editable Rust install. Confirm at P0 whether dev install goes
   through `uv` calling maturin or `maturin develop` directly.
-- **C. Crate audit.** ✅ Done 2026-06-06 (§4). Resolved: a5 has an official
-  crate (low risk), most grids covered. Remaining sub-item: read `s2` v0.0.13
-  source to confirm it exposes `RegionCoverer` (covering), neighbors and
-  parent/child — this is the sole crate-level blocker. If absent, apply the §4
-  S2 fallback.
+- **C. Crate audit.** ✅ Done 2026-06-06 (§4); s2 sub-item closed 2026-06-07.
+  All 12 grids have a viable Rust crate. The lone open risk — s2's
+  `RegionCoverer` — turned out to be off the parity path (covering isn't frozen
+  in the golden), and s2's WASM blocker (`float_extras`) is dropped via
+  `default-features = false`. No §4 fallback used.
 - **D. Repo layout.** ✅ Resolved 2026-06-06: **monorepo** — `m3s-core/`,
   `bindings/python/`, `bindings/js/` and `tests/golden/` all in this repo. Keeps
   source crate + golden vectors together, atomic cross-cutting commits, one CI.

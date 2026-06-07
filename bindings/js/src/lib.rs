@@ -5,7 +5,7 @@
 use m3s_core::{
     a5_grid as a5, csquares_grid as cs, eaquad_grid as eaq, gars_grid as gars,
     geohash_grid as gh, h3_grid as h3, maidenhead_grid as mh, mgrs_grid as mgrs,
-    pluscode_grid as pc, quadkey_grid as qk, slippy_grid as sl, Cell,
+    pluscode_grid as pc, quadkey_grid as qk, s2_grid as s2, slippy_grid as sl, Cell,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -304,6 +304,33 @@ pub fn eaq_children(id: &str) -> Result<JsValue, JsValue> {
 #[wasm_bindgen]
 pub fn eaq_parent(id: &str) -> Result<JsValue, JsValue> {
     cell(eaq::parent(id))
+}
+
+// ---- s2 ---------------------------------------------------------------------
+
+#[wasm_bindgen]
+pub fn s2_cell_from_point(lat: f64, lon: f64, precision: u8) -> Result<JsValue, JsValue> {
+    cell(s2::cell_from_point(lat, lon, precision))
+}
+
+#[wasm_bindgen]
+pub fn s2_cell_from_id(id: &str) -> Result<JsValue, JsValue> {
+    cell(s2::cell_from_id(id))
+}
+
+#[wasm_bindgen]
+pub fn s2_neighbors(id: &str) -> Result<JsValue, JsValue> {
+    cells(s2::neighbors(id))
+}
+
+#[wasm_bindgen]
+pub fn s2_children(id: &str) -> Result<JsValue, JsValue> {
+    cells(s2::children(id))
+}
+
+#[wasm_bindgen]
+pub fn s2_parent(id: &str) -> Result<JsValue, JsValue> {
+    cell(s2::parent(id))
 }
 
 // ---- shared -----------------------------------------------------------------

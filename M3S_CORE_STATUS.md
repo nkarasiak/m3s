@@ -5,7 +5,7 @@ Read this first on a cold restart. Full rationale lives in
 [`docs/adr/0001-rust-wasm-shared-core.md`](docs/adr/0001-rust-wasm-shared-core.md);
 domain vocabulary in [`CONTEXT.md`](CONTEXT.md).
 
-Last updated: 2026-06-07 (a5 done — 11/12 grids; only s2 remains).
+Last updated: 2026-06-07 (s2 done — 12/12 grids; all P0–P3 complete).
 
 ## 1. Goal
 
@@ -23,22 +23,23 @@ package — proving parity before any migration.
 - **B — Build:** maturin owns the build; `uv run` still drives test/lint.
 - **C — Crates:** audited. Used: `geohash`, `geo-types`, `h3o`, `geoconvert`
   (GeographicLib port, for mgrs — compiles to WASM). a5 has an official Rust
-  crate (`a5`/`felixpalmer/a5-rs`). s2 crate is the one real risk (see §8/P3).
+  crate (`a5`/`felixpalmer/a5-rs`). s2 uses the `s2` crate with
+  `default-features = false` (drops the WASM-hostile `float_extras`).
 - **D — Layout:** monorepo (this repo). Existing `m3s/` untouched.
 
-## 2. Progress: 11 of 12 grids done
+## 2. Progress: 12 of 12 grids done
 
 | Phase | Grids | Status |
 |-------|-------|--------|
 | P0 | geohash, h3 | ✅ pipeline proven end-to-end |
 | P1 | quadkey, slippy, gars, maidenhead, csquares, pluscode | ✅ done |
 | P2 | eaquad, mgrs | ✅ done |
-| P3 | a5 ✅ · s2 ⬜ | a5 done; s2 is the last grid |
-| P4 | cleanup / Python migration | ⬜ |
+| P3 | a5, s2 | ✅ done — all 12 grids ported |
+| P4 | cleanup / Python migration | ⬜ next |
 
-**Parity: Python 166/166, JS 166/166**, plus 4 geodesic-area tests. All green.
-P0+P1 (8 grids) are committed on branch `feat/rust-wasm-core`; P2 (eaquad, mgrs)
-and a5 are working-tree, uncommitted.
+**Parity: Python 181/181, JS 181/181**, plus 4 geodesic-area tests. All green.
+P0+P1 (8 grids) are committed on branch `feat/rust-wasm-core`; P2 (eaquad, mgrs),
+a5 and s2 are committed on top. No grid needs the ADR §4 fallback.
 
 ## 3. Repo layout (new files)
 
@@ -170,19 +171,19 @@ Then run the §6 commands. Green = done.
 
 ## 8. What's next
 
-### P3 — s2  (the last grid)
-- **a5** ✅ done. Wraps the official `a5` crate (`felixpalmer/a5-rs`, same source
-  as pya5) → byte-exact Python parity. `m3s-core/src/a5_grid.rs`; precisions
-  0/5/10 frozen. Note: a5 res-0 rings differ native-vs-wasm by ~5.7e-14 deg
-  (last-ULP libm sin/cos) — absorbed by the ring tolerance change below.
-- **Ring comparison is now absolute-tolerance** (both test files): default
-  `1e-9` deg (~0.1 mm), mgrs `1e-4`. Replaced the old exact-6dp-string compare,
-  which a5's FP noise tripped. See `RING_ABS_TOL` in test_core_parity.py / parity.cjs.
-- **s2** (`m3s/s2.py`): **blocker to verify first** — read the `s2` crate
-  (v0.0.13, ~60% documented) source and confirm it exposes `RegionCoverer`
-  (needed for `get_cells_in_bbox`/covering), neighbours, parent/child at the
-  precisions m3s uses. If absent → ADR §4 fallback: ship core without S2, keep it
-  Python-native-only (documented exception), JS lacks S2 until ported.
+### P3 — a5, s2  ✅ done
+- **a5** ✅. Wraps the official `a5` crate (`felixpalmer/a5-rs`, same source as
+  pya5) → byte-exact Python parity. `m3s-core/src/a5_grid.rs`; precisions 0/5/10.
+- **s2** ✅. Wraps the `s2` crate v0.0.13 (`m3s-core/src/s2_grid.rs`); precisions
+  0/5/13. Built with `default-features = false` — the crate's default
+  `float_extras` feature uses libc FFI math (`nextafter`) and won't link to
+  WASM, but it only backs `ChordAngle::successor`, off our path. `RegionCoverer`
+  (the feared blocker) is only for covering/bbox, which aren't in the golden
+  parity contract, so it wasn't needed. Neighbour quirk reproduced: `s2.py`
+  returns `[]` below precision 4 and the four edge neighbours at ≥ 4.
+- **Ring comparison is absolute-tolerance** (both test files): default `1e-9`
+  deg (~0.1 mm), mgrs `1e-4`. Replaced the old exact-6dp-string compare, which
+  a5's FP noise tripped. See `RING_ABS_TOL` in test_core_parity.py / parity.cjs.
 
 ### P4 — cleanup / migration
 - Wire one browser example (`examples/grid_systems/_grids/h3.js`) to a
@@ -193,13 +194,15 @@ Then run the §6 commands. Green = done.
   examples.
 
 ## 9. Open issues / watch-outs
-- **Branch `feat/rust-wasm-core`** off `dev`. P0+P1 committed+pushed; P2 (eaquad,
-  mgrs) and a5 committed on top. Unrelated pre-existing working-tree changes (CONTEXT.md,
+- **Branch `feat/rust-wasm-core`** off `dev`. P0–P3 (all 12 grids) committed+pushed.
+  Unrelated pre-existing working-tree changes (CONTEXT.md,
   examples edits, _prev*.py, etc.) are intentionally NOT part of these commits.
 - **csquares children rounding:** uses `f64::round` (half-away-from-zero) vs
   Python `round` (banker's). No parity failure seen, but a future precision/point
   could hit an exact `.5`; revisit if a child-count mismatch appears.
 - **Area re-baseline:** when the Python package migrates (P4), existing
   `area_km2` expectations in the old test suite will shift to geodesic numbers.
-- **S2 RegionCoverer** is the only known architectural unknown left.
+- **S2 RegionCoverer** (covering/bbox) is unused by the parity contract and was
+  never needed; it remains the one s2 capability not exercised, relevant only if
+  P4 migrates `get_cells_in_bbox`/`get_covering_cells` onto the core.
 - `*.whl`, `/target/`, `bindings/js/pkg/` are gitignored.

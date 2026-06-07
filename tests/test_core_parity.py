@@ -90,6 +90,13 @@ FNS = {
         "children": mc.a5_children,
         "parent": mc.a5_parent,
     },
+    "s2": {
+        "point": mc.s2_cell_from_point,
+        "from_id": mc.s2_cell_from_id,
+        "neighbors": mc.s2_neighbors,
+        "children": mc.s2_children,
+        "parent": mc.s2_parent,
+    },
 }
 
 
@@ -111,6 +118,7 @@ CASES = (
     + _load("eaquad")
     + _load("mgrs")
     + _load("a5")
+    + _load("s2")
 )
 
 

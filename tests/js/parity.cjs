@@ -86,6 +86,13 @@ const FNS = {
     children: wasm.a5_children,
     parent: wasm.a5_parent,
   },
+  s2: {
+    point: wasm.s2_cell_from_point,
+    fromId: wasm.s2_cell_from_id,
+    neighbors: wasm.s2_neighbors,
+    children: wasm.s2_children,
+    parent: wasm.s2_parent,
+  },
 };
 
 // Ring vertices compared with an absolute degree tolerance. Default 1e-9 (~0.1
@@ -129,6 +136,7 @@ const ALL = [
   ...load("eaquad"),
   ...load("mgrs"),
   ...load("a5"),
+  ...load("s2"),
 ];
 
 for (const [grid, rec] of ALL) {

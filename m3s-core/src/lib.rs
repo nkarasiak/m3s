@@ -15,6 +15,7 @@ pub mod maidenhead_grid;
 pub mod mgrs_grid;
 pub mod pluscode_grid;
 pub mod quadkey_grid;
+pub mod s2_grid;
 pub mod slippy_grid;
 
 /// A single grid cell: id, closed lon/lat ring (GIS axis order), precision.

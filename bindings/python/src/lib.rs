@@ -5,7 +5,7 @@
 use ::m3s_core::{
     a5_grid as a5, csquares_grid as cs, eaquad_grid as eaq, gars_grid as gars,
     geohash_grid as gh, h3_grid as h3, maidenhead_grid as mh, mgrs_grid as mgrs,
-    pluscode_grid as pc, quadkey_grid as qk, slippy_grid as sl, Cell,
+    pluscode_grid as pc, quadkey_grid as qk, s2_grid as s2, slippy_grid as sl, Cell,
 };
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -293,6 +293,33 @@ fn eaq_parent(id: &str) -> PyResult<PyCell> {
     eaq::parent(id).map(to_py).map_err(err)
 }
 
+// ---- s2 ---------------------------------------------------------------------
+
+#[pyfunction]
+fn s2_cell_from_point(lat: f64, lon: f64, precision: u8) -> PyResult<PyCell> {
+    s2::cell_from_point(lat, lon, precision).map(to_py).map_err(err)
+}
+
+#[pyfunction]
+fn s2_cell_from_id(id: &str) -> PyResult<PyCell> {
+    s2::cell_from_id(id).map(to_py).map_err(err)
+}
+
+#[pyfunction]
+fn s2_neighbors(id: &str) -> PyResult<Vec<PyCell>> {
+    s2::neighbors(id).map(to_py_vec).map_err(err)
+}
+
+#[pyfunction]
+fn s2_children(id: &str) -> PyResult<Vec<PyCell>> {
+    s2::children(id).map(to_py_vec).map_err(err)
+}
+
+#[pyfunction]
+fn s2_parent(id: &str) -> PyResult<PyCell> {
+    s2::parent(id).map(to_py).map_err(err)
+}
+
 // ---- shared -----------------------------------------------------------------
 
 #[pyfunction]
@@ -352,6 +379,11 @@ fn m3s_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(eaq_neighbors, m)?)?;
     m.add_function(wrap_pyfunction!(eaq_children, m)?)?;
     m.add_function(wrap_pyfunction!(eaq_parent, m)?)?;
+    m.add_function(wrap_pyfunction!(s2_cell_from_point, m)?)?;
+    m.add_function(wrap_pyfunction!(s2_cell_from_id, m)?)?;
+    m.add_function(wrap_pyfunction!(s2_neighbors, m)?)?;
+    m.add_function(wrap_pyfunction!(s2_children, m)?)?;
+    m.add_function(wrap_pyfunction!(s2_parent, m)?)?;
     m.add_function(wrap_pyfunction!(geodesic_area_km2, m)?)?;
     Ok(())
 }

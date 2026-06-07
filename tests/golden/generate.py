@@ -21,6 +21,7 @@ from m3s import (
     MGRSGrid,
     PlusCodeGrid,
     QuadkeyGrid,
+    S2Grid,
     SlippyGrid,
 )
 
@@ -52,6 +53,7 @@ GRIDS = {
     "eaquad": (EAQuadGrid, [0, 4, 8], True),
     "mgrs": (MGRSGrid, [0, 1, 3, 5], False),
     "a5": (A5Grid, [0, 5, 10], True),
+    "s2": (S2Grid, [0, 5, 13], True),
 }
 
 OUT = Path(__file__).parent
