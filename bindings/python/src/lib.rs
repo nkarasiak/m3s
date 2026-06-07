@@ -3,9 +3,9 @@
 //! into `GridCell`. Module name: `m3s_core`.
 
 use ::m3s_core::{
-    csquares_grid as cs, eaquad_grid as eaq, gars_grid as gars, geohash_grid as gh,
-    h3_grid as h3, maidenhead_grid as mh, mgrs_grid as mgrs, pluscode_grid as pc,
-    quadkey_grid as qk, slippy_grid as sl, Cell,
+    a5_grid as a5, csquares_grid as cs, eaquad_grid as eaq, gars_grid as gars,
+    geohash_grid as gh, h3_grid as h3, maidenhead_grid as mh, mgrs_grid as mgrs,
+    pluscode_grid as pc, quadkey_grid as qk, slippy_grid as sl, Cell,
 };
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -222,6 +222,33 @@ fn pc_parent(id: &str) -> PyResult<PyCell> {
     pc::parent(id).map(to_py).map_err(err)
 }
 
+// ---- a5 ---------------------------------------------------------------------
+
+#[pyfunction]
+fn a5_cell_from_point(lat: f64, lon: f64, precision: u8) -> PyResult<PyCell> {
+    a5::cell_from_point(lat, lon, precision).map(to_py).map_err(err)
+}
+
+#[pyfunction]
+fn a5_cell_from_id(id: &str) -> PyResult<PyCell> {
+    a5::cell_from_id(id).map(to_py).map_err(err)
+}
+
+#[pyfunction]
+fn a5_neighbors(id: &str) -> PyResult<Vec<PyCell>> {
+    a5::neighbors(id).map(to_py_vec).map_err(err)
+}
+
+#[pyfunction]
+fn a5_children(id: &str) -> PyResult<Vec<PyCell>> {
+    a5::children(id).map(to_py_vec).map_err(err)
+}
+
+#[pyfunction]
+fn a5_parent(id: &str) -> PyResult<PyCell> {
+    a5::parent(id).map(to_py).map_err(err)
+}
+
 // ---- mgrs (non-hierarchical) ------------------------------------------------
 
 #[pyfunction]
@@ -312,6 +339,11 @@ fn m3s_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(pc_neighbors, m)?)?;
     m.add_function(wrap_pyfunction!(pc_children, m)?)?;
     m.add_function(wrap_pyfunction!(pc_parent, m)?)?;
+    m.add_function(wrap_pyfunction!(a5_cell_from_point, m)?)?;
+    m.add_function(wrap_pyfunction!(a5_cell_from_id, m)?)?;
+    m.add_function(wrap_pyfunction!(a5_neighbors, m)?)?;
+    m.add_function(wrap_pyfunction!(a5_children, m)?)?;
+    m.add_function(wrap_pyfunction!(a5_parent, m)?)?;
     m.add_function(wrap_pyfunction!(mgrs_cell_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(mgrs_cell_from_id, m)?)?;
     m.add_function(wrap_pyfunction!(mgrs_neighbors, m)?)?;

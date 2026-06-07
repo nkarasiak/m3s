@@ -201,7 +201,14 @@ the deferred E remain. P0 can scaffold. Sequenced to de-risk early:
   null-island point is excluded for mgrs (equator+meridian+zone-edge degenerate
   case geoconvert panics on, pyproj doesn't). geoconvert compiles to WASM.
   **Python 151/151, JS 151/151 across 11 grids.**
-- **P3 — hard.** s2, a5 — or invoke the §4 fallback.
+- **P3 — hard. a5 done; s2 remains.** a5 wraps the official `a5` crate
+  (`felixpalmer/a5-rs`, the same source as pya5) → byte-exact Python parity at
+  precisions 0/5/10. One wrinkle: a5 res-0 rings differ native-vs-wasm by
+  ~5.7e-14 deg (last-ULP libm sin/cos), so the ring comparison was switched from
+  exact-6dp-string to an **absolute degree tolerance** (default 1e-9 ≈ 0.1 mm;
+  mgrs 1e-4) in both parity tests — ids/neighbours/children/parent stay exact.
+  **Python 166/166, JS 166/166 across 11 grids.** Only s2 left, or the §4
+  fallback.
 - **P4 — cleanup.** Delete `_grids/*.js`, drop now-unused Python deps, update
   `CLAUDE.md`/`CONTEXT.md` so the registry derives precision bounds from the
   core.

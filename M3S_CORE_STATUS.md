@@ -5,7 +5,7 @@ Read this first on a cold restart. Full rationale lives in
 [`docs/adr/0001-rust-wasm-shared-core.md`](docs/adr/0001-rust-wasm-shared-core.md);
 domain vocabulary in [`CONTEXT.md`](CONTEXT.md).
 
-Last updated: 2026-06-06 (P2 complete — 11/12 grids).
+Last updated: 2026-06-07 (a5 done — 11/12 grids; only s2 remains).
 
 ## 1. Goal
 
@@ -33,12 +33,12 @@ package — proving parity before any migration.
 | P0 | geohash, h3 | ✅ pipeline proven end-to-end |
 | P1 | quadkey, slippy, gars, maidenhead, csquares, pluscode | ✅ done |
 | P2 | eaquad, mgrs | ✅ done |
-| P3 | s2, a5 | ⬜ next |
+| P3 | a5 ✅ · s2 ⬜ | a5 done; s2 is the last grid |
 | P4 | cleanup / Python migration | ⬜ |
 
-**Parity: Python 151/151, JS 151/151**, plus 4 geodesic-area tests. All green.
+**Parity: Python 166/166, JS 166/166**, plus 4 geodesic-area tests. All green.
 P0+P1 (8 grids) are committed on branch `feat/rust-wasm-core`; P2 (eaquad, mgrs)
-is working-tree, uncommitted.
+and a5 are working-tree, uncommitted.
 
 ## 3. Repo layout (new files)
 
@@ -170,15 +170,19 @@ Then run the §6 commands. Green = done.
 
 ## 8. What's next
 
-### P3 — s2, a5  (the last 2 grids)
+### P3 — s2  (the last grid)
+- **a5** ✅ done. Wraps the official `a5` crate (`felixpalmer/a5-rs`, same source
+  as pya5) → byte-exact Python parity. `m3s-core/src/a5_grid.rs`; precisions
+  0/5/10 frozen. Note: a5 res-0 rings differ native-vs-wasm by ~5.7e-14 deg
+  (last-ULP libm sin/cos) — absorbed by the ring tolerance change below.
+- **Ring comparison is now absolute-tolerance** (both test files): default
+  `1e-9` deg (~0.1 mm), mgrs `1e-4`. Replaced the old exact-6dp-string compare,
+  which a5's FP noise tripped. See `RING_ABS_TOL` in test_core_parity.py / parity.cjs.
 - **s2** (`m3s/s2.py`): **blocker to verify first** — read the `s2` crate
   (v0.0.13, ~60% documented) source and confirm it exposes `RegionCoverer`
   (needed for `get_cells_in_bbox`/covering), neighbours, parent/child at the
   precisions m3s uses. If absent → ADR §4 fallback: ship core without S2, keep it
   Python-native-only (documented exception), JS lacks S2 until ported.
-- **a5** (`m3s/a5.py`): wrap the official `a5` crate (`felixpalmer/a5-rs`,
-  Apache-2.0). a5geo guarantees cross-language parity, so this should be low-risk
-  once the crate API is mapped to the Cell contract.
 
 ### P4 — cleanup / migration
 - Wire one browser example (`examples/grid_systems/_grids/h3.js`) to a
@@ -190,7 +194,7 @@ Then run the §6 commands. Green = done.
 
 ## 9. Open issues / watch-outs
 - **Branch `feat/rust-wasm-core`** off `dev`. P0+P1 committed+pushed; P2 (eaquad,
-  mgrs) committed on top. Unrelated pre-existing working-tree changes (CONTEXT.md,
+  mgrs) and a5 committed on top. Unrelated pre-existing working-tree changes (CONTEXT.md,
   examples edits, _prev*.py, etc.) are intentionally NOT part of these commits.
 - **csquares children rounding:** uses `f64::round` (half-away-from-zero) vs
   Python `round` (banker's). No parity failure seen, but a future precision/point

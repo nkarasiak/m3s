@@ -11,6 +11,7 @@ import json
 from pathlib import Path
 
 from m3s import (
+    A5Grid,
     CSquaresGrid,
     EAQuadGrid,
     GARSGrid,
@@ -50,6 +51,7 @@ GRIDS = {
     "pluscode": (PlusCodeGrid, [1, 4, 6], True),
     "eaquad": (EAQuadGrid, [0, 4, 8], True),
     "mgrs": (MGRSGrid, [0, 1, 3, 5], False),
+    "a5": (A5Grid, [0, 5, 10], True),
 }
 
 OUT = Path(__file__).parent

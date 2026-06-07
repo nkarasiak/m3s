@@ -3,6 +3,15 @@
 version = 4
 
 [[package]]
+name = "a5"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "810fd8faa0a83f71c3b7f5ecbb9918f98e71afc127736c06245bc5f2686f1df2"
+dependencies = [
+ "lazy_static",
+]
+
+[[package]]
 name = "ahash"
 version = "0.8.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -216,6 +225,7 @@ checksum = "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
 name = "m3s-core"
 version = "0.0.0"
 dependencies = [
+ "a5",
  "geo-types",
  "geoconvert",
  "geohash",

@@ -3,9 +3,9 @@
 //! in `examples/grid_systems/_grids/*.js` already consume.
 
 use m3s_core::{
-    csquares_grid as cs, eaquad_grid as eaq, gars_grid as gars, geohash_grid as gh,
-    h3_grid as h3, maidenhead_grid as mh, mgrs_grid as mgrs, pluscode_grid as pc,
-    quadkey_grid as qk, slippy_grid as sl, Cell,
+    a5_grid as a5, csquares_grid as cs, eaquad_grid as eaq, gars_grid as gars,
+    geohash_grid as gh, h3_grid as h3, maidenhead_grid as mh, mgrs_grid as mgrs,
+    pluscode_grid as pc, quadkey_grid as qk, slippy_grid as sl, Cell,
 };
 use serde::Serialize;
 use wasm_bindgen::prelude::*;
@@ -233,6 +233,33 @@ pub fn pc_children(id: &str) -> Result<JsValue, JsValue> {
 #[wasm_bindgen]
 pub fn pc_parent(id: &str) -> Result<JsValue, JsValue> {
     cell(pc::parent(id))
+}
+
+// ---- a5 ---------------------------------------------------------------------
+
+#[wasm_bindgen]
+pub fn a5_cell_from_point(lat: f64, lon: f64, precision: u8) -> Result<JsValue, JsValue> {
+    cell(a5::cell_from_point(lat, lon, precision))
+}
+
+#[wasm_bindgen]
+pub fn a5_cell_from_id(id: &str) -> Result<JsValue, JsValue> {
+    cell(a5::cell_from_id(id))
+}
+
+#[wasm_bindgen]
+pub fn a5_neighbors(id: &str) -> Result<JsValue, JsValue> {
+    cells(a5::neighbors(id))
+}
+
+#[wasm_bindgen]
+pub fn a5_children(id: &str) -> Result<JsValue, JsValue> {
+    cells(a5::children(id))
+}
+
+#[wasm_bindgen]
+pub fn a5_parent(id: &str) -> Result<JsValue, JsValue> {
+    cell(a5::parent(id))
 }
 
 // ---- mgrs (non-hierarchical) ------------------------------------------------

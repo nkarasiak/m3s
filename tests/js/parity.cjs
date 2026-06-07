@@ -5,8 +5,8 @@
 //   node tests/js/parity.cjs
 //
 // Mirrors tests/test_core_parity.py: ids/precision/neighbour/child/parent sets
-// exact; ring vertices order-independent, rounded to 6 dp. Area is excluded
-// (ADR §3 geodesic re-baseline).
+// exact; ring vertices order-independent within an absolute degree tolerance
+// (RING_ABS_TOL). Area is excluded (ADR §3 geodesic re-baseline).
 
 const fs = require("fs");
 const path = require("path");
@@ -79,23 +79,25 @@ const FNS = {
     fromId: wasm.mgrs_cell_from_id,
     neighbors: wasm.mgrs_neighbors,
   },
+  a5: {
+    point: wasm.a5_cell_from_point,
+    fromId: wasm.a5_cell_from_id,
+    neighbors: wasm.a5_neighbors,
+    children: wasm.a5_children,
+    parent: wasm.a5_parent,
+  },
 };
 
-// MGRS ring is a projected polygon (UTM round-trip); the GeographicLib-backed
-// core differs from the GEOTRANS/pyproj Python by ~0.5 m, so its ring is
-// compared with a ~metre tolerance. Ids/neighbours still match exactly.
+// Ring vertices compared with an absolute degree tolerance. Default 1e-9 (~0.1
+// mm) absorbs last-ULP native-vs-wasm libm noise. MGRS is looser (~metre) for
+// its UTM-round-trip ring. Ids/neighbours always match exactly.
+const DEFAULT_RING_TOL = 1e-9;
 const RING_ABS_TOL = { mgrs: 1e-4 };
 
 const load = (g) =>
   JSON.parse(fs.readFileSync(path.join(GOLDEN, `${g}.json`), "utf8")).map(
     (rec) => [g, rec]
   );
-
-const normRing = (ring) =>
-  ring
-    .map(([x, y]) => `${x.toFixed(6)},${y.toFixed(6)}`)
-    .sort()
-    .join("|");
 
 // Order-independent vertex match within an absolute degree tolerance.
 const ringsClose = (a, b, tol) => {
@@ -126,6 +128,7 @@ const ALL = [
   ...load("pluscode"),
   ...load("eaquad"),
   ...load("mgrs"),
+  ...load("a5"),
 ];
 
 for (const [grid, rec] of ALL) {
@@ -139,12 +142,8 @@ for (const [grid, rec] of ALL) {
     const r = fns.fromId(rec.id);
     if (r.id !== rec.id) throw `fromId id`;
     if (r.precision !== rec.cell_precision) throw `fromId precision`;
-    const tol = RING_ABS_TOL[grid];
-    if (tol === undefined) {
-      if (normRing(r.ring) !== normRing(rec.ring)) throw `ring mismatch`;
-    } else if (!ringsClose(r.ring, rec.ring, tol)) {
+    if (!ringsClose(r.ring, rec.ring, RING_ABS_TOL[grid] ?? DEFAULT_RING_TOL))
       throw `ring mismatch`;
-    }
 
     if (!eq(ids(fns.neighbors(rec.id)), rec.neighbors)) throw `neighbors`;
     if (rec.children !== undefined && !eq(ids(fns.children(rec.id)), rec.children))

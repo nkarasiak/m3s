@@ -5,6 +5,7 @@
 //! point->cell, id->cell, neighbors, children/parent. Cells are plain data;
 //! the PyO3 and wasm-bindgen layers wrap them into shapely / GeoJSON.
 
+pub mod a5_grid;
 pub mod csquares_grid;
 pub mod eaquad_grid;
 pub mod gars_grid;
