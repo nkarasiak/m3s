@@ -11,11 +11,13 @@ Last updated: 2026-06-07 (P4a done — Python `m3s/` cell ops now delegate to
 ## 1. Goal
 
 Port m3s's 12 grid systems onto a single Rust crate (`m3s-core`) exposed to both
-Python (PyO3) and JS (wasm-bindgen), so the two languages can never drift. Long
-term, the existing Python `m3s/` package migrates onto this core and drops its
-native deps (`h3`, `s2geometry`, `pya5`, per-cell UTM area). Today the core ships
-as a *separate* `m3s_core` extension module alongside the untouched `m3s/`
-package — proving parity before any migration.
+Python (PyO3) and JS (wasm-bindgen), so the two languages can never drift. The
+Python `m3s/` package now runs its unified BaseGrid surface (cell ops + bbox) on
+this core; the browser examples tile from the same core's WASM build. Dropped
+native deps: `mgrs`, `pya5`, `pyproj`, `s2sphere`, the in-house `_geohash`, and
+per-cell UTM area. `h3` stays only for the h3-specific verbs API. Parity (Python
+binding == WASM == frozen golden) is enforced by `test_core_parity.py` +
+`tests/js/parity.cjs`.
 
 ### Locked decisions (ADR §7)
 - **A — Area:** core-owned geodesic area (spherical line-integral,
@@ -197,10 +199,12 @@ Then run the §6 commands. Green = done.
 - **Dropped fully:** the `mgrs` library (removed from deps + the dead
   `_create_mgrs_polygon`/`pyproj` use in `mgrs.py`) and the pure-Python
   `m3s/_geohash.py` module.
-- **Still imported** (bbox/covering/area not yet on the core): `h3` (area, bbox,
-  h3-verbs, compact), `s2sphere` (bbox, `get_covering_cells`), `pya5` (`a5`:
-  area, bbox), `pyproj` (`eaquad`: bbox projection). To drop these, the core must
-  grow `get_cells_in_bbox` / `get_covering_cells` + area-table equivalents.
+- **Native deps dropped** (after P5 + the dep-drop pass): `mgrs`, `pya5`,
+  `pyproj`, `s2sphere`. **Only `h3` remains** — it backs the rich h3-specific
+  "verbs" API (`m3s/api/h3_verbs.py`: cell area/boundary/vertexes, directed
+  edges, pentagons, icosahedron faces, compact, …, ~25 h3-py functions), a
+  deliberate power-user pass-through that is out of scope to reimplement. The
+  unified BaseGrid surface (cell ops + bbox) for h3 is already core-backed.
 - **Behaviour change:** `S2Grid.get_neighbors/get_children/get_parent` now
   propagate errors (like the other 11 grids) instead of the old
   swallow-and-warn → `[]`/`None`. Two `test_s2.py` error-handling tests rewired.
