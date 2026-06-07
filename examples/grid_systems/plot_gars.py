@@ -13,13 +13,14 @@ precisions are shown at once — the current level with a darker, heavier border
 and the next finer level with a lighter, thinner one — so the quadrant/keypad
 nesting stays visible. The band/zone/quadrant/keypad encoder is the exact one in
 :mod:`m3s.gars`, reproduced in JavaScript so the cell ids and edges match M3S.
-GARS only goes as coarse as 30′ (0.5°), so the demo opens zoomed to France
-rather than the whole continent. GIS-native ``(lon, lat)`` order is used
-throughout.
+GARS only goes as coarse as 30′ (0.5°) — there is no coarser cell — so a
+full-globe vector grid (259k cells) is impractical; the demo opens over France
+and the zoom is floored so the grid stays visible however far you zoom out.
+GIS-native ``(lon, lat)`` order is used throughout.
 """
 
 from _deckmap import DeckExplorer, read_grid_js
 
 # sphinx_gallery_thumbnail_path = '_static/thumbs/gars.png'
 
-DeckExplorer(center=(2.5, 46.8), zoom=7, grid_js=read_grid_js("gars"), hover="#DDCC77")
+DeckExplorer(center=(2.5, 46.8), zoom=7, grid_js=read_grid_js("gars"), hover="#DDCC77", wasm=True)

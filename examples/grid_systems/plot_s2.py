@@ -12,11 +12,9 @@ The **interactive explorer** below is rendered with
 are generated **in the browser** for whatever is in view. Two neighbouring
 levels are shown at once — the current level with a darker, heavier border and
 the next finer level with a lighter, thinner one — so the quadtree nesting stays
-visible. It is powered by
-`s2-geometry <https://github.com/jonseymour/s2-geometry-javascript>`_ (with
-`long.js <https://github.com/dcodeIO/long.js>`_ for the 64-bit ids); its cell
-tokens and vertices match M3S's :mod:`s2sphere`-based grid exactly. GIS-native
-``(lon, lat)`` order is used throughout.
+visible. It is powered by the shared ``m3s_core`` Rust/WASM build so the cell
+ids and edges match M3S exactly. GIS-native ``(lon, lat)`` order is used
+throughout.
 """
 
 from _deckmap import DeckExplorer, read_grid_js
@@ -27,9 +25,6 @@ DeckExplorer(
     center=(6.0, 48.5),
     zoom=5,
     grid_js=read_grid_js("s2"),
-    scripts=[
-        "https://cdn.jsdelivr.net/npm/long@5.2.3/umd/index.js",
-        "https://cdn.jsdelivr.net/npm/s2-geometry@1.2.10/src/s2geometry.js",
-    ],
     hover="#CC6677",
+    wasm=True,
 )

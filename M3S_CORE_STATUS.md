@@ -208,7 +208,7 @@ Then run the §6 commands. Green = done.
   `test_h3_verbs` boundary parity is `pytest.approx` (~1e-13) not byte-exact —
   same class of re-baseline as area (ADR §3).
 
-### P4b — browser examples → web WASM  🔶 mechanism done + verified (1/12 wired)
+### P4b — browser examples → web WASM  ✅ 11/12 wired (mgrs deferred)
 **Build prerequisite:** `wasm-pack build bindings/js --target web --out-dir pkg-web`
 (gitignored) before building docs with wasm examples. It exports
 `<prefix>_cells_in_bbox(min_lat,min_lon,max_lat,max_lon,res)` + per-cell fns,
@@ -223,11 +223,14 @@ hand-rolled base-32 lattice math is gone. Verified via Playwright: WASM
 instantiates, the tiler returns valid cells, deck.gl renders the two-resolution
 grid (screenshot confirmed). ~960 KB HTML per wasm example (mostly base64 wasm).
 
-**Remaining (11/12 tilers):** mechanically apply the same template — rewrite each
-`_grids/<grid>.js` `cells()` to `__M3S__.<prefix>_cells_in_bbox(...).map(c => ({
-id:c.id, poly:c.ring.slice(0,-1), sub:... }))`, set `wasm=True` in its `plot_*`,
-drop the CDN lib (h3-js, a5-js) + hand-math. **mgrs** has no core bbox (deferred)
-— keep its hand-JS tiler. Verify a couple render, then delete the replaced JS.
+**Done (11/12):** geohash, quadkey, slippy, gars, maidenhead, csquares, pluscode,
+eaquad, a5, h3, s2 tilers now call `__M3S__.<prefix>_cells_in_bbox(...)` and map
+`.ring` — all hand-rolled math deleted (net −400 LOC). Dropped the CDN libs:
+h3-js, a5-js, proj4 (eaquad), s2-geometry/long.js (s2). Verified via Playwright
+(quadkey/a5/h3/s2 instantiate the wasm + return valid cells, no page errors).
+**mgrs** keeps its hand-JS tiler (no core bbox; UTM deferred). Note: the core h3/s2
+rings can cross the antimeridian for cells near ±180 (the old hand-JS unwrapped
+seams) — fine for the current viewports; revisit if an example pans to the dateline.
 
 ## 10. P5 — core bbox / covering (in progress)
 

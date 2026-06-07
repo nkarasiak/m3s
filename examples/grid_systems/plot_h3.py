@@ -12,8 +12,8 @@ and cells are generated **in the browser** for whatever is in view — zoom in f
 finer cells, zoom out for coarser, no resolution picker. Two neighbouring
 resolutions are shown at once: the current level draws a darker, heavier border
 and the next finer level a lighter, thinner one, so the hexagonal nesting stays
-visible. Powered by `h3-js <https://github.com/uber/h3-js>`_, the same library
-behind h3geo.org. GIS-native ``(lon, lat)`` order is used throughout.
+visible. Cell geometry comes from the shared Rust/WASM core, identical to the
+Python package. GIS-native ``(lon, lat)`` order is used throughout.
 """
 
 from _deckmap import DeckExplorer, read_grid_js
@@ -24,6 +24,6 @@ DeckExplorer(
     center=(2.35, 48.86),
     zoom=11,
     grid_js=read_grid_js("h3"),
-    scripts=["https://cdn.jsdelivr.net/npm/h3-js@4.1.0/dist/h3-js.umd.js"],
+    wasm=True,
     hover="#ffeb3b",
 )

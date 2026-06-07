@@ -13,10 +13,10 @@ The **interactive explorer** below is rendered with
 level and cells are generated **in the browser** for whatever is in view. Two
 neighbouring precisions are shown at once — the current level with a darker,
 heavier border and the next finer level with a lighter, thinner one — so the
-aperture-4 nesting stays visible. The exact M3S cell maths (EPSG:6933
-projection, power-of-two km grid, base-4 quadtree ids) is reproduced in
-JavaScript with `proj4js <http://proj4js.org/>`_. GIS-native ``(lon, lat)``
-order is used throughout.
+aperture-4 nesting stays visible. Cell geometry is produced by the shared
+``m3s_core`` WASM build (EPSG:6933 projection, power-of-two km grid, base-4
+quadtree ids), so the browser and the Python package produce identical cells.
+GIS-native ``(lon, lat)`` order is used throughout.
 """
 
 from _deckmap import DeckExplorer, read_grid_js
@@ -27,6 +27,6 @@ DeckExplorer(
     center=(2.35, 48.86),
     zoom=11,
     grid_js=read_grid_js("eaquad"),
-    scripts=["https://cdn.jsdelivr.net/npm/proj4@2.11.0/dist/proj4.js"],
     hover="#ffeb3b",
+    wasm=True,
 )

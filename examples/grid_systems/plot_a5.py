@@ -30,6 +30,6 @@ DeckExplorer(
     center=(9.5, 48.5),
     zoom=5,
     grid_js=read_grid_js("a5"),
-    scripts=["https://cdn.jsdelivr.net/npm/a5-js@0.8.0/dist/a5.umd.js"],
     hover="#999933",
+    wasm=True,
 )
