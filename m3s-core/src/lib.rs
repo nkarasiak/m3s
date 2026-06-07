@@ -41,6 +41,87 @@ pub(crate) fn rect_ring(min_lon: f64, min_lat: f64, max_lon: f64, max_lat: f64) 
     ]
 }
 
+/// Axis-aligned `(min_lon, min_lat, max_lon, max_lat)` bbox of a ring.
+fn ring_bbox(ring: &[[f64; 2]]) -> (f64, f64, f64, f64) {
+    let (mut mnx, mut mny, mut mxx, mut mxy) =
+        (f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
+    for p in ring {
+        mnx = mnx.min(p[0]);
+        mxx = mxx.max(p[0]);
+        mny = mny.min(p[1]);
+        mxy = mxy.max(p[1]);
+    }
+    (mnx, mny, mxx, mxy)
+}
+
+/// Closed-rectangle intersection test, matching shapely `.intersects` (touching
+/// edges count). Both args are `(min_lon, min_lat, max_lon, max_lat)`.
+pub(crate) fn rects_intersect(a: (f64, f64, f64, f64), b: (f64, f64, f64, f64)) -> bool {
+    a.0 <= b.2 && b.0 <= a.2 && a.1 <= b.3 && b.1 <= a.3
+}
+
+/// CPython float floor-division (`a // b`), reproduced bit-for-bit. Differs from
+/// `(a / b).floor()` at boundaries (e.g. `180.0 // 0.1 == 1799`, not 1800) — the
+/// Python `_cells_in_bbox_regular` column/row ranges depend on this exact value.
+fn py_floordiv(a: f64, b: f64) -> f64 {
+    let mut m = a % b; // Rust `%` on f64 is fmod, matching C fmod
+    let mut d = (a - m) / b;
+    if m != 0.0 && (b < 0.0) != (m < 0.0) {
+        m += b;
+        d -= 1.0;
+    }
+    if d != 0.0 {
+        let fl = d.floor();
+        if d - fl > 0.5 {
+            fl + 1.0
+        } else {
+            fl
+        }
+    } else {
+        (a / b).signum() * 0.0
+    }
+}
+
+/// Enumerate cells of a regular lon/lat lattice intersecting a bbox, mirroring
+/// `BaseGrid._cells_in_bbox_regular`: visit each candidate cell centre once
+/// (floor-div column/row range from the origin), clamp it into the domain, take
+/// the grid's cell, and keep it (deduped) iff its rect intersects the target.
+pub(crate) fn cells_in_bbox_regular(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    lat_step: f64,
+    lon_step: f64,
+    lat_origin: f64,
+    lon_origin: f64,
+    point: fn(f64, f64, u8) -> Result<Cell, String>,
+    precision: u8,
+) -> Vec<Cell> {
+    let col_lo = py_floordiv(min_lon - lon_origin, lon_step) as i64;
+    let col_hi = py_floordiv(max_lon - lon_origin, lon_step) as i64;
+    let row_lo = py_floordiv(min_lat - lat_origin, lat_step) as i64;
+    let row_hi = py_floordiv(max_lat - lat_origin, lat_step) as i64;
+    let target = (min_lon, min_lat, max_lon, max_lat);
+    let mut out: Vec<Cell> = Vec::new();
+    for col in col_lo..=col_hi {
+        for row in row_lo..=row_hi {
+            let clat = (lat_origin + (row as f64 + 0.5) * lat_step).clamp(-90.0, 90.0);
+            let clon = (lon_origin + (col as f64 + 0.5) * lon_step).clamp(-180.0, 180.0);
+            let Ok(cell) = point(clat, clon, precision) else {
+                continue;
+            };
+            if out.iter().any(|c| c.id == cell.id) {
+                continue;
+            }
+            if rects_intersect(ring_bbox(&cell.ring), target) {
+                out.push(cell);
+            }
+        }
+    }
+    out
+}
+
 /// Mean Earth radius (km), the value h3 uses for spherical area.
 const EARTH_RADIUS_KM: f64 = 6371.0088;
 

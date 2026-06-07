@@ -283,33 +283,24 @@ class TestS2GridEdgeCases:
         assert len(cells) >= 1
 
     def test_error_handling_in_neighbors(self, grid_level_10):
-        """Test error handling in neighbor computation."""
-        # Create a mock that raises an exception
-        with patch("m3s.s2.s2sphere") as mock_s2:
-            mock_s2.CellId.from_token.side_effect = Exception("Test error")
+        """Test that get_neighbors raises on m3s_core error."""
+        cell = grid_level_10.get_cell_from_point(40.7, -74.0)
 
-            cell = grid_level_10.get_cell_from_point(40.7, -74.0)
+        with patch("m3s.s2.m3s_core") as mock_core:
+            mock_core.s2_neighbors.side_effect = Exception("Test error")
 
-            with warnings.catch_warnings(record=True) as w:
-                neighbors = grid_level_10.get_neighbors(cell)
-
-                # Should return empty list and issue warning
-                assert neighbors == []
-                assert len(w) > 0
+            with pytest.raises(Exception, match="Test error"):
+                grid_level_10.get_neighbors(cell)
 
     def test_error_handling_in_children(self, grid_level_10):
-        """Test error handling in children computation."""
-        with patch("m3s.s2.s2sphere") as mock_s2:
-            mock_s2.CellId.from_token.side_effect = Exception("Test error")
+        """Test that get_children raises on m3s_core error."""
+        cell = grid_level_10.get_cell_from_point(40.7, -74.0)
 
-            cell = grid_level_10.get_cell_from_point(40.7, -74.0)
+        with patch("m3s.s2.m3s_core") as mock_core:
+            mock_core.s2_children.side_effect = Exception("Test error")
 
-            with warnings.catch_warnings(record=True) as w:
-                children = grid_level_10.get_children(cell)
-
-                # Should return empty list and issue warning
-                assert children == []
-                assert len(w) > 0
+            with pytest.raises(Exception, match="Test error"):
+                grid_level_10.get_children(cell)
 
     def test_error_handling_in_covering_cells(self, grid_level_10):
         """Test error handling in covering cells computation."""

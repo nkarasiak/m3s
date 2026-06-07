@@ -104,3 +104,28 @@ pub fn parent(id: &str) -> Result<Cell, String> {
     }
     cell_from_id(&id[..id.len() - 1])
 }
+
+/// All cells intersecting the bbox at `precision`. Geohash cells tile the globe
+/// as a regular lon/lat lattice from (-90, -180); the per-precision step matches
+/// `GeohashGrid._get_lat_step` / `_get_lon_step`. Deterministic and complete
+/// (replaces the Python dense point-sampling, which approximated this set).
+pub fn cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<Vec<Cell>, String> {
+    if !(MIN_PRECISION..=MAX_PRECISION).contains(&precision) {
+        return Err(format!(
+            "Geohash precision must be between {MIN_PRECISION} and {MAX_PRECISION}"
+        ));
+    }
+    let p = precision as u32;
+    let lat_step = 180.0 / 2f64.powi(((p * 5 + 1) / 2) as i32);
+    let lon_step = 360.0 / 2f64.powi(((p * 5) / 2) as i32);
+    Ok(crate::cells_in_bbox_regular(
+        min_lat, min_lon, max_lat, max_lon, lat_step, lon_step, -90.0, -180.0,
+        cell_from_point, precision,
+    ))
+}

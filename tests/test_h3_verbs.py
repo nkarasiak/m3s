@@ -63,7 +63,14 @@ def test_h3_inspection_parity(res):
     cell = m3s.H3.latlng_to_cell(*PARIS, res)
     cid = cell.id
     assert m3s.H3.cell_to_latlng(cell) == h3.cell_to_latlng(cid)
-    assert tuple(m3s.H3.cell_to_boundary(cell)) == tuple(h3.cell_to_boundary(cid))
+    # Boundary geometry now comes from the shared Rust core (h3o), not the h3
+    # Python lib, so it matches to ~1e-13 rather than byte-exact (same
+    # deliberate re-baseline as cell area, ADR 0001 §3).
+    boundary = m3s.H3.cell_to_boundary(cell)
+    expected = h3.cell_to_boundary(cid)
+    assert len(boundary) == len(expected)
+    for (lat_, lng_), (elat, elng) in zip(boundary, expected, strict=True):
+        assert lat_ == pytest.approx(elat) and lng_ == pytest.approx(elng)
     assert m3s.H3.get_resolution(cell) == h3.get_resolution(cid) == res
     assert m3s.H3.is_valid_cell(cid) is True
     assert m3s.H3.is_valid_cell("not-a-cell") is False

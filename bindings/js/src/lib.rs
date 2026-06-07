@@ -66,6 +66,17 @@ pub fn gh_parent(id: &str) -> Result<JsValue, JsValue> {
     cell(gh::parent(id))
 }
 
+#[wasm_bindgen]
+pub fn gh_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<JsValue, JsValue> {
+    cells(gh::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision))
+}
+
 // ---- h3 ---------------------------------------------------------------------
 
 #[wasm_bindgen]
@@ -120,6 +131,17 @@ pub fn qk_parent(id: &str) -> Result<JsValue, JsValue> {
     cell(qk::parent(id))
 }
 
+#[wasm_bindgen]
+pub fn qk_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<JsValue, JsValue> {
+    cells(qk::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision))
+}
+
 // ---- slippy -----------------------------------------------------------------
 
 #[wasm_bindgen]
@@ -147,6 +169,17 @@ pub fn sl_parent(id: &str) -> Result<JsValue, JsValue> {
     cell(sl::parent(id))
 }
 
+#[wasm_bindgen]
+pub fn sl_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<JsValue, JsValue> {
+    cells(sl::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision))
+}
+
 // ---- gars (non-hierarchical) ------------------------------------------------
 
 #[wasm_bindgen]
@@ -164,6 +197,17 @@ pub fn gars_neighbors(id: &str) -> Result<JsValue, JsValue> {
     cells(gars::neighbors(id))
 }
 
+#[wasm_bindgen]
+pub fn gars_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<JsValue, JsValue> {
+    cells(gars::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision))
+}
+
 // ---- maidenhead (non-hierarchical) ------------------------------------------
 
 #[wasm_bindgen]
@@ -179,6 +223,17 @@ pub fn mh_cell_from_id(id: &str) -> Result<JsValue, JsValue> {
 #[wasm_bindgen]
 pub fn mh_neighbors(id: &str) -> Result<JsValue, JsValue> {
     cells(mh::neighbors(id))
+}
+
+#[wasm_bindgen]
+pub fn mh_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<JsValue, JsValue> {
+    cells(mh::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision))
 }
 
 // ---- csquares ---------------------------------------------------------------
@@ -208,6 +263,17 @@ pub fn cs_parent(id: &str) -> Result<JsValue, JsValue> {
     cell(cs::parent(id))
 }
 
+#[wasm_bindgen]
+pub fn cs_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<JsValue, JsValue> {
+    cells(cs::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision))
+}
+
 // ---- pluscode ---------------------------------------------------------------
 
 #[wasm_bindgen]
@@ -233,6 +299,17 @@ pub fn pc_children(id: &str) -> Result<JsValue, JsValue> {
 #[wasm_bindgen]
 pub fn pc_parent(id: &str) -> Result<JsValue, JsValue> {
     cell(pc::parent(id))
+}
+
+#[wasm_bindgen]
+pub fn pc_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<JsValue, JsValue> {
+    cells(pc::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision))
 }
 
 // ---- a5 ---------------------------------------------------------------------
@@ -304,6 +381,17 @@ pub fn eaq_children(id: &str) -> Result<JsValue, JsValue> {
 #[wasm_bindgen]
 pub fn eaq_parent(id: &str) -> Result<JsValue, JsValue> {
     cell(eaq::parent(id))
+}
+
+#[wasm_bindgen]
+pub fn eaq_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<JsValue, JsValue> {
+    cells(eaq::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision))
 }
 
 // ---- s2 ---------------------------------------------------------------------

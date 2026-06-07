@@ -53,6 +53,19 @@ fn gh_parent(id: &str) -> PyResult<PyCell> {
     gh::parent(id).map(to_py).map_err(err)
 }
 
+#[pyfunction]
+fn gh_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> PyResult<Vec<PyCell>> {
+    gh::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision)
+        .map(to_py_vec)
+        .map_err(err)
+}
+
 // ---- h3 ---------------------------------------------------------------------
 
 #[pyfunction]
@@ -107,6 +120,19 @@ fn qk_parent(id: &str) -> PyResult<PyCell> {
     qk::parent(id).map(to_py).map_err(err)
 }
 
+#[pyfunction]
+fn qk_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> PyResult<Vec<PyCell>> {
+    qk::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision)
+        .map(to_py_vec)
+        .map_err(err)
+}
+
 // ---- slippy -----------------------------------------------------------------
 
 #[pyfunction]
@@ -134,6 +160,19 @@ fn sl_parent(id: &str) -> PyResult<PyCell> {
     sl::parent(id).map(to_py).map_err(err)
 }
 
+#[pyfunction]
+fn sl_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> PyResult<Vec<PyCell>> {
+    sl::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision)
+        .map(to_py_vec)
+        .map_err(err)
+}
+
 // ---- gars (non-hierarchical) ------------------------------------------------
 
 #[pyfunction]
@@ -151,6 +190,19 @@ fn gars_neighbors(id: &str) -> PyResult<Vec<PyCell>> {
     gars::neighbors(id).map(to_py_vec).map_err(err)
 }
 
+#[pyfunction]
+fn gars_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> PyResult<Vec<PyCell>> {
+    gars::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision)
+        .map(to_py_vec)
+        .map_err(err)
+}
+
 // ---- maidenhead (non-hierarchical) ------------------------------------------
 
 #[pyfunction]
@@ -166,6 +218,19 @@ fn mh_cell_from_id(id: &str) -> PyResult<PyCell> {
 #[pyfunction]
 fn mh_neighbors(id: &str) -> PyResult<Vec<PyCell>> {
     mh::neighbors(id).map(to_py_vec).map_err(err)
+}
+
+#[pyfunction]
+fn mh_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> PyResult<Vec<PyCell>> {
+    mh::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision)
+        .map(to_py_vec)
+        .map_err(err)
 }
 
 // ---- csquares ---------------------------------------------------------------
@@ -195,6 +260,19 @@ fn cs_parent(id: &str) -> PyResult<PyCell> {
     cs::parent(id).map(to_py).map_err(err)
 }
 
+#[pyfunction]
+fn cs_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> PyResult<Vec<PyCell>> {
+    cs::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision)
+        .map(to_py_vec)
+        .map_err(err)
+}
+
 // ---- pluscode ---------------------------------------------------------------
 
 #[pyfunction]
@@ -220,6 +298,19 @@ fn pc_children(id: &str) -> PyResult<Vec<PyCell>> {
 #[pyfunction]
 fn pc_parent(id: &str) -> PyResult<PyCell> {
     pc::parent(id).map(to_py).map_err(err)
+}
+
+#[pyfunction]
+fn pc_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> PyResult<Vec<PyCell>> {
+    pc::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision)
+        .map(to_py_vec)
+        .map_err(err)
 }
 
 // ---- a5 ---------------------------------------------------------------------
@@ -293,6 +384,19 @@ fn eaq_parent(id: &str) -> PyResult<PyCell> {
     eaq::parent(id).map(to_py).map_err(err)
 }
 
+#[pyfunction]
+fn eaq_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> PyResult<Vec<PyCell>> {
+    eaq::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision)
+        .map(to_py_vec)
+        .map_err(err)
+}
+
 // ---- s2 ---------------------------------------------------------------------
 
 #[pyfunction]
@@ -335,6 +439,7 @@ fn m3s_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(gh_neighbors, m)?)?;
     m.add_function(wrap_pyfunction!(gh_children, m)?)?;
     m.add_function(wrap_pyfunction!(gh_parent, m)?)?;
+    m.add_function(wrap_pyfunction!(gh_cells_in_bbox, m)?)?;
     m.add_function(wrap_pyfunction!(h3_cell_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(h3_cell_from_id, m)?)?;
     m.add_function(wrap_pyfunction!(h3_neighbors, m)?)?;
@@ -345,27 +450,33 @@ fn m3s_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(qk_neighbors, m)?)?;
     m.add_function(wrap_pyfunction!(qk_children, m)?)?;
     m.add_function(wrap_pyfunction!(qk_parent, m)?)?;
+    m.add_function(wrap_pyfunction!(qk_cells_in_bbox, m)?)?;
     m.add_function(wrap_pyfunction!(sl_cell_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(sl_cell_from_id, m)?)?;
     m.add_function(wrap_pyfunction!(sl_neighbors, m)?)?;
     m.add_function(wrap_pyfunction!(sl_children, m)?)?;
     m.add_function(wrap_pyfunction!(sl_parent, m)?)?;
+    m.add_function(wrap_pyfunction!(sl_cells_in_bbox, m)?)?;
     m.add_function(wrap_pyfunction!(gars_cell_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(gars_cell_from_id, m)?)?;
     m.add_function(wrap_pyfunction!(gars_neighbors, m)?)?;
+    m.add_function(wrap_pyfunction!(gars_cells_in_bbox, m)?)?;
     m.add_function(wrap_pyfunction!(mh_cell_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(mh_cell_from_id, m)?)?;
     m.add_function(wrap_pyfunction!(mh_neighbors, m)?)?;
+    m.add_function(wrap_pyfunction!(mh_cells_in_bbox, m)?)?;
     m.add_function(wrap_pyfunction!(cs_cell_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(cs_cell_from_id, m)?)?;
     m.add_function(wrap_pyfunction!(cs_neighbors, m)?)?;
     m.add_function(wrap_pyfunction!(cs_children, m)?)?;
     m.add_function(wrap_pyfunction!(cs_parent, m)?)?;
+    m.add_function(wrap_pyfunction!(cs_cells_in_bbox, m)?)?;
     m.add_function(wrap_pyfunction!(pc_cell_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(pc_cell_from_id, m)?)?;
     m.add_function(wrap_pyfunction!(pc_neighbors, m)?)?;
     m.add_function(wrap_pyfunction!(pc_children, m)?)?;
     m.add_function(wrap_pyfunction!(pc_parent, m)?)?;
+    m.add_function(wrap_pyfunction!(pc_cells_in_bbox, m)?)?;
     m.add_function(wrap_pyfunction!(a5_cell_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(a5_cell_from_id, m)?)?;
     m.add_function(wrap_pyfunction!(a5_neighbors, m)?)?;
@@ -379,6 +490,7 @@ fn m3s_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(eaq_neighbors, m)?)?;
     m.add_function(wrap_pyfunction!(eaq_children, m)?)?;
     m.add_function(wrap_pyfunction!(eaq_parent, m)?)?;
+    m.add_function(wrap_pyfunction!(eaq_cells_in_bbox, m)?)?;
     m.add_function(wrap_pyfunction!(s2_cell_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(s2_cell_from_id, m)?)?;
     m.add_function(wrap_pyfunction!(s2_neighbors, m)?)?;

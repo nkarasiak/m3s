@@ -6,11 +6,10 @@ import math
 import re
 from typing import Any, override
 
-import mgrs
-from pyproj import Transformer
+import m3s_core
 from shapely.geometry import Polygon
 
-from .base import BaseGrid, GridCell
+from .base import BaseGrid, GridCell, cell_from_core
 
 
 class MGRSGrid(BaseGrid):
@@ -53,7 +52,6 @@ class MGRSGrid(BaseGrid):
                 f"{self.MAX_PRECISION}"
             )
         super().__init__(precision)
-        self.mgrs_converter = mgrs.MGRS()
 
     @property
     def area_km2(self) -> float:
@@ -73,20 +71,13 @@ class MGRSGrid(BaseGrid):
     @override
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
         """Get the MGRS cell containing the given point."""
-        mgrs_str = self.mgrs_converter.toMGRS(lat, lon, MGRSPrecision=self.precision)
-        return self.get_cell_from_identifier(mgrs_str)
+        return cell_from_core(m3s_core.mgrs_cell_from_point(lat, lon, self.precision))
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """Get an MGRS cell from its identifier."""
         try:
-            lat, lon = self.mgrs_converter.toLatLon(identifier)
-
-            grid_size = self._get_grid_size()
-
-            polygon = self._create_mgrs_polygon(identifier, lat, lon, grid_size)
-
-            return GridCell(identifier, polygon, self.precision)
+            return cell_from_core(m3s_core.mgrs_cell_from_id(identifier))
         except Exception as e:
             raise ValueError(f"Invalid MGRS identifier: {identifier}") from e
 
@@ -107,34 +98,6 @@ class MGRSGrid(BaseGrid):
             return None
         return digits // 2
 
-    def _create_mgrs_polygon(
-        self, mgrs_id: str, center_lat: float, center_lon: float, grid_size: float
-    ) -> Polygon:
-        """Create a polygon for an MGRS cell."""
-        utm_zone = self._get_utm_zone_from_mgrs(mgrs_id)
-
-        transformer_to_utm = Transformer.from_crs("EPSG:4326", f"EPSG:{utm_zone}")
-        transformer_to_wgs84 = Transformer.from_crs(f"EPSG:{utm_zone}", "EPSG:4326")
-
-        center_x, center_y = transformer_to_utm.transform(center_lat, center_lon)
-
-        half_size = grid_size / 2
-
-        corners_utm = [
-            (center_x - half_size, center_y - half_size),
-            (center_x + half_size, center_y - half_size),
-            (center_x + half_size, center_y + half_size),
-            (center_x - half_size, center_y + half_size),
-            (center_x - half_size, center_y - half_size),
-        ]
-
-        corners_wgs84 = []
-        for x, y in corners_utm:
-            lat, lon = transformer_to_wgs84.transform(x, y)
-            corners_wgs84.append((lon, lat))
-
-        return Polygon(corners_wgs84)
-
     def _get_utm_zone_from_mgrs(self, mgrs_id: str) -> int:
         """Get UTM zone EPSG code from MGRS identifier."""
         zone_letter = mgrs_id[:3]
@@ -154,36 +117,7 @@ class MGRSGrid(BaseGrid):
     @override
     def get_neighbors(self, cell: GridCell) -> list[GridCell]:
         """Get neighboring MGRS cells."""
-        try:
-            lat, lon = self.mgrs_converter.toLatLon(cell.identifier)
-            grid_size_deg = self._grid_size_to_degrees(lat)
-
-            neighbor_coords = [
-                (lat + grid_size_deg, lon),
-                (lat - grid_size_deg, lon),
-                (lat, lon + grid_size_deg),
-                (lat, lon - grid_size_deg),
-                (lat + grid_size_deg, lon + grid_size_deg),
-                (lat + grid_size_deg, lon - grid_size_deg),
-                (lat - grid_size_deg, lon + grid_size_deg),
-                (lat - grid_size_deg, lon - grid_size_deg),
-            ]
-
-            neighbors = []
-            for n_lat, n_lon in neighbor_coords:
-                try:
-                    if -90 <= n_lat <= 90 and -180 <= n_lon <= 180:
-                        neighbor_cell = self.get_cell_from_point(n_lat, n_lon)
-                        if neighbor_cell.identifier != cell.identifier:
-                            neighbors.append(neighbor_cell)
-                except Exception:
-                    # Skip invalid neighbor coordinates
-                    pass
-
-            return list(set(neighbors))
-        except Exception:
-            # Return empty list if cell lookup fails
-            return []
+        return [cell_from_core(n) for n in m3s_core.mgrs_neighbors(cell.identifier)]
 
     def _grid_size_to_degrees(self, lat: float) -> float:
         """Convert grid size from meters to approximate degrees."""

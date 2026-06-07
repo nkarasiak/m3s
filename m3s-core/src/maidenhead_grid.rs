@@ -154,3 +154,25 @@ pub fn neighbors(id: &str) -> Result<Vec<Cell>, String> {
     }
     Ok(out)
 }
+
+/// All cells intersecting the bbox at `precision`. Maidenhead is a regular
+/// lon/lat lattice from the global SW corner ("AA" at -90,-180); mirrors
+/// `MaidenheadGrid.get_cells_in_bbox`.
+pub fn cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<Vec<Cell>, String> {
+    let (lat_step, lon_step) = match precision {
+        1 => (10.0, 20.0),
+        2 => (1.0, 2.0),
+        3 => (1.0 / 24.0, 2.0 / 24.0),
+        _ => (1.0 / 240.0, 2.0 / 240.0),
+    };
+    Ok(crate::cells_in_bbox_regular(
+        min_lat, min_lon, max_lat, max_lon, lat_step, lon_step, -90.0, -180.0,
+        cell_from_point, precision,
+    ))
+}

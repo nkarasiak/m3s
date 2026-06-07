@@ -165,6 +165,47 @@ for (const [grid, rec] of ALL) {
   }
 }
 
+// Bbox parity: same sorted id set as tests/golden/<grid>_bbox.json. Grids added
+// as their core `*_cells_in_bbox` lands (mirrors test_core_parity.py BBOX_FNS).
+const BBOX_FNS = {
+  slippy: wasm.sl_cells_in_bbox,
+  quadkey: wasm.qk_cells_in_bbox,
+  gars: wasm.gars_cells_in_bbox,
+  maidenhead: wasm.mh_cells_in_bbox,
+  csquares: wasm.cs_cells_in_bbox,
+  geohash: wasm.gh_cells_in_bbox,
+  pluscode: wasm.pc_cells_in_bbox,
+  eaquad: wasm.eaq_cells_in_bbox,
+};
+
+const loadBbox = (g) =>
+  JSON.parse(fs.readFileSync(path.join(GOLDEN, `${g}_bbox.json`), "utf8")).map(
+    (rec) => [g, rec]
+  );
+
+const ALL_BBOX = [
+  ...loadBbox("slippy"),
+  ...loadBbox("quadkey"),
+  ...loadBbox("gars"),
+  ...loadBbox("maidenhead"),
+  ...loadBbox("csquares"),
+  ...loadBbox("geohash"),
+  ...loadBbox("pluscode"),
+  ...loadBbox("eaquad"),
+];
+
+for (const [grid, rec] of ALL_BBOX) {
+  const label = `${grid}-bbox-p${rec.precision}`;
+  try {
+    const [minLat, minLon, maxLat, maxLon] = rec.bbox;
+    const cells = BBOX_FNS[grid](minLat, minLon, maxLat, maxLon, rec.precision);
+    if (!eq(ids(cells), rec.cells)) throw `bbox cells`;
+    pass++;
+  } catch (e) {
+    fails.push(`${label}: ${e}`);
+  }
+}
+
 console.log(`PASS ${pass}  FAIL ${fails.length}`);
 if (fails.length) {
   for (const f of fails) console.error("  " + f);

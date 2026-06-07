@@ -173,3 +173,46 @@ def test_core_matches_golden(grid, rec):
         assert _ids(fns["children"](rec["id"])) == rec["children"]
     if "parent" in rec:
         assert fns["parent"](rec["id"])[0] == rec["parent"]
+
+
+# Bbox parity: the core's `*_cells_in_bbox` must reproduce the exact id set the
+# current Python `get_cells_in_bbox` froze (tests/golden/<grid>_bbox.json). Grids
+# are added here as their core bbox lands. Compared as a sorted id set.
+BBOX_FNS = {
+    "slippy": mc.sl_cells_in_bbox,
+    "quadkey": mc.qk_cells_in_bbox,
+    "gars": mc.gars_cells_in_bbox,
+    "maidenhead": mc.mh_cells_in_bbox,
+    "csquares": mc.cs_cells_in_bbox,
+    "geohash": mc.gh_cells_in_bbox,
+    "pluscode": mc.pc_cells_in_bbox,
+    "eaquad": mc.eaq_cells_in_bbox,
+}
+
+
+def _load_bbox(grid):
+    return [
+        (grid, rec)
+        for rec in json.loads((GOLDEN / f"{grid}_bbox.json").read_text())
+    ]
+
+
+BBOX_CASES = (
+    _load_bbox("slippy")
+    + _load_bbox("quadkey")
+    + _load_bbox("gars")
+    + _load_bbox("maidenhead")
+    + _load_bbox("csquares")
+    + _load_bbox("geohash")
+    + _load_bbox("pluscode")
+    + _load_bbox("eaquad")
+)
+
+
+@pytest.mark.parametrize(
+    "grid,rec", BBOX_CASES, ids=[f"{g}-p{r['precision']}" for g, r in BBOX_CASES]
+)
+def test_core_bbox_matches_golden(grid, rec):
+    min_lat, min_lon, max_lat, max_lon = rec["bbox"]
+    cells = BBOX_FNS[grid](min_lat, min_lon, max_lat, max_lon, rec["precision"])
+    assert sorted(c[0] for c in cells) == rec["cells"]

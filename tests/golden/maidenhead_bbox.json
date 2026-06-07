@@ -1,0 +1,50 @@
+[
+  {
+    "precision": 2,
+    "bbox": [
+      51.4,
+      -0.2,
+      51.6,
+      0.0
+    ],
+    "cells": [
+      "IO91",
+      "JO01"
+    ]
+  },
+  {
+    "precision": 3,
+    "bbox": [
+      51.4,
+      -0.2,
+      51.6,
+      0.0
+    ],
+    "cells": [
+      "IO91VJ",
+      "IO91VK",
+      "IO91VL",
+      "IO91VM",
+      "IO91VN",
+      "IO91VO",
+      "IO91WJ",
+      "IO91WK",
+      "IO91WL",
+      "IO91WM",
+      "IO91WN",
+      "IO91WO",
+      "IO91XJ",
+      "IO91XK",
+      "IO91XL",
+      "IO91XM",
+      "IO91XN",
+      "IO91XO",
+      "JO01AJ",
+      "JO01AK",
+      "JO01AL",
+      "JO01AM",
+      "JO01AN",
+      "JO01AO"
+    ]
+  }
+]

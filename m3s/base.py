@@ -7,9 +7,8 @@ from functools import cached_property
 from typing import Any, ClassVar
 
 import geopandas as gpd
-import pyproj
+import m3s_core
 from shapely.geometry import Point, Polygon, box, mapping
-from shapely.ops import transform
 
 from .cache import get_spatial_cache
 
@@ -45,71 +44,24 @@ class GridCell:
         """
         Calculate the area of the polygon in square kilometers.
 
-        Uses equal-area projection for accurate area calculation.
+        Uses the shared Rust core's spherical geodesic formula
+        (``m3s_core.geodesic_area_km2``), so the value is identical across the
+        Python and JS bindings (ADR 0001 §3). Replaces the former per-cell UTM
+        projection; area numbers are deliberately re-baselined to the geodesic
+        result (within ~2% of the previous UTM-planar values).
         """
         cache = get_spatial_cache()
         cached_area = cache.get_area(self.identifier)
         if cached_area is not None:
             return cached_area
 
-        try:
-            # Get the centroid to determine appropriate UTM zone
-            centroid = self.polygon.centroid
-            lon, lat = centroid.x, centroid.y
+        if self.polygon.is_empty:
+            return 0.0
 
-            # Check cache for UTM zone first
-            cached_utm = cache.get_utm_zone(lat, lon)
-            if cached_utm:
-                utm_crs = cached_utm
-            else:
-                # Determine UTM zone
-                utm_zone = int((lon + 180) / 6) + 1
-                hemisphere = "north" if lat >= 0 else "south"
-                utm_crs = (
-                    f"+proj=utm +zone={utm_zone} +{hemisphere} "
-                    f"+ellps=WGS84 +datum=WGS84 +units=m +no_defs"
-                )
-                cache.put_utm_zone(lat, lon, utm_crs)
-
-            # Transform from WGS84 to UTM
-            transformer = pyproj.Transformer.from_crs(
-                "EPSG:4326", utm_crs, always_xy=True
-            )
-            projected_polygon = transform(transformer.transform, self.polygon)
-
-            # Calculate area in square meters, convert to square kilometers
-            area_m2 = projected_polygon.area
-            area_km2 = area_m2 / 1_000_000  # Convert to km²
-
-            # Cache the result
-            cache.put_area(self.identifier, area_km2)
-            return area_km2
-
-        except Exception:
-            # Fallback: use simple spherical approximation
-            # This is less accurate but always works
-            bounds = self.polygon.bounds
-            min_lon, min_lat, max_lon, max_lat = bounds
-
-            # Approximate area using spherical formula
-            # This is a rough approximation for small areas
-            lat_diff = max_lat - min_lat
-            lon_diff = max_lon - min_lon
-
-            # Earth's radius in km
-            R = 6371.0
-
-            # Convert degrees to radians
-            lat_rad = (min_lat + max_lat) / 2 * 3.14159 / 180
-            lat_diff_rad = lat_diff * 3.14159 / 180
-            lon_diff_rad = lon_diff * 3.14159 / 180
-
-            # Approximate area
-            area_km2 = R * R * abs(lat_diff_rad * lon_diff_rad * abs(lat_rad))
-
-            # Cache the fallback result too
-            cache.put_area(self.identifier, area_km2)
-            return area_km2
+        ring = list(self.polygon.exterior.coords)  # [(lon, lat), ...]
+        area_km2 = m3s_core.geodesic_area_km2(ring)
+        cache.put_area(self.identifier, area_km2)
+        return area_km2
 
     def __repr__(self):
         return (
@@ -268,6 +220,18 @@ class GridCell:
     def plot(self, **kwargs: Any) -> Any:
         """Plot the cell with matplotlib (GeoPandas.plot)."""
         return self._to_gdf().plot(**kwargs)
+
+
+def cell_from_core(core_cell: tuple[str, list[list[float]], int]) -> GridCell:
+    """
+    Build a :class:`GridCell` from a shared-core ``(id, ring, precision)`` tuple.
+
+    The ``m3s_core`` bindings return cells as ``(id, ring, precision)`` where
+    ``ring`` is a closed ``[lon, lat]`` ring (GIS axis order, ADR 0001 §4). This
+    wraps that contract once so every grid's binding-backed methods stay thin.
+    """
+    identifier, ring, precision = core_cell
+    return GridCell(identifier, Polygon(ring), precision)
 
 
 class BaseGrid(ABC):

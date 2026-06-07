@@ -4,9 +4,9 @@ C-squares (Concise Spatial Query and Representation System) grid implementation.
 
 from typing import override
 
-from shapely.geometry import Polygon
+import m3s_core
 
-from .base import BaseGrid, GridCell
+from .base import BaseGrid, GridCell, cell_from_core
 
 
 class CSquaresGrid(BaseGrid):
@@ -77,8 +77,7 @@ class CSquaresGrid(BaseGrid):
         if not -180 <= lon <= 180:
             raise ValueError("Longitude must be between -180 and 180")
 
-        csquare_code = self._encode_csquare(lat, lon, self.precision)
-        return self.get_cell_from_identifier(csquare_code)
+        return cell_from_core(m3s_core.cs_cell_from_point(lat, lon, self.precision))
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -101,22 +100,7 @@ class CSquaresGrid(BaseGrid):
             If the identifier is invalid
         """
         try:
-            min_lat, min_lon, max_lat, max_lon = self._decode_csquare(identifier)
-
-            polygon = Polygon(
-                [
-                    (min_lon, min_lat),
-                    (max_lon, min_lat),
-                    (max_lon, max_lat),
-                    (min_lon, max_lat),
-                    (min_lon, min_lat),
-                ]
-            )
-
-            # Determine precision from identifier length
-            precision = self._get_precision_from_identifier(identifier)
-            return GridCell(identifier, polygon, precision)
-
+            return cell_from_core(m3s_core.cs_cell_from_id(identifier))
         except Exception as e:
             raise ValueError(f"Invalid C-squares identifier: {identifier}") from e
 
@@ -136,35 +120,7 @@ class CSquaresGrid(BaseGrid):
             List of neighboring C-squares cells (up to 8 neighbors)
         """
         try:
-            min_lat, min_lon, max_lat, max_lon = self._decode_csquare(cell.identifier)
-            cell_size_lat = max_lat - min_lat
-            cell_size_lon = max_lon - min_lon
-
-            # Generate neighbor coordinates (8-connectivity)
-            neighbor_coords = [
-                (min_lat + cell_size_lat, min_lon),  # North
-                (min_lat - cell_size_lat, min_lon),  # South
-                (min_lat, min_lon + cell_size_lon),  # East
-                (min_lat, min_lon - cell_size_lon),  # West
-                (min_lat + cell_size_lat, min_lon + cell_size_lon),  # Northeast
-                (min_lat + cell_size_lat, min_lon - cell_size_lon),  # Northwest
-                (min_lat - cell_size_lat, min_lon + cell_size_lon),  # Southeast
-                (min_lat - cell_size_lat, min_lon - cell_size_lon),  # Southwest
-            ]
-
-            neighbors = []
-            for n_lat, n_lon in neighbor_coords:
-                try:
-                    # Check if coordinates are within valid range
-                    if -90 <= n_lat <= 90 and -180 <= n_lon <= 180:
-                        neighbor_cell = self.get_cell_from_point(n_lat, n_lon)
-                        if neighbor_cell.identifier != cell.identifier:
-                            neighbors.append(neighbor_cell)
-                except Exception:
-                    # Skip invalid neighbor coordinates
-                    pass
-
-            return list(set(neighbors))
+            return [cell_from_core(n) for n in m3s_core.cs_neighbors(cell.identifier)]
         except Exception:
             # Return empty list if cell lookup fails
             return []
@@ -191,26 +147,7 @@ class CSquaresGrid(BaseGrid):
         """
         if self.precision >= self.MAX_PRECISION:
             return []
-        min_lat, min_lon, max_lat, max_lon = self._decode_csquare(cell.identifier)
-        child = type(self)(precision=self.precision + 1)
-        # Determine the child cell size from a sample child within the parent.
-        c_min_lat, c_min_lon, c_max_lat, c_max_lon = child._decode_csquare(
-            child.get_cell_from_point(
-                (min_lat + max_lat) / 2, (min_lon + max_lon) / 2
-            ).identifier
-        )
-        child_lat = c_max_lat - c_min_lat
-        child_lon = c_max_lon - c_min_lon
-        nlat = max(1, round((max_lat - min_lat) / child_lat))
-        nlon = max(1, round((max_lon - min_lon) / child_lon))
-        children: dict[str, GridCell] = {}
-        for i in range(nlat):
-            for j in range(nlon):
-                clat = min_lat + (i + 0.5) * child_lat
-                clon = min_lon + (j + 0.5) * child_lon
-                c = child.get_cell_from_point(clat, clon)
-                children[c.identifier] = c
-        return list(children.values())
+        return [cell_from_core(c) for c in m3s_core.cs_children(cell.identifier)]
 
     def get_parent(self, cell: GridCell) -> GridCell:
         """
@@ -235,11 +172,7 @@ class CSquaresGrid(BaseGrid):
             raise ValueError(
                 "Cell has no parent (already at the coarsest C-squares precision)"
             )
-        min_lat, min_lon, max_lat, max_lon = self._decode_csquare(cell.identifier)
-        parent = type(self)(precision=self.precision - 1)
-        return parent.get_cell_from_point(
-            (min_lat + max_lat) / 2, (min_lon + max_lon) / 2
-        )
+        return cell_from_core(m3s_core.cs_parent(cell.identifier))
 
     @override
     def get_cells_in_bbox(

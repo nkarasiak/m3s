@@ -56,6 +56,21 @@ GRIDS = {
     "s2": (S2Grid, [0, 5, 13], True),
 }
 
+# Bbox parity: a fixed rectangle (around London, ~15 km) whose cell set the core
+# must reproduce exactly. Per-grid precisions chosen to keep the frozen set small.
+# Grids are added here as their core `*_cells_in_bbox` lands (ADR P4 bbox phase).
+BBOX_RECT = (51.40, -0.20, 51.60, 0.00)  # (min_lat, min_lon, max_lat, max_lon)
+BBOX = {
+    "slippy": [8, 11],
+    "quadkey": [8, 11],
+    "gars": [1, 3],
+    "maidenhead": [2, 3],
+    "csquares": [3, 5],
+    "geohash": [2, 4],
+    "pluscode": [2, 3],
+    "eaquad": [4, 8],
+}
+
 OUT = Path(__file__).parent
 
 
@@ -91,13 +106,35 @@ def build(grid_cls, precisions, hierarchical, points):
     return out
 
 
+def build_bbox(grid_cls, precisions):
+    min_lat, min_lon, max_lat, max_lon = BBOX_RECT
+    out = []
+    for p in precisions:
+        grid = grid_cls(p)
+        cells = grid.get_cells_in_bbox(min_lat, min_lon, max_lat, max_lon)
+        out.append(
+            {
+                "precision": p,
+                "bbox": list(BBOX_RECT),
+                "cells": sorted(c.identifier for c in cells),
+            }
+        )
+    return out
+
+
 def main():
     for name, (grid_cls, precisions, hierarchical) in GRIDS.items():
         points = MGRS_POINTS if name == "mgrs" else POINTS
         (OUT / f"{name}.json").write_text(
             json.dumps(build(grid_cls, precisions, hierarchical, points), indent=2)
         )
+    for name, precisions in BBOX.items():
+        grid_cls = GRIDS[name][0]
+        (OUT / f"{name}_bbox.json").write_text(
+            json.dumps(build_bbox(grid_cls, precisions), indent=2)
+        )
     print(f"wrote golden vectors for {', '.join(GRIDS)} to {OUT}")
+    print(f"wrote bbox golden for {', '.join(BBOX)}")
 
 
 if __name__ == "__main__":

@@ -212,3 +212,64 @@ pub fn parent(id: &str) -> Result<Cell, String> {
     }
     make_cell(size_km * 2, col / 2, row / 2)
 }
+
+const MAX_BBOX_CELLS: i64 = 1_000_000;
+
+/// All cells intersecting the bbox at `precision`. Mirrors
+/// `EAQuadGrid.get_cells_in_bbox`: project the box edges to EPSG:6933 (x⟵lon,
+/// y⟵lat are independent), take the floor-div col/row span clamped to the grid,
+/// enumerate, and keep cells whose rect intersects the box. Uses the core's own
+/// closed-form projection (no PROJ) — this is what lets the Python side drop
+/// `pyproj`. Errors if the box would yield more than `MAX_BBOX_CELLS` cells.
+pub fn cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<Vec<Cell>, String> {
+    if !(MIN_PRECISION..=MAX_PRECISION).contains(&precision) {
+        return Err(format!(
+            "EA-Quad precision must be between {MIN_PRECISION} and {MAX_PRECISION}"
+        ));
+    }
+    let size_km = size_km_for(precision);
+    let size_m = size_km as f64 * 1000.0;
+    let (x_lo, _) = forward(min_lon, 0.0);
+    let (x_hi, _) = forward(max_lon, 0.0);
+    let (_, y_lo) = forward(0.0, min_lat);
+    let (_, y_hi) = forward(0.0, max_lat);
+
+    let col_lo = (((x_lo.min(x_hi)) - X_MIN) / size_m).floor().max(0.0) as i64;
+    let col_hi =
+        ((((x_lo.max(x_hi)) - X_MIN) / size_m).floor() as i64).min(ncols(size_km) - 1);
+    let row_lo = (((y_lo.min(y_hi)) - Y_MIN) / size_m).floor().max(0.0) as i64;
+    let row_hi =
+        ((((y_lo.max(y_hi)) - Y_MIN) / size_m).floor() as i64).min(nrows(size_km) - 1);
+
+    if col_hi < col_lo || row_hi < row_lo {
+        return Ok(vec![]);
+    }
+    let n_cells = (col_hi - col_lo + 1) * (row_hi - row_lo + 1);
+    if n_cells > MAX_BBOX_CELLS {
+        return Err(format!(
+            "Bounding box would yield {n_cells} cells (> {MAX_BBOX_CELLS}); use a coarser precision"
+        ));
+    }
+
+    let target = (min_lon, min_lat, max_lon, max_lat);
+    let mut out = Vec::new();
+    for col in col_lo..=col_hi {
+        for row in row_lo..=row_hi {
+            let Ok(cell) = make_cell(size_km, col, row) else {
+                continue;
+            };
+            // Cell ring is axis-aligned: SW = ring[0], NE = ring[2].
+            let rect = (cell.ring[0][0], cell.ring[0][1], cell.ring[2][0], cell.ring[2][1]);
+            if crate::rects_intersect(rect, target) {
+                out.push(cell);
+            }
+        }
+    }
+    Ok(out)
+}

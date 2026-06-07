@@ -31,9 +31,10 @@ import math
 from typing import override
 
 import a5
+import m3s_core
 from shapely.geometry import Polygon
 
-from .base import BaseGrid, GridCell
+from .base import BaseGrid, GridCell, cell_from_core
 
 # Resolution range exposed by M3S. pya5 supports 0..MAX_RESOLUTION (30); its
 # special WORLD_CELL (resolution -1) is not exposed.
@@ -132,8 +133,7 @@ class A5Grid(BaseGrid):
         if not -180 <= lon <= 180:
             raise ValueError("Longitude must be between -180 and 180")
 
-        cell_id = a5.lonlat_to_cell((lon, lat), self.precision)
-        return self._make_cell(cell_id)
+        return cell_from_core(m3s_core.a5_cell_from_point(lat, lon, self.precision))
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -156,10 +156,9 @@ class A5Grid(BaseGrid):
             If the identifier is not a valid A5 hexadecimal cell id.
         """
         try:
-            cell_id = a5.hex_to_u64(identifier)
+            return cell_from_core(m3s_core.a5_cell_from_id(identifier))
         except (ValueError, TypeError) as exc:
             raise ValueError(f"Invalid A5 identifier: {identifier}") from exc
-        return self._make_cell(cell_id)
 
     @override
     def get_neighbors(self, cell: GridCell) -> list[GridCell]:
@@ -180,12 +179,7 @@ class A5Grid(BaseGrid):
         list[GridCell]
             Neighbouring cells of the same precision, excluding ``cell`` itself.
         """
-        cell_id = a5.hex_to_u64(cell.identifier)
-        return [
-            self._make_cell(neighbor_id)
-            for neighbor_id in a5.grid_disk(cell_id, 1)
-            if neighbor_id != cell_id
-        ]
+        return [cell_from_core(n) for n in m3s_core.a5_neighbors(cell.identifier)]
 
     @override
     def get_cells_in_bbox(
@@ -259,10 +253,9 @@ class A5Grid(BaseGrid):
         ValueError
             If the cell is already at resolution 0 (no parent).
         """
-        cell_id = a5.hex_to_u64(cell.identifier)
-        if a5.get_resolution(cell_id) <= 0:
+        if cell.precision <= 0:
             raise ValueError("Cell has no parent (already at resolution 0)")
-        return self._make_cell(a5.cell_to_parent(cell_id))
+        return cell_from_core(m3s_core.a5_parent(cell.identifier))
 
     def get_children(self, cell: GridCell) -> list[GridCell]:
         """
@@ -279,10 +272,9 @@ class A5Grid(BaseGrid):
             The children (5 below resolution 1, 4 above), or an empty list if
             already at the finest resolution (30).
         """
-        cell_id = a5.hex_to_u64(cell.identifier)
-        if a5.get_resolution(cell_id) >= self.MAX_PRECISION:
+        if cell.precision >= self.MAX_PRECISION:
             return []
-        return [self._make_cell(child_id) for child_id in a5.cell_to_children(cell_id)]
+        return [cell_from_core(c) for c in m3s_core.a5_children(cell.identifier)]
 
     @override
     def identifier_to_precision(self, identifier: str) -> int | None:

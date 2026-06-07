@@ -4,10 +4,10 @@ Geohash grid implementation.
 
 from typing import Any, override
 
+import m3s_core
 from shapely.geometry import Polygon
 
-from . import _geohash as geohash
-from .base import BaseGrid, GridCell
+from .base import BaseGrid, GridCell, cell_from_core
 from .cache import cached_method, cell_cache_key, geo_cache_key
 from .projection_utils import get_utm_epsg_code
 
@@ -23,9 +23,6 @@ class GeohashGrid(BaseGrid):
     MIN_PRECISION = 1
     MAX_PRECISION = 12
     DEFAULT_PRECISION = 5
-
-    # Geohash base-32 alphabet (no a/i/l/o).
-    _BASE32 = "0123456789bcdefghjkmnpqrstuvwxyz"
 
     def __init__(self, precision: int = 5):
         """
@@ -96,8 +93,7 @@ class GeohashGrid(BaseGrid):
         GridCell
             The geohash grid cell containing the specified point
         """
-        geohash_str = geohash.encode(lat, lon, precision=self.precision)
-        return self.get_cell_from_identifier(geohash_str)
+        return cell_from_core(m3s_core.gh_cell_from_point(lat, lon, self.precision))
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -114,20 +110,7 @@ class GeohashGrid(BaseGrid):
         GridCell
             The geohash grid cell with rectangular geometry
         """
-        bbox = geohash.bbox(identifier)
-        min_lat, min_lon, max_lat, max_lon = bbox
-
-        polygon = Polygon(
-            [
-                (min_lon, min_lat),
-                (max_lon, min_lat),
-                (max_lon, max_lat),
-                (min_lon, max_lat),
-                (min_lon, min_lat),
-            ]
-        )
-
-        return GridCell(identifier, polygon, len(identifier))
+        return cell_from_core(m3s_core.gh_cell_from_id(identifier))
 
     @cached_method(cache_key_func=cell_cache_key)
     @override
@@ -145,11 +128,7 @@ class GeohashGrid(BaseGrid):
         list[GridCell]
             List of neighboring geohash cells
         """
-        neighbor_hashes = geohash.neighbors(cell.identifier)
-        return [
-            self.get_cell_from_identifier(neighbor_hash)
-            for neighbor_hash in neighbor_hashes
-        ]
+        return [cell_from_core(n) for n in m3s_core.gh_neighbors(cell.identifier)]
 
     @override
     def get_cells_in_bbox(
@@ -245,10 +224,7 @@ class GeohashGrid(BaseGrid):
         """
         if len(cell.identifier) >= self.MAX_PRECISION:
             return []
-        return [
-            self.get_cell_from_identifier(cell.identifier + char)
-            for char in self._BASE32
-        ]
+        return [cell_from_core(c) for c in m3s_core.gh_children(cell.identifier)]
 
     def get_parent(self, cell: GridCell) -> GridCell:
         """
@@ -273,7 +249,7 @@ class GeohashGrid(BaseGrid):
             raise ValueError(
                 "Cell has no parent (already at the coarsest geohash precision)"
             )
-        return self.get_cell_from_identifier(cell.identifier[:-1])
+        return cell_from_core(m3s_core.gh_parent(cell.identifier))
 
     def expand_cell(self, cell: GridCell) -> list[GridCell]:
         """

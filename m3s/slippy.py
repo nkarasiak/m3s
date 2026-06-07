@@ -9,9 +9,10 @@ Google Maps, and most web mapping services. They use a Web Mercator projection
 import math
 from typing import override
 
+import m3s_core
 from shapely.geometry import Polygon
 
-from .base import BaseGrid, GridCell
+from .base import BaseGrid, GridCell, cell_from_core
 
 
 class SlippyGrid(BaseGrid):
@@ -176,14 +177,7 @@ class SlippyGrid(BaseGrid):
         GridCell
             The tile containing the specified point
         """
-        x, y = self._deg2num(lat, lon)
-
-        # Create tile identifier in z/x/y format
-        identifier = f"{self.precision}/{x}/{y}"
-
-        polygon = self._create_tile_polygon(x, y)
-
-        return GridCell(identifier, polygon, self.precision)
+        return cell_from_core(m3s_core.sl_cell_from_point(lat, lon, self.precision))
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -201,25 +195,7 @@ class SlippyGrid(BaseGrid):
             The tile corresponding to the identifier
         """
         try:
-            parts = identifier.split("/")
-            if len(parts) != 3:
-                raise ValueError("Invalid format")
-
-            z, x, y = map(int, parts)
-
-            if z != self.precision:
-                raise ValueError(
-                    f"Zoom level mismatch: expected {self.precision}, got {z}"
-                )
-
-            # Validate tile coordinates
-            max_coord = 2**z
-            if not (0 <= x < max_coord and 0 <= y < max_coord):
-                raise ValueError(f"Invalid tile coordinates for zoom {z}")
-
-            polygon = self._create_tile_polygon(x, y)
-
-            return GridCell(identifier, polygon, z)
+            return cell_from_core(m3s_core.sl_cell_from_id(identifier))
         except Exception as e:
             raise ValueError(f"Invalid Slippy tile identifier: {identifier}") from e
 
@@ -239,32 +215,7 @@ class SlippyGrid(BaseGrid):
             List of neighboring tiles (up to 8 neighbors)
         """
         try:
-            parts = cell.identifier.split("/")
-            z, x, y = map(int, parts)
-
-            neighbors = []
-            max_coord = 2**z
-
-            # Check all 8 surrounding tiles
-            for dx in [-1, 0, 1]:
-                for dy in [-1, 0, 1]:
-                    if dx == 0 and dy == 0:
-                        continue  # Skip the tile itself
-
-                    new_x = x + dx
-                    new_y = y + dy
-
-                    # Check boundaries (tiles wrap around horizontally but not
-                    # vertically).
-                    if 0 <= new_y < max_coord:
-                        # Handle horizontal wrapping
-                        new_x = new_x % max_coord
-
-                        neighbor_id = f"{z}/{new_x}/{new_y}"
-                        neighbor_polygon = self._create_tile_polygon(new_x, new_y)
-                        neighbors.append(GridCell(neighbor_id, neighbor_polygon, z))
-
-            return neighbors
+            return [cell_from_core(n) for n in m3s_core.sl_neighbors(cell.identifier)]
         except Exception:
             return []
 
@@ -286,23 +237,7 @@ class SlippyGrid(BaseGrid):
             return []  # No children at maximum zoom
 
         try:
-            parts = cell.identifier.split("/")
-            z, x, y = map(int, parts)
-
-            children = []
-            child_zoom = z + 1
-
-            # Each tile has 4 children at the next zoom level
-            for dx in [0, 1]:
-                for dy in [0, 1]:
-                    child_x = x * 2 + dx
-                    child_y = y * 2 + dy
-
-                    child_id = f"{child_zoom}/{child_x}/{child_y}"
-                    child_polygon = self._create_tile_polygon(child_x, child_y)
-                    children.append(GridCell(child_id, child_polygon, child_zoom))
-
-            return children
+            return [cell_from_core(c) for c in m3s_core.sl_children(cell.identifier)]
         except Exception:
             return []
 
@@ -324,17 +259,7 @@ class SlippyGrid(BaseGrid):
             return None
 
         try:
-            parts = cell.identifier.split("/")
-            z, x, y = map(int, parts)
-
-            parent_zoom = z - 1
-            parent_x = x // 2
-            parent_y = y // 2
-
-            parent_id = f"{parent_zoom}/{parent_x}/{parent_y}"
-            parent_polygon = self._create_tile_polygon(parent_x, parent_y)
-
-            return GridCell(parent_id, parent_polygon, parent_zoom)
+            return cell_from_core(m3s_core.sl_parent(cell.identifier))
         except Exception:
             return None
 

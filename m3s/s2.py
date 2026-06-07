@@ -10,10 +10,11 @@ optimal spatial locality.
 import warnings
 from typing import override
 
+import m3s_core
 import s2sphere
 from shapely.geometry import Polygon
 
-from .base import BaseGrid, GridCell
+from .base import BaseGrid, GridCell, cell_from_core
 
 
 class S2Grid(BaseGrid):
@@ -123,15 +124,7 @@ class S2Grid(BaseGrid):
         GridCell
             The grid cell containing the specified point
         """
-        # Use s2sphere for accurate S2 cell computation
-        lat_lng = s2sphere.LatLng.from_degrees(lat, lon)
-        cell_id = s2sphere.CellId.from_lat_lng(lat_lng).parent(self.precision)
-        cell = s2sphere.Cell(cell_id)
-
-        polygon = self._create_cell_polygon(cell)
-        identifier = cell_id.to_token()
-
-        return GridCell(identifier, polygon, self.precision)
+        return cell_from_core(m3s_core.s2_cell_from_point(lat, lon, self.precision))
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -149,11 +142,7 @@ class S2Grid(BaseGrid):
             The grid cell corresponding to the identifier
         """
         try:
-            cell_id = s2sphere.CellId.from_token(identifier)
-            cell = s2sphere.Cell(cell_id)
-            polygon = self._create_cell_polygon(cell)
-
-            return GridCell(identifier, polygon, cell_id.level())
+            return cell_from_core(m3s_core.s2_cell_from_id(identifier))
         except Exception as e:
             raise ValueError(f"Invalid S2 cell token: {identifier}") from e
 
@@ -172,44 +161,7 @@ class S2Grid(BaseGrid):
         list[GridCell]
             List of neighboring grid cells
         """
-        try:
-            cell_id = s2sphere.CellId.from_token(cell.identifier)
-
-            # Get edge neighbors (4 neighbors)
-            neighbors = []
-            for i in range(4):
-                neighbor_id = cell_id.get_edge_neighbors()[i]
-                if neighbor_id is not None:
-                    neighbor_cell = s2sphere.Cell(neighbor_id)
-                    neighbor_polygon = self._create_cell_polygon(neighbor_cell)
-                    neighbor_token = neighbor_id.to_token()
-                    neighbors.append(
-                        GridCell(neighbor_token, neighbor_polygon, self.precision)
-                    )
-
-            # Get vertex neighbors (4 additional neighbors at corners)
-            for i in range(4):
-                vertex_neighbors = cell_id.get_vertex_neighbors(i)
-                for vertex_neighbor_id in vertex_neighbors:
-                    if (
-                        vertex_neighbor_id is not None
-                        and vertex_neighbor_id.level() == self.precision
-                    ):
-                        # Avoid duplicates
-                        neighbor_token = vertex_neighbor_id.to_token()
-                        if not any(n.identifier == neighbor_token for n in neighbors):
-                            neighbor_cell = s2sphere.Cell(vertex_neighbor_id)
-                            neighbor_polygon = self._create_cell_polygon(neighbor_cell)
-                            neighbors.append(
-                                GridCell(
-                                    neighbor_token, neighbor_polygon, self.precision
-                                )
-                            )
-
-            return neighbors
-        except Exception as e:
-            warnings.warn(f"Failed to get neighbors: {e}", stacklevel=2)
-            return []
+        return [cell_from_core(n) for n in m3s_core.s2_neighbors(cell.identifier)]
 
     def get_children(self, cell: GridCell) -> list[GridCell]:
         """
@@ -225,26 +177,10 @@ class S2Grid(BaseGrid):
         list[GridCell]
             List of 4 child cells
         """
-        if self.precision >= 30:
+        if self.precision >= self.MAX_PRECISION:
             return []  # No children at maximum level
 
-        try:
-            cell_id = s2sphere.CellId.from_token(cell.identifier)
-            children = []
-
-            for i in range(4):
-                child_id = cell_id.child(i)
-                child_cell = s2sphere.Cell(child_id)
-                child_polygon = self._create_cell_polygon(child_cell)
-                child_token = child_id.to_token()
-                children.append(
-                    GridCell(child_token, child_polygon, self.precision + 1)
-                )
-
-            return children
-        except Exception as e:
-            warnings.warn(f"Failed to get children: {e}", stacklevel=2)
-            return []
+        return [cell_from_core(c) for c in m3s_core.s2_children(cell.identifier)]
 
     def get_parent(self, cell: GridCell) -> GridCell | None:
         """
@@ -260,20 +196,10 @@ class S2Grid(BaseGrid):
         GridCell | None
             Parent cell, or None if already at level 0
         """
-        if self.precision <= 0:
+        if self.precision <= self.MIN_PRECISION:
             return None
 
-        try:
-            cell_id = s2sphere.CellId.from_token(cell.identifier)
-            parent_id = cell_id.parent()
-            parent_cell = s2sphere.Cell(parent_id)
-            parent_polygon = self._create_cell_polygon(parent_cell)
-            parent_token = parent_id.to_token()
-
-            return GridCell(parent_token, parent_polygon, self.precision - 1)
-        except Exception as e:
-            warnings.warn(f"Failed to get parent: {e}", stacklevel=2)
-            return None
+        return cell_from_core(m3s_core.s2_parent(cell.identifier))
 
     @override
     def get_cells_in_bbox(

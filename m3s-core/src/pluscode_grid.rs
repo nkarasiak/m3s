@@ -174,3 +174,31 @@ pub fn parent(id: &str) -> Result<Cell, String> {
     let (south, west, north, east) = decode(id)?;
     cell_from_point((south + north) / 2.0, (west + east) / 2.0, precision - 1)
 }
+
+/// Cell size in degrees at `precision` (square): `BASE^(1-precision)`, i.e. the
+/// `PlusCodeGrid.GRID_SIZES[precision-1]` table (20, 1, 0.05, ...).
+fn grid_size(precision: u8) -> f64 {
+    BASE.powi(1 - precision as i32)
+}
+
+/// All cells intersecting the bbox at `precision`. The m3s plus-code variant is
+/// a regular square lon/lat lattice from (-90, -180); mirrors
+/// `PlusCodeGrid.get_cells_in_bbox` (which approximated it by dense sampling).
+pub fn cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<Vec<Cell>, String> {
+    if !(MIN_PRECISION..=MAX_PRECISION).contains(&precision) {
+        return Err(format!(
+            "Plus code precision must be between {MIN_PRECISION} and {MAX_PRECISION}"
+        ));
+    }
+    let size = grid_size(precision);
+    Ok(crate::cells_in_bbox_regular(
+        min_lat, min_lon, max_lat, max_lon, size, size, -90.0, -180.0, cell_from_point,
+        precision,
+    ))
+}

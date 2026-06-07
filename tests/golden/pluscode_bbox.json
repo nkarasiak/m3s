@@ -1,0 +1,41 @@
+[
+  {
+    "precision": 2,
+    "bbox": [
+      51.4,
+      -0.2,
+      51.6,
+      0.0
+    ],
+    "cells": [
+      "C9X3+"
+    ]
+  },
+  {
+    "precision": 3,
+    "bbox": [
+      51.4,
+      -0.2,
+      51.6,
+      0.0
+    ],
+    "cells": [
+      "C9X3+RC",
+      "C9X3+RF",
+      "C9X3+RG",
+      "C9X3+RH",
+      "C9X3+VC",
+      "C9X3+VF",
+      "C9X3+VG",
+      "C9X3+VH",
+      "C9X3+WC",
+      "C9X3+WF",
+      "C9X3+WG",
+      "C9X3+WH",
+      "C9X3+XC",
+      "C9X3+XF",
+      "C9X3+XG",
+      "C9X3+XH"
+    ]
+  }
+]

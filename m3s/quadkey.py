@@ -9,9 +9,10 @@ string of digits (0, 1, 2, 3) representing the quadrant path from root.
 import math
 from typing import override
 
+import m3s_core
 from shapely.geometry import Polygon
 
-from .base import BaseGrid, GridCell
+from .base import BaseGrid, GridCell, cell_from_core
 
 
 class QuadkeyGrid(BaseGrid):
@@ -300,12 +301,7 @@ class QuadkeyGrid(BaseGrid):
         GridCell
             The grid cell containing the specified point
         """
-        pixel_x, pixel_y = self._lat_lon_to_pixel_xy(lat, lon)
-        tile_x, tile_y = self._pixel_xy_to_tile_xy(pixel_x, pixel_y)
-        quadkey = self._tile_xy_to_quadkey(tile_x, tile_y)
-        polygon = self._create_tile_polygon(tile_x, tile_y)
-
-        return GridCell(quadkey, polygon, self.precision)
+        return cell_from_core(m3s_core.qk_cell_from_point(lat, lon, self.precision))
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -332,10 +328,7 @@ class QuadkeyGrid(BaseGrid):
         if not all(c in "0123" for c in identifier):
             raise ValueError("Quadkey must contain only digits 0, 1, 2, 3")
 
-        tile_x, tile_y = self._quadkey_to_tile_xy(identifier)
-        polygon = self._create_tile_polygon(tile_x, tile_y)
-
-        return GridCell(identifier, polygon, self.precision)
+        return cell_from_core(m3s_core.qk_cell_from_id(identifier))
 
     @override
     def get_neighbors(self, cell: GridCell) -> list[GridCell]:
@@ -352,28 +345,7 @@ class QuadkeyGrid(BaseGrid):
         list[GridCell]
             List of neighboring grid cells (up to 8 neighbors)
         """
-        tile_x, tile_y = self._quadkey_to_tile_xy(cell.identifier)
-        neighbors = []
-
-        # Check all 8 surrounding tiles
-        for dx in [-1, 0, 1]:
-            for dy in [-1, 0, 1]:
-                if dx == 0 and dy == 0:
-                    continue  # Skip the center cell
-
-                neighbor_x = tile_x + dx
-                neighbor_y = tile_y + dy
-
-                # Check if neighbor is within valid range
-                max_tile = (1 << self.precision) - 1
-                if 0 <= neighbor_x <= max_tile and 0 <= neighbor_y <= max_tile:
-                    neighbor_quadkey = self._tile_xy_to_quadkey(neighbor_x, neighbor_y)
-                    neighbor_polygon = self._create_tile_polygon(neighbor_x, neighbor_y)
-                    neighbors.append(
-                        GridCell(neighbor_quadkey, neighbor_polygon, self.precision)
-                    )
-
-        return neighbors
+        return [cell_from_core(n) for n in m3s_core.qk_neighbors(cell.identifier)]
 
     def get_children(self, cell: GridCell) -> list[GridCell]:
         """
@@ -389,20 +361,10 @@ class QuadkeyGrid(BaseGrid):
         list[GridCell]
             List of 4 child cells
         """
-        if self.precision >= 23:
+        if self.precision >= self.MAX_PRECISION:
             return []  # No children at maximum level
 
-        # Child cells have quadkeys that start with parent quadkey + one digit
-        children = []
-        for digit in ["0", "1", "2", "3"]:
-            child_quadkey = cell.identifier + digit
-            child_tile_x, child_tile_y = self._quadkey_to_tile_xy(child_quadkey)
-            child_polygon = self._create_tile_polygon_for_level(
-                child_tile_x, child_tile_y, self.precision + 1
-            )
-            children.append(GridCell(child_quadkey, child_polygon, self.precision + 1))
-
-        return children
+        return [cell_from_core(c) for c in m3s_core.qk_children(cell.identifier)]
 
     def _create_tile_polygon_for_level(
         self, tile_x: int, tile_y: int, level: int
@@ -460,16 +422,10 @@ class QuadkeyGrid(BaseGrid):
         GridCell
             Parent cell
         """
-        if len(cell.identifier) <= 1:
+        if len(cell.identifier) <= self.MIN_PRECISION:
             raise ValueError("Cell has no parent (already at root level)")
 
-        parent_quadkey = cell.identifier[:-1]
-        parent_tile_x, parent_tile_y = self._quadkey_to_tile_xy(parent_quadkey)
-        parent_polygon = self._create_tile_polygon_for_level(
-            parent_tile_x, parent_tile_y, len(parent_quadkey)
-        )
-
-        return GridCell(parent_quadkey, parent_polygon, len(parent_quadkey))
+        return cell_from_core(m3s_core.qk_parent(cell.identifier))
 
     @override
     def get_cells_in_bbox(

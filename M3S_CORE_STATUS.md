@@ -5,7 +5,8 @@ Read this first on a cold restart. Full rationale lives in
 [`docs/adr/0001-rust-wasm-shared-core.md`](docs/adr/0001-rust-wasm-shared-core.md);
 domain vocabulary in [`CONTEXT.md`](CONTEXT.md).
 
-Last updated: 2026-06-07 (s2 done — 12/12 grids; all P0–P3 complete).
+Last updated: 2026-06-07 (P4a done — Python `m3s/` cell ops now delegate to
+`m3s_core` for all 12 grids; `mgrs` lib + `_geohash.py` dropped).
 
 ## 1. Goal
 
@@ -35,7 +36,9 @@ package — proving parity before any migration.
 | P1 | quadkey, slippy, gars, maidenhead, csquares, pluscode | ✅ done |
 | P2 | eaquad, mgrs | ✅ done |
 | P3 | a5, s2 | ✅ done — all 12 grids ported |
-| P4 | cleanup / Python migration | ⬜ next |
+| P4a | Python pkg onto core | ✅ done — all 12 grids' cell ops delegate to `m3s_core` |
+| P5 | core bbox/covering | 🔶 in progress — 8/12 bbox done (see §10) |
+| P4b | browser examples → web WASM | ⬜ blocked on P5 |
 
 **Parity: Python 181/181, JS 181/181**, plus 4 geodesic-area tests. All green.
 P0+P1 (8 grids) are committed on branch `feat/rust-wasm-core`; P2 (eaquad, mgrs),
@@ -185,13 +188,79 @@ Then run the §6 commands. Green = done.
   deg (~0.1 mm), mgrs `1e-4`. Replaced the old exact-6dp-string compare, which
   a5's FP noise tripped. See `RING_ABS_TOL` in test_core_parity.py / parity.cjs.
 
-### P4 — cleanup / migration
-- Wire one browser example (`examples/grid_systems/_grids/h3.js`) to a
-  **web-target** WASM build and delete the hand-JS (the remaining P0 polish item).
-- Migrate the Python `m3s/` package internals onto `m3s_core`; drop now-unused
-  native deps; make the registry derive precision bounds from the core.
-- Delete `examples/grid_systems/_grids/*.js` once the WASM build feeds the
-  examples.
+### P4a — Python pkg onto core  ✅ done
+- All 12 grids now delegate `get_cell_from_point` / `get_cell_from_identifier` /
+  `get_neighbors` / `get_children` / `get_parent` to `m3s_core.<prefix>_*` via the
+  new `base.cell_from_core((id, ring, precision)) -> GridCell` helper. Per-grid
+  guards (precision bounds, children-at-max, parent-at-min) preserved; bbox /
+  covering / area-table / UTM-column code untouched.
+- **Dropped fully:** the `mgrs` library (removed from deps + the dead
+  `_create_mgrs_polygon`/`pyproj` use in `mgrs.py`) and the pure-Python
+  `m3s/_geohash.py` module.
+- **Still imported** (bbox/covering/area not yet on the core): `h3` (area, bbox,
+  h3-verbs, compact), `s2sphere` (bbox, `get_covering_cells`), `pya5` (`a5`:
+  area, bbox), `pyproj` (`eaquad`: bbox projection). To drop these, the core must
+  grow `get_cells_in_bbox` / `get_covering_cells` + area-table equivalents.
+- **Behaviour change:** `S2Grid.get_neighbors/get_children/get_parent` now
+  propagate errors (like the other 11 grids) instead of the old
+  swallow-and-warn → `[]`/`None`. Two `test_s2.py` error-handling tests rewired.
+- **Geometry re-baseline:** H3 cell boundaries now come from the core (h3o), so
+  `test_h3_verbs` boundary parity is `pytest.approx` (~1e-13) not byte-exact —
+  same class of re-baseline as area (ADR §3).
+
+### P4b — browser examples → web WASM  ⬜ next
+- Wire the deck.gl browser examples (`examples/grid_systems/_grids/*.js`) to a
+  **web-target** WASM build of `bindings/js` and delete the hand-JS once the
+  WASM build feeds the examples.
+
+## 10. P5 — core bbox / covering (in progress)
+
+Goal: grow `m3s-core` with `<prefix>_cells_in_bbox` (and covering) so the Python
+`get_cells_in_bbox` and the browser tilers (P4b) share one engine, unblocking the
+last native-dep drops. Same parity machinery: a `*_bbox.json` golden per grid
+(sorted id set), checked by `test_core_parity.py::test_core_bbox_matches_golden`
+and `parity.cjs`. Grids are added to `BBOX` (generate.py), `BBOX_FNS`
+(both gates) as their core bbox lands.
+
+**Done (7/12 bbox):**
+- slippy, quadkey — exact integer tile enumeration (clamp/swap/range). Reuses a
+  new `lat_lon_to_tile_xy` helper in quadkey.
+- gars, maidenhead, csquares — shared `crate::cells_in_bbox_regular` (lib.rs):
+  floor-div col/row range from a lattice origin, cell-centre → `cell_from_point`,
+  dedup, keep iff the cell rect intersects the target (closed overlap).
+- geohash — same regular helper (lattice from -90/-180, per-precision step);
+  matched the old Python dense-sampling output exactly (genuine parity).
+- pluscode — same helper; **re-baselined**: Python `get_cells_in_bbox` migrated
+  to `pc_cells_in_bbox` (exact enumeration), replacing dense sampling whose
+  5%-cell margin + epsilon-expanded ring intersect included a few extra border
+  cells. `test_pluscode` green.
+- eaquad — `eaq_cells_in_bbox` projects the box edges with the core's own
+  closed-form EPSG:6933 (no PROJ), floor-div col/row span, intersect-filter.
+  Matched pyproj-Python exactly. Python bbox migrated to core; full suite green.
+  ⚠️ pyproj NOT yet dropped: `test_eaquad` still uses `_get_transformers` (pyproj)
+  as a projection oracle (line ~259) and the now-dead `_make_cell`/`_make_polygon`
+  remain. Drop both in the Task-#8 cleanup after rewiring that test.
+
+Parity total now **197** (181 + 16 bbox).
+
+**Key parity lesson — `py_floordiv` (lib.rs):** CPython's float `//` is NOT
+`(a/b).floor()` (e.g. `180.0 // 0.1 == 1799`, not 1800, due to divmod's
+snap-to-nearest). `cells_in_bbox_regular` must use the reproduced CPython
+algorithm for its col/row bounds or it over-scans a column at lattice seams.
+
+**Remaining (4/12):**
+- **a5** (P5 next) — the Rust `a5` crate exposes `polygon_to_cells` +
+  `uncompact`; **drops `pya5`**.
+- **h3** — `h3o` has no polygon-fill; needs a Rust polygon→cells covering to
+  match `h3.polygon_to_cells` (hard) to **drop `h3`**.
+- **s2** — `s2` crate lacks `RegionCoverer`; needs reimplementing for
+  `cells_in_bbox` + `get_covering_cells` (hard) to **drop `s2sphere`**.
+- **mgrs** — DEFERRED: UTM, not a lon/lat lattice; its Python bbox stays
+  point-sampling (drops no dep). Revisit only if browser MGRS tiling needs it.
+- **slippy `get_covering_cells`** — still Python; add to core in the migrate step.
+
+After the cores land: migrate each Python `get_cells_in_bbox`/`get_covering_cells`
+to delegate to `m3s_core` (pluscode already done), drop the freed deps, then P4b.
 
 ## 9. Open issues / watch-outs
 - **Branch `feat/rust-wasm-core`** off `dev`. P0–P3 (all 12 grids) committed+pushed.

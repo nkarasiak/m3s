@@ -123,3 +123,34 @@ pub fn parent(id: &str) -> Result<Cell, String> {
     }
     Ok(tile_cell(x / 2, y / 2, z - 1))
 }
+
+/// All tiles intersecting the bbox at `precision`. Mirrors
+/// `SlippyGrid.get_cells_in_bbox`: corner tile coords (y flipped), clamped to
+/// `[0, 2^z - 1]`, swapped if inverted, then the full x×y rectangle enumerated.
+pub fn cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<Vec<Cell>, String> {
+    let (x_min0, y_max0) = deg2num(max_lat, min_lon, precision);
+    let (x_max0, y_min0) = deg2num(min_lat, max_lon, precision);
+    let max_coord = 1i64 << precision;
+    let cl = |v: i64| v.max(0).min(max_coord - 1);
+    let (mut x_min, mut x_max) = (cl(x_min0), cl(x_max0));
+    let (mut y_min, mut y_max) = (cl(y_min0), cl(y_max0));
+    if x_min > x_max {
+        std::mem::swap(&mut x_min, &mut x_max);
+    }
+    if y_min > y_max {
+        std::mem::swap(&mut y_min, &mut y_max);
+    }
+    let mut out = Vec::new();
+    for x in x_min..=x_max {
+        for y in y_min..=y_max {
+            out.push(tile_cell(x, y, precision));
+        }
+    }
+    Ok(out)
+}

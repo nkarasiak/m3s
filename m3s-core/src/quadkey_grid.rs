@@ -91,12 +91,9 @@ fn validate_id(id: &str) -> Result<(), String> {
     Ok(())
 }
 
-pub fn cell_from_point(lat: f64, lon: f64, precision: u8) -> Result<Cell, String> {
-    if !(MIN_PRECISION..=MAX_PRECISION).contains(&precision) {
-        return Err(format!(
-            "Quadkey precision must be between {MIN_PRECISION} and {MAX_PRECISION}"
-        ));
-    }
+/// Clamped tile `(x, y)` for a point, mirroring Python `_lat_lon_to_pixel_xy`
+/// (±LAT_CLIP clip, pixels clamped to `[0, map_size-1]`) then `// 256`.
+fn lat_lon_to_tile_xy(lat: f64, lon: f64, precision: u8) -> (i64, i64) {
     let lat = lat.clamp(-LAT_CLIP, LAT_CLIP);
     let (lat_rad, lon_rad) = (lat.to_radians(), lon.to_radians());
     let map_size = (256i64 << precision) as f64;
@@ -105,7 +102,41 @@ pub fn cell_from_point(lat: f64, lon: f64, precision: u8) -> Result<Cell, String
     let max = map_size as i64 - 1;
     let pixel_x = ((x * map_size) as i64).clamp(0, max);
     let pixel_y = ((y * map_size) as i64).clamp(0, max);
-    Ok(tile_cell(pixel_x / 256, pixel_y / 256, precision))
+    (pixel_x / 256, pixel_y / 256)
+}
+
+pub fn cell_from_point(lat: f64, lon: f64, precision: u8) -> Result<Cell, String> {
+    if !(MIN_PRECISION..=MAX_PRECISION).contains(&precision) {
+        return Err(format!(
+            "Quadkey precision must be between {MIN_PRECISION} and {MAX_PRECISION}"
+        ));
+    }
+    let (tx, ty) = lat_lon_to_tile_xy(lat, lon, precision);
+    Ok(tile_cell(tx, ty, precision))
+}
+
+/// All tiles intersecting the bbox at `precision`. Mirrors
+/// `QuadkeyGrid.get_cells_in_bbox`: corner tile coords (y flipped), every tile
+/// in the inclusive `x`/`y` range that falls inside `[0, 2^z - 1]`.
+pub fn cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<Vec<Cell>, String> {
+    let (min_tx, max_ty) = lat_lon_to_tile_xy(min_lat, min_lon, precision);
+    let (max_tx, min_ty) = lat_lon_to_tile_xy(max_lat, max_lon, precision);
+    let max_tile = (1i64 << precision) - 1;
+    let mut out = Vec::new();
+    for tx in min_tx..=max_tx {
+        for ty in min_ty..=max_ty {
+            if (0..=max_tile).contains(&tx) && (0..=max_tile).contains(&ty) {
+                out.push(tile_cell(tx, ty, precision));
+            }
+        }
+    }
+    Ok(out)
 }
 
 pub fn cell_from_id(id: &str) -> Result<Cell, String> {

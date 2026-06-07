@@ -43,10 +43,11 @@ import re
 from functools import lru_cache
 from typing import override
 
+import m3s_core
 import pyproj
 from shapely.geometry import Polygon
 
-from .base import BaseGrid, GridCell
+from .base import BaseGrid, GridCell, cell_from_core
 
 # EPSG:6933 (EASE-Grid 2.0 Global) valid projected domain, in metres.
 # Full mathematical domain: lon +/-180 -> x +/-X_MAX, lat +/-90 -> y +/-Y_MAX.
@@ -288,16 +289,7 @@ class EAQuadGrid(BaseGrid):
         if not -180 <= lon <= 180:
             raise ValueError("Longitude must be between -180 and 180")
 
-        size_km = self.size_km
-        size_m = size_km * 1000
-        fwd, _ = _get_transformers()
-        x, y = fwd.transform(lon, lat)
-        col = int(math.floor((x - X_MIN) / size_m))
-        row = int(math.floor((y - Y_MIN) / size_m))
-        # Clamp points on the eastern/northern domain edge into the last cell.
-        col = min(max(col, 0), _ncols(size_km) - 1)
-        row = min(max(row, 0), _nrows(size_km) - 1)
-        return self._make_cell(size_km, col, row)
+        return cell_from_core(m3s_core.eaq_cell_from_point(lat, lon, self.precision))
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -319,8 +311,7 @@ class EAQuadGrid(BaseGrid):
         ValueError
             If the identifier is invalid.
         """
-        size_km, col, row = _parse_id(identifier)
-        return self._make_cell(size_km, col, row)
+        return cell_from_core(m3s_core.eaq_cell_from_id(identifier))
 
     @override
     def get_neighbors(self, cell: GridCell) -> list[GridCell]:
@@ -345,19 +336,7 @@ class EAQuadGrid(BaseGrid):
             Up to 8 neighbouring cells of the same size; unique and excluding
             ``cell`` itself.
         """
-        size_km, col, row = _parse_id(cell.identifier)
-        ncols = _ncols(size_km)
-        nrows = _nrows(size_km)
-        neighbors = []
-        for dcol in (-1, 0, 1):
-            for drow in (-1, 0, 1):
-                if dcol == 0 and drow == 0:
-                    continue
-                ncol = (col + dcol) % ncols  # longitude wraps at the antimeridian
-                nrow = row + drow  # latitude does not wrap (poles are real edges)
-                if 0 <= nrow < nrows:
-                    neighbors.append(self._make_cell(size_km, ncol, nrow))
-        return neighbors
+        return [cell_from_core(n) for n in m3s_core.eaq_neighbors(cell.identifier)]
 
     @override
     def get_cells_in_bbox(
@@ -382,55 +361,12 @@ class EAQuadGrid(BaseGrid):
             If the requested box would yield more than ``MAX_BBOX_CELLS`` cells
             (use a coarser precision).
         """
-        size_km = self.size_km
-        size_m = size_km * 1000
-        fwd, _ = _get_transformers()
-
-        # Monotonic mapping: project the box edges to get the col/row span.
-        x_lo, _ = fwd.transform(min_lon, 0.0)
-        x_hi, _ = fwd.transform(max_lon, 0.0)
-        _, y_lo = fwd.transform(0.0, min_lat)
-        _, y_hi = fwd.transform(0.0, max_lat)
-
-        col_lo = max(0, int(math.floor((min(x_lo, x_hi) - X_MIN) / size_m)))
-        col_hi = min(
-            _ncols(size_km) - 1, int(math.floor((max(x_lo, x_hi) - X_MIN) / size_m))
-        )
-        row_lo = max(0, int(math.floor((min(y_lo, y_hi) - Y_MIN) / size_m)))
-        row_hi = min(
-            _nrows(size_km) - 1, int(math.floor((max(y_lo, y_hi) - Y_MIN) / size_m))
-        )
-
-        if col_hi < col_lo or row_hi < row_lo:
-            return []
-
-        n_cells = (col_hi - col_lo + 1) * (row_hi - row_lo + 1)
-        if n_cells > MAX_BBOX_CELLS:
-            raise ValueError(
-                f"Bounding box would yield {n_cells} cells (> {MAX_BBOX_CELLS}); "
-                f"use a coarser precision"
+        return [
+            cell_from_core(c)
+            for c in m3s_core.eaq_cells_in_bbox(
+                min_lat, min_lon, max_lat, max_lon, self.precision
             )
-
-        bbox_polygon = Polygon(
-            [
-                (min_lon, min_lat),
-                (max_lon, min_lat),
-                (max_lon, max_lat),
-                (min_lon, max_lat),
-                (min_lon, min_lat),
-            ]
-        )
-
-        cells = []
-        for col in range(col_lo, col_hi + 1):
-            for row in range(row_lo, row_hi + 1):
-                try:
-                    cell = self._make_cell(size_km, col, row)
-                except ValueError:
-                    continue
-                if cell.polygon.intersects(bbox_polygon):
-                    cells.append(cell)
-        return cells
+        ]
 
     def get_parent(self, cell: GridCell) -> GridCell:
         """
@@ -451,10 +387,10 @@ class EAQuadGrid(BaseGrid):
         ValueError
             If the cell is already at the coarsest level (1024 km).
         """
-        size_km, col, row = _parse_id(cell.identifier)
+        size_km, _, _ = _parse_id(cell.identifier)
         if size_km >= _precision_to_size_km(MIN_PRECISION):
             raise ValueError("Cell has no parent (already at coarsest 1024 km level)")
-        return self._make_cell(size_km * 2, col // 2, row // 2)
+        return cell_from_core(m3s_core.eaq_parent(cell.identifier))
 
     def get_children(self, cell: GridCell) -> list[GridCell]:
         """
@@ -471,15 +407,10 @@ class EAQuadGrid(BaseGrid):
             The 4 children, or an empty list if already at the finest level
             (1 km).
         """
-        size_km, col, row = _parse_id(cell.identifier)
+        size_km, _, _ = _parse_id(cell.identifier)
         if size_km <= _precision_to_size_km(MAX_PRECISION):
             return []
-        child_size = size_km // 2
-        return [
-            self._make_cell(child_size, 2 * col + dcol, 2 * row + drow)
-            for dcol in (0, 1)
-            for drow in (0, 1)
-        ]
+        return [cell_from_core(c) for c in m3s_core.eaq_children(cell.identifier)]
 
     @override
     def identifier_to_precision(self, identifier: str) -> int | None:

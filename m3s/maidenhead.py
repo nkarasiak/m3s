@@ -2,12 +2,12 @@
 Maidenhead locator system grid implementation.
 """
 
+from functools import cached_property
 from typing import override
 
-from shapely.geometry import Polygon
+import m3s_core
 
-from .base import BaseGrid, GridCell
-from functools import cached_property
+from .base import BaseGrid, GridCell, cell_from_core
 
 
 class MaidenheadGrid(BaseGrid):
@@ -205,8 +205,7 @@ class MaidenheadGrid(BaseGrid):
         GridCell
             The grid cell containing the specified point
         """
-        locator = self.encode(lat, lon)
-        return self.get_cell_from_identifier(locator)
+        return cell_from_core(m3s_core.mh_cell_from_point(lat, lon, self.precision))
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -223,13 +222,7 @@ class MaidenheadGrid(BaseGrid):
         GridCell
             The grid cell corresponding to the identifier
         """
-        south, west, north, east = self.decode(identifier)
-
-        polygon = Polygon(
-            [(west, south), (east, south), (east, north), (west, north), (west, south)]
-        )
-
-        return GridCell(identifier, polygon, self.precision)
+        return cell_from_core(m3s_core.mh_cell_from_id(identifier))
 
     @override
     def get_neighbors(self, cell: GridCell) -> list[GridCell]:
@@ -246,42 +239,7 @@ class MaidenheadGrid(BaseGrid):
         list[GridCell]
             List of neighboring grid cells
         """
-        south, west, north, east = self.decode(cell.identifier)
-        lat_size = north - south
-        lon_size = east - west
-
-        neighbors = []
-
-        # Define 8 neighboring positions
-        offsets = [
-            (-lat_size, -lon_size),  # SW
-            (-lat_size, 0),  # S
-            (-lat_size, lon_size),  # SE
-            (0, -lon_size),  # W
-            (0, lon_size),  # E
-            (lat_size, -lon_size),  # NW
-            (lat_size, 0),  # N
-            (lat_size, lon_size),  # NE
-        ]
-
-        center_lat = (south + north) / 2
-        center_lon = (west + east) / 2
-
-        for lat_offset, lon_offset in offsets:
-            neighbor_lat = center_lat + lat_offset
-            neighbor_lon = center_lon + lon_offset
-
-            # Ensure coordinates are valid
-            if -90 <= neighbor_lat <= 90 and -180 <= neighbor_lon <= 180:
-                try:
-                    neighbor_cell = self.get_cell_from_point(neighbor_lat, neighbor_lon)
-                    if neighbor_cell.identifier != cell.identifier:
-                        neighbors.append(neighbor_cell)
-                except Exception:
-                    # Skip invalid neighbor coordinates
-                    continue
-
-        return neighbors
+        return [cell_from_core(n) for n in m3s_core.mh_neighbors(cell.identifier)]
 
     @override
     def get_cells_in_bbox(

@@ -170,3 +170,23 @@ pub fn neighbors(id: &str) -> Result<Vec<Cell>, String> {
     }
     Ok(out)
 }
+
+/// All cells intersecting the bbox at `precision`. GARS is a regular lon/lat
+/// lattice from the global SW corner; mirrors `GARSGrid.get_cells_in_bbox`.
+pub fn cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<Vec<Cell>, String> {
+    let step = match precision {
+        1 => 0.5,
+        2 => 0.25,
+        _ => 0.25 / 3.0,
+    };
+    Ok(crate::cells_in_bbox_regular(
+        min_lat, min_lon, max_lat, max_lon, step, step, -90.0, -180.0, cell_from_point,
+        precision,
+    ))
+}

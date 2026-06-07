@@ -12,7 +12,8 @@ level and cells are generated **in the browser** for whatever is in view — zoo
 in for finer cells, zoom out for coarser. Two neighbouring precisions are shown
 at once — the current level with a darker, heavier border and the next finer
 level with a lighter, thinner one — so the base-32 nesting stays visible. The
-lattice and base-32 encoder are the exact ones in :mod:`m3s._geohash`,
+lattice and base-32 encoder are the exact ones M3S uses (the shared
+``m3s_core`` geohash encoder),
 reproduced in JavaScript so the cell ids and edges match M3S. GIS-native
 ``(lon, lat)`` order is used throughout.
 """

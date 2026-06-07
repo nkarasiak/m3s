@@ -5,9 +5,10 @@ H3 (Uber's Hexagonal Hierarchical Spatial Index) grid implementation.
 from typing import Any, override
 
 import h3
+import m3s_core
 from shapely.geometry import Polygon
 
-from .base import BaseGrid, GridCell
+from .base import BaseGrid, GridCell, cell_from_core
 from .projection_utils import get_utm_epsg_code
 
 
@@ -117,8 +118,7 @@ class H3Grid(BaseGrid):
         GridCell
             The H3 hexagonal cell containing the specified point
         """
-        h3_index = h3.latlng_to_cell(lat, lon, self.precision)
-        return self.get_cell_from_identifier(h3_index)
+        return cell_from_core(m3s_core.h3_cell_from_point(lat, lon, self.precision))
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -141,21 +141,7 @@ class H3Grid(BaseGrid):
             If the identifier is invalid
         """
         try:
-            # Get hexagon boundary
-            boundary = h3.cell_to_boundary(identifier)
-
-            # Convert lat/lng pairs to lon/lat pairs for Polygon
-            # (boundary is [(lat, lng), ...]).
-            coords = [(lng, lat) for lat, lng in boundary]
-            polygon = Polygon(coords)
-
-            cell_resolution = self.precision
-            try:
-                cell_resolution = h3.get_resolution(identifier)
-            except Exception:
-                pass
-
-            return GridCell(identifier, polygon, cell_resolution)
+            return cell_from_core(m3s_core.h3_cell_from_id(identifier))
         except Exception as e:
             raise ValueError(f"Invalid H3 identifier: {identifier}") from e
 
@@ -175,16 +161,7 @@ class H3Grid(BaseGrid):
             List of neighboring H3 cells (typically 6 for hexagons)
         """
         try:
-            neighbor_indices = h3.grid_disk(cell.identifier, 1)
-            # Remove the center cell itself (grid_disk returns a list)
-            neighbor_indices = [
-                idx for idx in neighbor_indices if idx != cell.identifier
-            ]
-
-            return [
-                self.get_cell_from_identifier(neighbor_index)
-                for neighbor_index in neighbor_indices
-            ]
+            return [cell_from_core(n) for n in m3s_core.h3_neighbors(cell.identifier)]
         except Exception:
             return []
 
@@ -385,15 +362,7 @@ class H3Grid(BaseGrid):
             return [cell]  # No children at maximum resolution
 
         try:
-            child_indices = h3.cell_to_children(cell.identifier, self.precision + 1)
-            return [
-                GridCell(
-                    child_index,
-                    self._create_h3_polygon(child_index),
-                    self.precision + 1,
-                )
-                for child_index in child_indices
-            ]
+            return [cell_from_core(c) for c in m3s_core.h3_children(cell.identifier)]
         except Exception:
             return []
 
@@ -415,10 +384,7 @@ class H3Grid(BaseGrid):
             return cell  # No parent at minimum resolution
 
         try:
-            parent_index = h3.cell_to_parent(cell.identifier, self.precision - 1)
-            return GridCell(
-                parent_index, self._create_h3_polygon(parent_index), self.precision - 1
-            )
+            return cell_from_core(m3s_core.h3_parent(cell.identifier))
         except Exception:
             return cell
 

@@ -5,9 +5,9 @@ Plus codes (Open Location Code) grid implementation.
 from functools import cached_property
 from typing import override
 
-from shapely.geometry import Polygon
+import m3s_core
 
-from .base import BaseGrid, GridCell
+from .base import BaseGrid, GridCell, cell_from_core
 
 
 class PlusCodeGrid(BaseGrid):
@@ -203,8 +203,7 @@ class PlusCodeGrid(BaseGrid):
         GridCell
             The grid cell containing the specified point
         """
-        code = self.encode(lat, lon)
-        return self.get_cell_from_identifier(code)
+        return cell_from_core(m3s_core.pc_cell_from_point(lat, lon, self.precision))
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -227,25 +226,7 @@ class PlusCodeGrid(BaseGrid):
             If the identifier contains characters outside the Plus Code
             alphabet or is too short to encode a cell.
         """
-        normalized = identifier.replace("+", "").upper()
-        if len(normalized) < 2 or any(ch not in self.ALPHABET for ch in normalized):
-            raise ValueError(f"Invalid plus code identifier: {identifier!r}")
-
-        south, west, north, east = self.decode(identifier)
-        # Expand bounds slightly to ensure point containment for boundary cases
-        cell_lat = north - south
-        cell_lon = east - west
-        epsilon = max(1e-12, max(cell_lat, cell_lon) * 1e-6)
-        south -= epsilon
-        west -= epsilon
-        north += epsilon
-        east += epsilon
-
-        polygon = Polygon(
-            [(west, south), (east, south), (east, north), (west, north), (west, south)]
-        )
-
-        return GridCell(identifier, polygon, self.precision)
+        return cell_from_core(m3s_core.pc_cell_from_id(identifier))
 
     @override
     def get_neighbors(self, cell: GridCell) -> list[GridCell]:
@@ -262,41 +243,7 @@ class PlusCodeGrid(BaseGrid):
         list[GridCell]
             List of neighboring grid cells
         """
-        south, west, north, east = self.decode(cell.identifier)
-        lat_size = north - south
-        lon_size = east - west
-
-        neighbors = []
-
-        # Define 8 neighboring positions
-        offsets = [
-            (-lat_size, -lon_size),  # SW
-            (-lat_size, 0),  # S
-            (-lat_size, lon_size),  # SE
-            (0, -lon_size),  # W
-            (0, lon_size),  # E
-            (lat_size, -lon_size),  # NW
-            (lat_size, 0),  # N
-            (lat_size, lon_size),  # NE
-        ]
-
-        center_lat = (south + north) / 2
-        center_lon = (west + east) / 2
-
-        for lat_offset, lon_offset in offsets:
-            neighbor_lat = center_lat + lat_offset
-            neighbor_lon = center_lon + lon_offset
-
-            # Ensure coordinates are valid
-            if -90 <= neighbor_lat <= 90 and -180 <= neighbor_lon <= 180:
-                try:
-                    neighbor_cell = self.get_cell_from_point(neighbor_lat, neighbor_lon)
-                    neighbors.append(neighbor_cell)
-                except Exception:
-                    # Skip invalid neighbor coordinates
-                    continue
-
-        return neighbors
+        return [cell_from_core(n) for n in m3s_core.pc_neighbors(cell.identifier)]
 
     def get_children(self, cell: GridCell) -> list[GridCell]:
         """
@@ -320,18 +267,7 @@ class PlusCodeGrid(BaseGrid):
         """
         if self.precision >= self.MAX_PRECISION:
             return []
-        south, west, north, east = self.decode(cell.identifier)
-        child = type(self)(precision=self.precision + 1)
-        dlat = (north - south) / self.BASE
-        dlon = (east - west) / self.BASE
-        children: dict[str, GridCell] = {}
-        for i in range(self.BASE):
-            for j in range(self.BASE):
-                clat = south + (i + 0.5) * dlat
-                clon = west + (j + 0.5) * dlon
-                c = child.get_cell_from_point(clat, clon)
-                children[c.identifier] = c
-        return list(children.values())
+        return [cell_from_core(c) for c in m3s_core.pc_children(cell.identifier)]
 
     def get_parent(self, cell: GridCell) -> GridCell:
         """
@@ -356,9 +292,7 @@ class PlusCodeGrid(BaseGrid):
             raise ValueError(
                 "Cell has no parent (already at the coarsest plus code precision)"
             )
-        south, west, north, east = self.decode(cell.identifier)
-        parent = type(self)(precision=self.precision - 1)
-        return parent.get_cell_from_point((south + north) / 2, (west + east) / 2)
+        return cell_from_core(m3s_core.pc_parent(cell.identifier))
 
     @override
     def get_cells_in_bbox(
@@ -382,72 +316,18 @@ class PlusCodeGrid(BaseGrid):
         -------
         list[GridCell]
             List of grid cells that intersect the bounding box
+
+        Notes
+        -----
+        Plus-code cells form a regular square lon/lat lattice, so this returns
+        the exact, complete set of intersecting cells from the shared core
+        (``m3s_core.pc_cells_in_bbox``). It replaces the former dense
+        point-sampling, whose 5%-cell margin and epsilon-expanded boundaries
+        could include a few cells just outside the box.
         """
-        cells = []
-        seen = set()
-
-        # Get the grid size for this precision
-        grid_size = self.GRID_SIZES[min(self.precision - 1, len(self.GRID_SIZES) - 1)]
-
-        # Find the grid-aligned bounds that completely cover the target area
-        # We need to sample points at the boundaries and just beyond them
-
-        # Generate sample points that ensure we catch all boundary cells
-        sample_points = []
-
-        # Add corner points
-        corners = [
-            (min_lat, min_lon),
-            (min_lat, max_lon),
-            (max_lat, min_lon),
-            (max_lat, max_lon),
-        ]
-        sample_points.extend(corners)
-
-        # Add points slightly beyond the boundaries to catch edge cells
-        # Use a precise margin to catch boundary cells
-        margin = grid_size * 0.05  # 5% of cell size
-        extended_corners = [
-            (min_lat - margin, min_lon - margin),
-            (min_lat - margin, max_lon + margin),
-            (max_lat + margin, min_lon - margin),
-            (max_lat + margin, max_lon + margin),
-        ]
-        sample_points.extend(extended_corners)
-
-        # Add a dense grid of sample points within and around the area
-        lat_samples = int((max_lat - min_lat) / grid_size * 4) + 4
-        lon_samples = int((max_lon - min_lon) / grid_size * 4) + 4
-
-        for i in range(lat_samples):
-            lat = (
-                min_lat
-                - margin
-                + i * (max_lat - min_lat + 2 * margin) / (lat_samples - 1)
+        return [
+            cell_from_core(c)
+            for c in m3s_core.pc_cells_in_bbox(
+                min_lat, min_lon, max_lat, max_lon, self.precision
             )
-            for j in range(lon_samples):
-                lon = (
-                    min_lon
-                    - margin
-                    + j * (max_lon - min_lon + 2 * margin) / (lon_samples - 1)
-                )
-                sample_points.append((lat, lon))
-
-        # Get cells for all sample points
-        for lat, lon in sample_points:
-            if -90 <= lat <= 90 and -180 <= lon <= 180:
-                try:
-                    cell = self.get_cell_from_point(lat, lon)
-                    if cell.identifier not in seen:
-                        seen.add(cell.identifier)
-                        cells.append(cell)
-                except Exception:
-                    # Skip invalid coordinates
-                    pass
-
-        # Filter cells to only those that actually intersect the target bbox
-        from shapely.geometry import box as shapely_box
-
-        target_bbox = shapely_box(min_lon, min_lat, max_lon, max_lat)
-
-        return [cell for cell in cells if cell.polygon.intersects(target_bbox)]
+        ]

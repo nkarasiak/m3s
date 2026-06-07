@@ -200,3 +200,26 @@ pub fn parent(id: &str) -> Result<Cell, String> {
     let (min_lat, min_lon, max_lat, max_lon) = decode(id)?;
     cell_from_point((min_lat + max_lat) / 2.0, (min_lon + max_lon) / 2.0, precision - 1)
 }
+
+/// All cells intersecting the bbox at `precision`. C-squares form a regular
+/// square lon/lat lattice from the global SW corner; mirrors
+/// `CSquaresGrid.get_cells_in_bbox` (per-level size 10/5/1/0.5/0.1°).
+pub fn cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<Vec<Cell>, String> {
+    let size = match precision {
+        1 => 10.0,
+        2 => 5.0,
+        3 => 1.0,
+        4 => 0.5,
+        _ => 0.1,
+    };
+    Ok(crate::cells_in_bbox_regular(
+        min_lat, min_lon, max_lat, max_lon, size, size, -90.0, -180.0, cell_from_point,
+        precision,
+    ))
+}
