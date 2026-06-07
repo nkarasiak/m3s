@@ -40,12 +40,9 @@ lon +/-180) while latitude does not wrap (the poles are real edges).
 
 import math
 import re
-from functools import lru_cache
 from typing import override
 
 import m3s_core
-import pyproj
-from shapely.geometry import Polygon
 
 from .base import BaseGrid, GridCell, cell_from_core
 
@@ -76,14 +73,6 @@ _SUPER_ROOT_LEVEL = SUPER_ROOT_KM.bit_length() - 1  # 16
 _MIN_LEVEL = _SUPER_ROOT_LEVEL - MAX_PRECISION  # 6  (precision 0, 1024 km)
 _MAX_LEVEL = _SUPER_ROOT_LEVEL - MIN_PRECISION  # 16 (precision 10, 1 km)
 _ID_RE = re.compile(r"^[0-3]+$")
-
-
-@lru_cache(maxsize=1)
-def _get_transformers() -> tuple[pyproj.Transformer, pyproj.Transformer]:
-    """Return cached (forward, inverse) transformers for WGS84 <-> EPSG:6933."""
-    fwd = pyproj.Transformer.from_crs("EPSG:4326", "EPSG:6933", always_xy=True)
-    inv = pyproj.Transformer.from_crs("EPSG:6933", "EPSG:4326", always_xy=True)
-    return fwd, inv
 
 
 def _precision_to_size_km(precision: int) -> int:
@@ -221,46 +210,6 @@ class EAQuadGrid(BaseGrid):
             Theoretical (nominal) area in square kilometres.
         """
         return float(self.size_km**2)
-
-    def _make_polygon(self, size_km: int, col: int, row: int) -> Polygon:
-        """
-        Build the WGS84 polygon for a cell, clamped to the projection domain.
-
-        In a cylindrical equal-area projection constant-x lines are meridians
-        and constant-y lines are parallels, so the projected square maps to an
-        axis-aligned lon/lat rectangle: the four inverse-projected corners are
-        exact (no edge densification needed).
-        """
-        size_m = size_km * 1000
-        x0 = max(X_MIN + col * size_m, X_MIN)
-        x1 = min(X_MIN + (col + 1) * size_m, X_MAX)
-        y0 = max(Y_MIN + row * size_m, Y_MIN)
-        y1 = min(Y_MIN + (row + 1) * size_m, Y_MAX)
-        if x1 <= x0 or y1 <= y0:
-            raise ValueError(
-                f"EA-Quad cell outside projection domain: "
-                f"{_format_id(size_km, col, row)}"
-            )
-
-        _, inv = _get_transformers()
-        lon_w, lat_s = inv.transform(x0, y0)
-        lon_e, lat_n = inv.transform(x1, y1)
-        return Polygon(
-            [
-                (lon_w, lat_s),
-                (lon_e, lat_s),
-                (lon_e, lat_n),
-                (lon_w, lat_n),
-                (lon_w, lat_s),
-            ]
-        )
-
-    def _make_cell(self, size_km: int, col: int, row: int) -> GridCell:
-        """Construct a :class:`GridCell` from grid coordinates."""
-        identifier = _format_id(size_km, col, row)
-        polygon = self._make_polygon(size_km, col, row)
-        precision = _size_km_to_precision(size_km)
-        return GridCell(identifier, polygon, precision)
 
     @override
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:

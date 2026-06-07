@@ -8,7 +8,7 @@ from shapely.ops import unary_union
 
 from m3s import EAQuadGrid, list_grid_systems
 from m3s.base import GridCell
-from m3s.eaquad import _format_id, _get_transformers, _ncols, _parse_id
+from m3s.eaquad import _format_id, _ncols, _parse_id
 
 
 class TestEAQuadInit:
@@ -255,12 +255,12 @@ class TestEAQuadEdges:
         size_km, col, _ = _parse_id(east_cell.identifier)
         assert col == _ncols(size_km) - 1  # easternmost (partial) column
 
-        # The clipped cell is physically narrower than a full nominal cell.
-        fwd, _ = _get_transformers()
-        min_lon, _, max_lon, _ = east_cell.polygon.bounds
-        x_lo, _ = fwd.transform(min_lon, 0.0)
-        x_hi, _ = fwd.transform(max_lon, 0.0)
-        assert (x_hi - x_lo) < size_km * 1000
+        # The clipped boundary cell is physically narrower than a full nominal
+        # cell. EPSG:6933 x is linear in longitude, so the clipped cell's lon
+        # span is smaller than an interior (full) cell's at the same row.
+        e0, _, e1, _ = east_cell.polygon.bounds
+        f0, _, f1, _ = grid.get_cell_from_point(0.0, 170.0).polygon.bounds
+        assert (e1 - e0) < (f1 - f0)
 
         # area_km2 still reports the nominal size_km ** 2 (no boundary special-casing).
         assert grid.area_km2 == float(size_km**2)

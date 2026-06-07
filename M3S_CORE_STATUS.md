@@ -269,13 +269,26 @@ algorithm for its col/row bounds or it over-scans a column at lattice seams.
 - **mgrs** — DEFERRED: UTM, not a lon/lat lattice; its Python bbox stays
   point-sampling (drops no dep). Revisit only if browser MGRS tiling needs it.
 
-**Task #8 — covering + migration + dep-drops + cleanup:**
-- `get_covering_cells` (s2, slippy) → core (needs core polygon covering for s2,
-  rect-bbox for slippy).
-- Drop `pyproj` (eaquad), `pya5` (a5), `h3` (h3), `s2sphere` (s2): each needs its
-  remaining lib uses (area / resolution / verbs / `_make_*`) moved to core +
-  the `test_*` oracles that call those libs rewired. Remove dead code orphaned by
-  the migration: eaquad `_make_cell`/`_make_polygon`, h3 `_get_cells_in_bbox_fallback`.
+**Task #8 — covering + dep-drops + cleanup:**
+- ✅ eaquad pyproj-coupled dead code removed (`_get_transformers`,
+  `_make_polygon`, `_make_cell`, + `pyproj`/`lru_cache`/`Polygon` imports);
+  `test_eaquad`'s pyproj oracle rewired to a lon-span comparison. Full suite green.
+- ⚠️ **Dep-drops are blocked by out-of-scope secondary usages — the native libs
+  are NOT unused:**
+  - `pyproj` — `m3s/projection_utils.py` uses it for UTM-CRS lookup
+    (`query_utm_crs_info`) + `Transformer`, feeding every grid's UTM column. Would
+    need UTM logic ported to drop.
+  - `pya5` — `a5.py` `area_km2` (`a5.cell_area`), `MAX_RESOLUTION`,
+    `identifier_to_precision`, + `test_a5` oracle.
+  - `h3` — large h3-verbs surface (`cell_to_*`, `cell_area`, compact, edge length)
+    + `test_h3`/`test_h3_verbs` oracles. Biggest; likely keep.
+  - `s2sphere` — `get_covering_cells` (arbitrary-polygon covering) +
+    `_create_cell_polygon` + `test_s2`.
+  Each drop = port that surface to core + rewire its `test_*` oracle. Tracked as a
+  separate, larger effort; NOT a simple "remove unused import".
+- `get_covering_cells` (s2 polygon-cover, slippy rect) → core: low value (not in
+  the parity contract, not used by the browser examples). Defer.
+- Remaining dead code: h3 `_get_cells_in_bbox_fallback` (~62 lines).
 
 After the cores land: migrate each Python `get_cells_in_bbox`/`get_covering_cells`
 to delegate to `m3s_core` (pluscode already done), drop the freed deps, then P4b.
