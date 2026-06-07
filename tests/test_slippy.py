@@ -54,54 +54,6 @@ class TestSlippyGrid:
         grid_15 = SlippyGrid(precision=15)
         assert grid_15.area_km2 < grid_10.area_km2
 
-    def test_deg2num_conversion(self, grid_zoom_10):
-        """Test latitude/longitude to tile conversion."""
-        # Test known coordinates
-        test_cases = [
-            (0.0, 0.0),  # Equator, Prime Meridian
-            (51.5074, -0.1278),  # London
-            (40.7128, -74.0060),  # NYC
-            (-33.8688, 151.2093),  # Sydney
-        ]
-
-        for lat, lon in test_cases:
-            x, y = grid_zoom_10._deg2num(lat, lon)
-            assert isinstance(x, int)
-            assert isinstance(y, int)
-            assert 0 <= x < 2**10
-            assert 0 <= y < 2**10
-
-    def test_num2deg_conversion(self, grid_zoom_10):
-        """Test tile to bounding box conversion."""
-        # Test center tile
-        x, y = 512, 512  # Center of 1024x1024 grid
-        min_lon, min_lat, max_lon, max_lat = grid_zoom_10._num2deg(x, y)
-
-        assert -180 <= min_lon < max_lon <= 180
-        assert -85.05 <= min_lat < max_lat <= 85.05
-
-        # Test that bounding box has reasonable size
-        width = max_lon - min_lon
-        height = max_lat - min_lat
-        assert width > 0
-        assert height > 0
-
-    def test_roundtrip_conversion(self, grid_zoom_10):
-        """Test that deg2num and num2deg are consistent."""
-        test_points = [
-            (0.0, 0.0),
-            (40.7128, -74.0060),  # NYC
-            (51.5074, -0.1278),  # London
-        ]
-
-        for lat, lon in test_points:
-            x, y = grid_zoom_10._deg2num(lat, lon)
-            min_lon, min_lat, max_lon, max_lat = grid_zoom_10._num2deg(x, y)
-
-            # Point should be within the tile bounds
-            assert min_lon <= lon <= max_lon
-            assert min_lat <= lat <= max_lat
-
     def test_get_cell_from_point_nyc(self, grid_zoom_10):
         """Test getting tile from NYC coordinates."""
         lat, lon = 40.7128, -74.0060

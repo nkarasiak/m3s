@@ -7,10 +7,10 @@ from typing import Any, override
 
 import m3s_core
 
-from .base import BaseGrid, GridCell, cell_from_core
+from .base import CoreBackedGrid, GridCell, cell_from_core
 
 
-class MGRSGrid(BaseGrid):
+class MGRSGrid(CoreBackedGrid):
     """
     MGRS-based spatial grid system.
 
@@ -18,6 +18,7 @@ class MGRSGrid(BaseGrid):
     uniform square grid cells based on UTM projections.
     """
 
+    KEY = "mgrs"
     MIN_PRECISION = 0
     MAX_PRECISION = 5
     DEFAULT_PRECISION = 3
@@ -67,11 +68,6 @@ class MGRSGrid(BaseGrid):
         return area_m2 / 1_000_000  # Convert to km²
 
     @override
-    def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
-        """Get the MGRS cell containing the given point."""
-        return cell_from_core(m3s_core.mgrs_cell_from_point(lat, lon, self.precision))
-
-    @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """Get an MGRS cell from its identifier."""
         try:
@@ -111,30 +107,6 @@ class MGRSGrid(BaseGrid):
         """Get grid size in meters for the current precision."""
         sizes = {0: 100000, 1: 10000, 2: 1000, 3: 100, 4: 10, 5: 1}
         return sizes[self.precision]
-
-    @override
-    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
-        """Get neighboring MGRS cells."""
-        return [cell_from_core(n) for n in m3s_core.mgrs_neighbors(cell.identifier)]
-
-    @override
-    def get_cells_in_bbox(
-        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> list[GridCell]:
-        """Get all MGRS cells within the given bounding box.
-
-        Delegates to the shared core (``m3s_core.mgrs_cells_in_bbox``), which
-        reproduces this grid's dense lat/lon point-sampling (MGRS is UTM-based,
-        not a lon/lat lattice). Zone-edge / equator-meridian points that the
-        core's ``geoconvert`` backend rejects are skipped, as the Python path
-        skipped points that failed MGRS conversion.
-        """
-        return [
-            cell_from_core(c)
-            for c in m3s_core.mgrs_cells_in_bbox(
-                min_lat, min_lon, max_lat, max_lon, self.precision
-            )
-        ]
 
     @override
     def _get_additional_columns(self, cell: GridCell) -> dict[str, Any]:

@@ -31,7 +31,7 @@ from typing import override
 
 import m3s_core
 
-from .base import BaseGrid, GridCell, cell_from_core
+from .base import CoreBackedGrid, GridCell, cell_from_core
 
 # Resolution range exposed by M3S. A5 supports 0..30 (the spec's MAX_RESOLUTION);
 # its special WORLD_CELL (resolution -1) is not exposed.
@@ -39,7 +39,7 @@ MIN_PRECISION = 0
 MAX_PRECISION = 30
 
 
-class A5Grid(BaseGrid):
+class A5Grid(CoreBackedGrid):
     """
     A5 pentagonal grid system.
 
@@ -54,6 +54,7 @@ class A5Grid(BaseGrid):
         cells are smaller than 30 mm^2.
     """
 
+    KEY = "a5"
     MIN_PRECISION = MIN_PRECISION
     MAX_PRECISION = MAX_PRECISION
     DEFAULT_PRECISION = 8
@@ -149,61 +150,6 @@ class A5Grid(BaseGrid):
             return cell_from_core(m3s_core.a5_cell_from_id(identifier))
         except (ValueError, TypeError) as exc:
             raise ValueError(f"Invalid A5 identifier: {identifier}") from exc
-
-    @override
-    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
-        """
-        Get the edge-sharing neighbours of a cell.
-
-        Uses ``pya5``'s ``grid_disk`` (k=1), which returns the centre cell plus
-        its edge neighbours; the centre is removed. Pentagons have 5 edge
-        neighbours away from face boundaries.
-
-        Parameters
-        ----------
-        cell : GridCell
-            The cell for which to find neighbours.
-
-        Returns
-        -------
-        list[GridCell]
-            Neighbouring cells of the same precision, excluding ``cell`` itself.
-        """
-        return [cell_from_core(n) for n in m3s_core.a5_neighbors(cell.identifier)]
-
-    @override
-    def get_cells_in_bbox(
-        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> list[GridCell]:
-        """
-        Get the A5 cells covering the given bounding box.
-
-        Parameters
-        ----------
-        min_lat, min_lon, max_lat, max_lon : float
-            Bounding box in WGS84 degrees.
-
-        Returns
-        -------
-        list[GridCell]
-            Cells at this grid's precision covering the box.
-
-        Notes
-        -----
-        Built on ``pya5``'s ``polygon_to_cells`` (centre-in-polygon
-        containment), expanded to this precision with ``uncompact``. The box
-        edges are densified before the query because ``polygon_to_cells`` reads
-        them as geodesics, so a wide box's constant-latitude edges would
-        otherwise bow poleward and drop its mid-latitude interior. The cells
-        covering the four corners and the centre of the box are always included,
-        so a box smaller than a single cell still returns its covering cell(s).
-        """
-        return [
-            cell_from_core(c)
-            for c in m3s_core.a5_cells_in_bbox(
-                min_lat, min_lon, max_lat, max_lon, self.precision
-            )
-        ]
 
     def get_parent(self, cell: GridCell) -> GridCell:
         """

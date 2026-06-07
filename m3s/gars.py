@@ -5,12 +5,10 @@ GARS (Global Area Reference System) grid implementation.
 from functools import cached_property
 from typing import override
 
-import m3s_core
-
-from .base import BaseGrid, GridCell, cell_from_core
+from .base import CoreBackedGrid, GridCell
 
 
-class GARSGrid(BaseGrid):
+class GARSGrid(CoreBackedGrid):
     """
     GARS (Global Area Reference System) spatial grid.
 
@@ -18,6 +16,7 @@ class GARSGrid(BaseGrid):
     coordinate system with longitude bands and latitude zones.
     """
 
+    KEY = "gars"
     MIN_PRECISION = 1
     MAX_PRECISION = 3
     DEFAULT_PRECISION = 2
@@ -228,59 +227,6 @@ class GARSGrid(BaseGrid):
         north = south + cell_size_lat
 
         return (south, west, north, east)
-
-    @override
-    def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
-        """
-        Get the grid cell containing the given point.
-
-        Parameters
-        ----------
-        lat : float
-            Latitude coordinate
-        lon : float
-            Longitude coordinate
-
-        Returns
-        -------
-        GridCell
-            The grid cell containing the specified point
-        """
-        return cell_from_core(m3s_core.gars_cell_from_point(lat, lon, self.precision))
-
-    @override
-    def get_cell_from_identifier(self, identifier: str) -> GridCell:
-        """
-        Get a grid cell from its identifier.
-
-        Parameters
-        ----------
-        identifier : str
-            The GARS identifier string
-
-        Returns
-        -------
-        GridCell
-            The grid cell corresponding to the identifier
-        """
-        return cell_from_core(m3s_core.gars_cell_from_id(identifier))
-
-    @override
-    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
-        """
-        Get neighboring cells of the given cell.
-
-        Parameters
-        ----------
-        cell : GridCell
-            The cell for which to find neighbors
-
-        Returns
-        -------
-        list[GridCell]
-            List of neighboring grid cells
-        """
-        return [cell_from_core(n) for n in m3s_core.gars_neighbors(cell.identifier)]
 
     @override
     def get_cells_in_bbox(

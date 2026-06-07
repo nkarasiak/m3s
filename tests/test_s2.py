@@ -285,7 +285,9 @@ class TestS2GridEdgeCases:
         """Test that get_neighbors raises on m3s_core error."""
         cell = grid_level_10.get_cell_from_point(40.7, -74.0)
 
-        with patch("m3s.s2.m3s_core") as mock_core:
+        # get_neighbors is inherited from CoreBackedGrid, so the core call it
+        # delegates to lives in m3s.base, not m3s.s2.
+        with patch("m3s.base.m3s_core") as mock_core:
             mock_core.s2_neighbors.side_effect = Exception("Test error")
 
             with pytest.raises(Exception, match="Test error"):

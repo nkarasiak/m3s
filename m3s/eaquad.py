@@ -44,7 +44,7 @@ from typing import override
 
 import m3s_core
 
-from .base import BaseGrid, GridCell, cell_from_core
+from .base import CoreBackedGrid, GridCell, cell_from_core
 
 # EPSG:6933 (EASE-Grid 2.0 Global) valid projected domain, in metres.
 # Full mathematical domain: lon +/-180 -> x +/-X_MAX, lat +/-90 -> y +/-Y_MAX.
@@ -135,7 +135,7 @@ def _parse_id(identifier: str) -> tuple[int, int, int]:
     return size_km, col, row
 
 
-class EAQuadGrid(BaseGrid):
+class EAQuadGrid(CoreBackedGrid):
     """
     EA-Quad (Equal-Area Quadtree) grid system.
 
@@ -150,6 +150,7 @@ class EAQuadGrid(BaseGrid):
         precision 10 = 1 km.
     """
 
+    KEY = "eaq"
     # Mirror the module-level bounds as the BaseGrid metadata attributes so
     # consumers (GridWrapper, AreaCalculator, ...) see EA-Quad's true 0-10 range.
     MIN_PRECISION = MIN_PRECISION
@@ -239,83 +240,6 @@ class EAQuadGrid(BaseGrid):
             raise ValueError("Longitude must be between -180 and 180")
 
         return cell_from_core(m3s_core.eaq_cell_from_point(lat, lon, self.precision))
-
-    @override
-    def get_cell_from_identifier(self, identifier: str) -> GridCell:
-        """
-        Get an EA-Quad cell from its identifier.
-
-        Parameters
-        ----------
-        identifier : str
-            Base-4 quadtree path identifier (digits ``0-3``), e.g. ``"0122012"``.
-
-        Returns
-        -------
-        GridCell
-            The corresponding grid cell.
-
-        Raises
-        ------
-        ValueError
-            If the identifier is invalid.
-        """
-        return cell_from_core(m3s_core.eaq_cell_from_id(identifier))
-
-    @override
-    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
-        """
-        Get up to 8 neighbouring cells.
-
-        Longitude wraps at the antimeridian: the single seamless cylindrical
-        projection makes column 0 and the last column physically adjacent at
-        lon +/-180, so the east neighbour of an easternmost-column cell is the
-        column-0 cell at the same row. Latitude does **not** wrap -- the poles
-        are real edges, so cells in the top/bottom rows have fewer than 8
-        neighbours.
-
-        Parameters
-        ----------
-        cell : GridCell
-            The cell for which to find neighbours.
-
-        Returns
-        -------
-        list[GridCell]
-            Up to 8 neighbouring cells of the same size; unique and excluding
-            ``cell`` itself.
-        """
-        return [cell_from_core(n) for n in m3s_core.eaq_neighbors(cell.identifier)]
-
-    @override
-    def get_cells_in_bbox(
-        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> list[GridCell]:
-        """
-        Get all EA-Quad cells intersecting the given bounding box.
-
-        Parameters
-        ----------
-        min_lat, min_lon, max_lat, max_lon : float
-            Bounding box in WGS84 degrees.
-
-        Returns
-        -------
-        list[GridCell]
-            Cells at this grid's precision that intersect the bounding box.
-
-        Raises
-        ------
-        ValueError
-            If the requested box would yield more than ``MAX_BBOX_CELLS`` cells
-            (use a coarser precision).
-        """
-        return [
-            cell_from_core(c)
-            for c in m3s_core.eaq_cells_in_bbox(
-                min_lat, min_lon, max_lat, max_lon, self.precision
-            )
-        ]
 
     def get_parent(self, cell: GridCell) -> GridCell:
         """

@@ -70,7 +70,7 @@ BBOX = {
     "gars": [1, 3],
     "maidenhead": [2, 3],
     "csquares": [3, 5],
-    "geohash": [2, 4],
+    "geohash": [2, 4, 5],
     "pluscode": [2, 3],
     "eaquad": [4, 8],
     "a5": [5, 10],

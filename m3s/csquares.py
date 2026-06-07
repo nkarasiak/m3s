@@ -6,10 +6,10 @@ from typing import override
 
 import m3s_core
 
-from .base import BaseGrid, GridCell, cell_from_core
+from .base import CoreBackedGrid, GridCell, cell_from_core
 
 
-class CSquaresGrid(BaseGrid):
+class CSquaresGrid(CoreBackedGrid):
     """
     C-squares-based spatial grid system.
 
@@ -18,6 +18,7 @@ class CSquaresGrid(BaseGrid):
     decimal grid system.
     """
 
+    KEY = "cs"
     MIN_PRECISION = 1
     MAX_PRECISION = 5
     DEFAULT_PRECISION = 5

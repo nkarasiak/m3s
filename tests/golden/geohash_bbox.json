@@ -26,5 +26,52 @@
       "u10h",
       "u10j"
     ]
+  },
+  {
+    "precision": 5,
+    "bbox": [
+      51.4,
+      -0.2,
+      51.6,
+      0.0
+    ],
+    "cells": [
+      "gcpu7",
+      "gcpue",
+      "gcpug",
+      "gcpuk",
+      "gcpum",
+      "gcpuq",
+      "gcpur",
+      "gcpus",
+      "gcput",
+      "gcpuu",
+      "gcpuv",
+      "gcpuw",
+      "gcpux",
+      "gcpuy",
+      "gcpuz",
+      "gcpv5",
+      "gcpv7",
+      "gcpve",
+      "gcpvh",
+      "gcpvj",
+      "gcpvk",
+      "gcpvm",
+      "gcpvn",
+      "gcpvp",
+      "gcpvq",
+      "gcpvr",
+      "gcpvs",
+      "gcpvt",
+      "gcpvw",
+      "gcpvx",
+      "u10h2",
+      "u10h8",
+      "u10hb",
+      "u10j0",
+      "u10j2",
+      "u10j8"
+    ]
   }
 ]

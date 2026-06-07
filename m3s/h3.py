@@ -8,11 +8,11 @@ import h3
 import m3s_core
 from shapely.geometry import Polygon
 
-from .base import BaseGrid, GridCell, cell_from_core
+from .base import CoreBackedGrid, GridCell, cell_from_core
 from .projection_utils import get_utm_epsg_code
 
 
-class H3Grid(BaseGrid):
+class H3Grid(CoreBackedGrid):
     """
     H3-based hexagonal spatial grid system.
 
@@ -20,6 +20,7 @@ class H3Grid(BaseGrid):
     providing uniform hexagonal cells with consistent neighbor relationships.
     """
 
+    KEY = "h3"
     MIN_PRECISION = 0
     MAX_PRECISION = 15
     DEFAULT_PRECISION = 7
@@ -102,25 +103,6 @@ class H3Grid(BaseGrid):
             return areas.get(self.precision, 5.16)  # Default to resolution 7
 
     @override
-    def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
-        """
-        Get the H3 cell containing the given point.
-
-        Parameters
-        ----------
-        lat : float
-            Latitude coordinate
-        lon : float
-            Longitude coordinate
-
-        Returns
-        -------
-        GridCell
-            The H3 hexagonal cell containing the specified point
-        """
-        return cell_from_core(m3s_core.h3_cell_from_point(lat, lon, self.precision))
-
-    @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """
         Get an H3 cell from its identifier.
@@ -164,36 +146,6 @@ class H3Grid(BaseGrid):
             return [cell_from_core(n) for n in m3s_core.h3_neighbors(cell.identifier)]
         except Exception:
             return []
-
-    @override
-    def get_cells_in_bbox(
-        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> list[GridCell]:
-        """
-        Get all H3 cells within the given bounding box.
-
-        Parameters
-        ----------
-        min_lat : float
-            Minimum latitude of bounding box
-        min_lon : float
-            Minimum longitude of bounding box
-        max_lat : float
-            Maximum latitude of bounding box
-        max_lon : float
-            Maximum longitude of bounding box
-
-        Returns
-        -------
-        list[GridCell]
-            List of H3 cells that intersect the bounding box
-        """
-        return [
-            cell_from_core(c)
-            for c in m3s_core.h3_cells_in_bbox(
-                min_lat, min_lon, max_lat, max_lon, self.precision
-            )
-        ]
 
     def get_edge_length_km(self) -> float:
         """

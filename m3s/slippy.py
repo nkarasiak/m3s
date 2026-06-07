@@ -6,16 +6,15 @@ Google Maps, and most web mapping services. They use a Web Mercator projection
 (EPSG:3857) and a quadtree-like z/x/y coordinate system.
 """
 
-import math
 from typing import override
 
 import m3s_core
 from shapely.geometry import Polygon
 
-from .base import BaseGrid, GridCell, cell_from_core
+from .base import CoreBackedGrid, GridCell, cell_from_core
 
 
-class SlippyGrid(BaseGrid):
+class SlippyGrid(CoreBackedGrid):
     """
     Slippy Map Tiling grid implementation.
 
@@ -29,6 +28,7 @@ class SlippyGrid(BaseGrid):
         Precision (zoom) level (0-22), where higher values provide smaller tiles
     """
 
+    KEY = "sl"
     MIN_PRECISION = 0
     MAX_PRECISION = 22
     DEFAULT_PRECISION = 12
@@ -81,103 +81,6 @@ class SlippyGrid(BaseGrid):
 
         # Area (square)
         return tile_size_km * tile_size_km
-
-    def _deg2num(self, lat: float, lon: float) -> tuple[int, int]:
-        """
-        Convert latitude/longitude to tile numbers.
-
-        Parameters
-        ----------
-        lat : float
-            Latitude in degrees
-        lon : float
-            Longitude in degrees
-
-        Returns
-        -------
-        tuple
-            Tile X and Y coordinates
-        """
-        lat_rad = math.radians(lat)
-        n = 2.0**self.precision
-
-        x = int((lon + 180.0) / 360.0 * n)
-        y = int((1.0 - math.asinh(math.tan(lat_rad)) / math.pi) / 2.0 * n)
-
-        return x, y
-
-    def _num2deg(self, x: int, y: int) -> tuple[float, float, float, float]:
-        """
-        Convert tile numbers to bounding box coordinates.
-
-        Parameters
-        ----------
-        x : int
-            Tile X coordinate
-        y : int
-            Tile Y coordinate
-
-        Returns
-        -------
-        tuple
-            Bounding box as (min_lon, min_lat, max_lon, max_lat)
-        """
-        n = 2.0**self.precision
-
-        lon_min = x / n * 360.0 - 180.0
-        lat_max = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * y / n))))
-
-        lon_max = (x + 1) / n * 360.0 - 180.0
-        lat_min = math.degrees(math.atan(math.sinh(math.pi * (1 - 2 * (y + 1) / n))))
-
-        return lon_min, lat_min, lon_max, lat_max
-
-    def _create_tile_polygon(self, x: int, y: int) -> Polygon:
-        """
-        Create a Shapely polygon for a tile.
-
-        Parameters
-        ----------
-        x : int
-            Tile X coordinate
-        y : int
-            Tile Y coordinate
-
-        Returns
-        -------
-        Polygon
-            Polygon representing the tile boundary
-        """
-        min_lon, min_lat, max_lon, max_lat = self._num2deg(x, y)
-
-        return Polygon(
-            [
-                (min_lon, min_lat),
-                (max_lon, min_lat),
-                (max_lon, max_lat),
-                (min_lon, max_lat),
-                (min_lon, min_lat),
-            ]
-        )
-
-    @override
-    def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
-        """
-        Get the Slippy Map tile containing the given point.
-
-        Parameters
-        ----------
-        lat : float
-            Latitude coordinate
-        lon : float
-            Longitude coordinate
-
-        Returns
-        -------
-        GridCell
-            The tile containing the specified point
-        """
-        return cell_from_core(m3s_core.sl_cell_from_point(lat, lon, self.precision))
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -262,60 +165,6 @@ class SlippyGrid(BaseGrid):
             return cell_from_core(m3s_core.sl_parent(cell.identifier))
         except Exception:
             return None
-
-    @override
-    def get_cells_in_bbox(
-        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> list[GridCell]:
-        """
-        Get all tiles within the given bounding box.
-
-        Parameters
-        ----------
-        min_lat : float
-            Minimum latitude of bounding box
-        min_lon : float
-            Minimum longitude of bounding box
-        max_lat : float
-            Maximum latitude of bounding box
-        max_lon : float
-            Maximum longitude of bounding box
-
-        Returns
-        -------
-        list[GridCell]
-            List of tiles that intersect the bounding box
-        """
-        try:
-            # Get tile coordinates for corners
-            x_min, y_max = self._deg2num(max_lat, min_lon)  # Note: y is flipped
-            x_max, y_min = self._deg2num(min_lat, max_lon)
-
-            # Ensure we have valid ranges
-            max_coord = 2**self.precision
-            x_min = max(0, min(x_min, max_coord - 1))
-            x_max = max(0, min(x_max, max_coord - 1))
-            y_min = max(0, min(y_min, max_coord - 1))
-            y_max = max(0, min(y_max, max_coord - 1))
-
-            # Handle case where coordinates are swapped
-            if x_min > x_max:
-                x_min, x_max = x_max, x_min
-            if y_min > y_max:
-                y_min, y_max = y_max, y_min
-
-            tiles = []
-
-            # Generate all tiles in the bounding box
-            for x in range(x_min, x_max + 1):
-                for y in range(y_min, y_max + 1):
-                    tile_id = f"{self.precision}/{x}/{y}"
-                    polygon = self._create_tile_polygon(x, y)
-                    tiles.append(GridCell(tile_id, polygon, self.precision))
-
-            return tiles
-        except Exception:
-            return []
 
     def get_covering_cells(
         self, polygon: Polygon, max_cells: int = 100

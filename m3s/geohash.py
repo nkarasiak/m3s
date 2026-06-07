@@ -5,14 +5,13 @@ Geohash grid implementation.
 from typing import Any, override
 
 import m3s_core
-from shapely.geometry import Polygon
 
-from .base import BaseGrid, GridCell, cell_from_core
+from .base import CoreBackedGrid, GridCell, cell_from_core
 from .cache import cached_method, cell_cache_key, geo_cache_key
 from .projection_utils import get_utm_epsg_code
 
 
-class GeohashGrid(BaseGrid):
+class GeohashGrid(CoreBackedGrid):
     """
     Geohash-based spatial grid system.
 
@@ -20,6 +19,7 @@ class GeohashGrid(BaseGrid):
     encoding to create hierarchical rectangular grid cells.
     """
 
+    KEY = "gh"
     MIN_PRECISION = 1
     MAX_PRECISION = 12
     DEFAULT_PRECISION = 5
@@ -95,23 +95,6 @@ class GeohashGrid(BaseGrid):
         """
         return cell_from_core(m3s_core.gh_cell_from_point(lat, lon, self.precision))
 
-    @override
-    def get_cell_from_identifier(self, identifier: str) -> GridCell:
-        """
-        Get a geohash cell from its identifier.
-
-        Parameters
-        ----------
-        identifier : str
-            The geohash string identifier
-
-        Returns
-        -------
-        GridCell
-            The geohash grid cell with rectangular geometry
-        """
-        return cell_from_core(m3s_core.gh_cell_from_id(identifier))
-
     @cached_method(cache_key_func=cell_cache_key)
     @override
     def get_neighbors(self, cell: GridCell) -> list[GridCell]:
@@ -129,79 +112,6 @@ class GeohashGrid(BaseGrid):
             List of neighboring geohash cells
         """
         return [cell_from_core(n) for n in m3s_core.gh_neighbors(cell.identifier)]
-
-    @override
-    def get_cells_in_bbox(
-        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> list[GridCell]:
-        """Get all geohash cells within the given bounding box."""
-        cells = set()  # Use set to avoid duplicates
-
-        lat_step = self._get_lat_step()
-        lon_step = self._get_lon_step()
-
-        # Extend the sampling area to catch cells that intersect the boundary
-        # but whose centers might be outside the bbox
-        lat_margin = lat_step * 1.5
-        lon_margin = lon_step * 1.5
-
-        extended_min_lat = min_lat - lat_margin
-        extended_max_lat = max_lat + lat_margin
-        extended_min_lon = min_lon - lon_margin
-        extended_max_lon = max_lon + lon_margin
-
-        # Use denser sampling to ensure we don't miss cells
-        dense_lat_step = lat_step / 3
-        dense_lon_step = lon_step / 3
-
-        # Cap total sample points to keep runtime bounded at high precision.
-        lat_range = extended_max_lat - extended_min_lat
-        lon_range = extended_max_lon - extended_min_lon
-        lat_steps = max(2, int(lat_range / dense_lat_step))
-        lon_steps = max(2, int(lon_range / dense_lon_step))
-        total_points = (lat_steps + 1) * (lon_steps + 1)
-        max_points = 4000
-        if total_points > max_points:
-            scale = (max_points / total_points) ** 0.5
-            if scale > 0:
-                dense_lat_step /= scale
-                dense_lon_step /= scale
-
-        lat = extended_min_lat
-        while lat <= extended_max_lat:
-            lon = extended_min_lon
-            while lon <= extended_max_lon:
-                try:
-                    cell = self.get_cell_from_point(lat, lon)
-                    # Check if cell actually intersects with the original bbox
-                    bbox_polygon = Polygon(
-                        [
-                            (min_lon, min_lat),
-                            (max_lon, min_lat),
-                            (max_lon, max_lat),
-                            (min_lon, max_lat),
-                            (min_lon, min_lat),
-                        ]
-                    )
-                    if cell.polygon.intersects(bbox_polygon):
-                        cells.add(cell)
-                except Exception:
-                    # Skip invalid geohash cells at boundary conditions
-                    pass
-                lon += dense_lon_step
-            lat += dense_lat_step
-
-        return list(set(cells))
-
-    def _get_lat_step(self) -> float:
-        """Get approximate latitude step for the current precision."""
-        lat_bits = (self.precision * 5 + 1) // 2
-        return 180.0 / (2**lat_bits)
-
-    def _get_lon_step(self) -> float:
-        """Get approximate longitude step for the current precision."""
-        lon_bits = (self.precision * 5) // 2
-        return 360.0 / (2**lon_bits)
 
     def get_children(self, cell: GridCell) -> list[GridCell]:
         """

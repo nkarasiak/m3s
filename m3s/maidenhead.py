@@ -5,12 +5,10 @@ Maidenhead locator system grid implementation.
 from functools import cached_property
 from typing import override
 
-import m3s_core
-
-from .base import BaseGrid, GridCell, cell_from_core
+from .base import CoreBackedGrid, GridCell
 
 
-class MaidenheadGrid(BaseGrid):
+class MaidenheadGrid(CoreBackedGrid):
     """
     Maidenhead locator system spatial grid.
 
@@ -18,6 +16,7 @@ class MaidenheadGrid(BaseGrid):
     coordinate system with alternating letter/number pairs.
     """
 
+    KEY = "mh"
     MIN_PRECISION = 1
     MAX_PRECISION = 4
     DEFAULT_PRECISION = 4
@@ -187,59 +186,6 @@ class MaidenheadGrid(BaseGrid):
         north = south + lat_size
 
         return (south, west, north, east)
-
-    @override
-    def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
-        """
-        Get the grid cell containing the given point.
-
-        Parameters
-        ----------
-        lat : float
-            Latitude coordinate
-        lon : float
-            Longitude coordinate
-
-        Returns
-        -------
-        GridCell
-            The grid cell containing the specified point
-        """
-        return cell_from_core(m3s_core.mh_cell_from_point(lat, lon, self.precision))
-
-    @override
-    def get_cell_from_identifier(self, identifier: str) -> GridCell:
-        """
-        Get a grid cell from its identifier.
-
-        Parameters
-        ----------
-        identifier : str
-            The Maidenhead locator string
-
-        Returns
-        -------
-        GridCell
-            The grid cell corresponding to the identifier
-        """
-        return cell_from_core(m3s_core.mh_cell_from_id(identifier))
-
-    @override
-    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
-        """
-        Get neighboring cells of the given cell.
-
-        Parameters
-        ----------
-        cell : GridCell
-            The cell for which to find neighbors
-
-        Returns
-        -------
-        list[GridCell]
-            List of neighboring grid cells
-        """
-        return [cell_from_core(n) for n in m3s_core.mh_neighbors(cell.identifier)]
 
     @override
     def get_cells_in_bbox(

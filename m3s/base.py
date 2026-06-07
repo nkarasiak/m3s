@@ -705,3 +705,52 @@ class BaseGrid(ABC):
             return [
                 cell for cell in candidate_cells if cell.polygon.intersects(geometry)
             ]
+
+
+class CoreBackedGrid(BaseGrid):
+    """
+    Base for grids whose interface delegates to the shared Rust core.
+
+    A concrete grid sets :attr:`KEY` (its ``m3s_core`` function prefix, e.g.
+    ``"gh"`` for geohash); the four common operations resolve the matching
+    ``m3s_core.{KEY}_{op}`` function and wrap its ``(id, ring, precision)``
+    result via :func:`cell_from_core`. This holds the core-call contract in one
+    place instead of repeating it across every grid.
+
+    A grid overrides one of these methods only when it adds behaviour beyond the
+    bare delegation -- coordinate validation, error re-wrapping, result caching,
+    or non-core geometry (e.g. point-sampled / lattice bounding boxes). The
+    hierarchy interface (``get_children`` / ``get_parent``) is *not* defined here
+    because its edge semantics differ per grid (some raise at the coarsest
+    level, some return ``None`` or the cell itself), so each hierarchical grid
+    keeps its own.
+    """
+
+    KEY: ClassVar[str]
+
+    def _core(self, op: str) -> Any:
+        """Resolve the ``m3s_core`` function for ``op`` on this grid's ``KEY``."""
+        return getattr(m3s_core, f"{self.KEY}_{op}")
+
+    def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
+        """Get the cell containing ``(lat, lon)`` via the shared core."""
+        return cell_from_core(self._core("cell_from_point")(lat, lon, self.precision))
+
+    def get_cell_from_identifier(self, identifier: str) -> GridCell:
+        """Get the cell for ``identifier`` via the shared core."""
+        return cell_from_core(self._core("cell_from_id")(identifier))
+
+    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
+        """Get ``cell``'s neighbours via the shared core."""
+        return [cell_from_core(n) for n in self._core("neighbors")(cell.identifier)]
+
+    def get_cells_in_bbox(
+        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
+    ) -> list[GridCell]:
+        """Get the cells intersecting the bounding box via the shared core."""
+        return [
+            cell_from_core(c)
+            for c in self._core("cells_in_bbox")(
+                min_lat, min_lon, max_lat, max_lon, self.precision
+            )
+        ]

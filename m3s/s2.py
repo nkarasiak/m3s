@@ -12,10 +12,10 @@ from typing import override
 import m3s_core
 from shapely.geometry import Polygon
 
-from .base import BaseGrid, GridCell, cell_from_core
+from .base import CoreBackedGrid, GridCell, cell_from_core
 
 
-class S2Grid(BaseGrid):
+class S2Grid(CoreBackedGrid):
     """
     S2 spatial grid implementation.
 
@@ -30,6 +30,7 @@ class S2Grid(BaseGrid):
         S2 cell precision (0-30), where higher values provide smaller cells
     """
 
+    KEY = "s2"
     MIN_PRECISION = 0
     MAX_PRECISION = 30
     DEFAULT_PRECISION = 10
@@ -78,25 +79,6 @@ class S2Grid(BaseGrid):
         return earth_surface_km2 / total_cells
 
     @override
-    def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
-        """
-        Get the S2 cell containing the given point.
-
-        Parameters
-        ----------
-        lat : float
-            Latitude coordinate
-        lon : float
-            Longitude coordinate
-
-        Returns
-        -------
-        GridCell
-            The grid cell containing the specified point
-        """
-        return cell_from_core(m3s_core.s2_cell_from_point(lat, lon, self.precision))
-
-    @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """
         Get a grid cell from its S2 cell token.
@@ -115,23 +97,6 @@ class S2Grid(BaseGrid):
             return cell_from_core(m3s_core.s2_cell_from_id(identifier))
         except Exception as e:
             raise ValueError(f"Invalid S2 cell token: {identifier}") from e
-
-    @override
-    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
-        """
-        Get neighboring cells of the given cell.
-
-        Parameters
-        ----------
-        cell : GridCell
-            The cell for which to find neighbors
-
-        Returns
-        -------
-        list[GridCell]
-            List of neighboring grid cells
-        """
-        return [cell_from_core(n) for n in m3s_core.s2_neighbors(cell.identifier)]
 
     def get_children(self, cell: GridCell) -> list[GridCell]:
         """
@@ -170,43 +135,6 @@ class S2Grid(BaseGrid):
             return None
 
         return cell_from_core(m3s_core.s2_parent(cell.identifier))
-
-    @override
-    def get_cells_in_bbox(
-        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> list[GridCell]:
-        """
-        Get all grid cells within the given bounding box.
-
-        Parameters
-        ----------
-        min_lat : float
-            Minimum latitude of bounding box
-        min_lon : float
-            Minimum longitude of bounding box
-        max_lat : float
-            Maximum latitude of bounding box
-        max_lon : float
-            Maximum longitude of bounding box
-
-        Returns
-        -------
-        list[GridCell]
-            List of grid cells that intersect the bounding box
-
-        Notes
-        -----
-        Delegates to the shared core (``m3s_core.s2_cells_in_bbox``), which
-        enumerates every level-``precision`` cell intersecting the rectangle —
-        the same set ``s2sphere.RegionCoverer`` returns for a LatLngRect with
-        ``min_level == max_level == precision`` (verified against s2sphere).
-        """
-        return [
-            cell_from_core(c)
-            for c in m3s_core.s2_cells_in_bbox(
-                min_lat, min_lon, max_lat, max_lon, self.precision
-            )
-        ]
 
     def get_covering_cells(
         self, polygon: Polygon, max_cells: int = 100

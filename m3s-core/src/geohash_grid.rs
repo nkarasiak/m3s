@@ -122,8 +122,13 @@ pub fn cells_in_bbox(
         ));
     }
     let p = precision as u32;
-    let lat_step = 180.0 / 2f64.powi(((p * 5 + 1) / 2) as i32);
-    let lon_step = 360.0 / 2f64.powi(((p * 5) / 2) as i32);
+    // Geohash interleaves longitude first, so at odd total bit counts longitude
+    // gets the extra bit: lon_bits = ceil(5p/2), lat_bits = floor(5p/2). The cell
+    // is therefore 360/2^lon_bits wide by 180/2^lat_bits tall. (The earlier code
+    // assigned the extra bit to latitude, a half-height/double-width lattice that
+    // dropped the containing cell for zero-area boxes.)
+    let lon_step = 360.0 / 2f64.powi(((p * 5 + 1) / 2) as i32);
+    let lat_step = 180.0 / 2f64.powi(((p * 5) / 2) as i32);
     Ok(crate::cells_in_bbox_regular(
         min_lat, min_lon, max_lat, max_lon, lat_step, lon_step, -90.0, -180.0,
         cell_from_point, precision,

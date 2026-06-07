@@ -321,35 +321,6 @@ class TestQuadkeyGrid:
             assert cell.identifier == cell_from_id.identifier
             assert cell.polygon.equals(cell_from_id.polygon)
 
-    def test_pixel_tile_conversions(self, grid_level_10):
-        """Test internal pixel and tile coordinate conversions."""
-        lat, lon = 40.7128, -74.0060
-
-        # Test lat/lon to pixel conversion
-        pixel_x, pixel_y = grid_level_10._lat_lon_to_pixel_xy(lat, lon)
-        assert isinstance(pixel_x, int)
-        assert isinstance(pixel_y, int)
-        assert pixel_x >= 0
-        assert pixel_y >= 0
-
-        # Test pixel to tile conversion
-        tile_x, tile_y = grid_level_10._pixel_xy_to_tile_xy(pixel_x, pixel_y)
-        assert isinstance(tile_x, int)
-        assert isinstance(tile_y, int)
-        assert tile_x >= 0
-        assert tile_y >= 0
-
-        # Test tile to quadkey conversion
-        quadkey = grid_level_10._tile_xy_to_quadkey(tile_x, tile_y)
-        assert isinstance(quadkey, str)
-        assert len(quadkey) == 10
-        assert all(c in "0123" for c in quadkey)
-
-        # Test quadkey to tile conversion (round trip)
-        tile_x2, tile_y2 = grid_level_10._quadkey_to_tile_xy(quadkey)
-        assert tile_x == tile_x2
-        assert tile_y == tile_y2
-
     def test_repr(self, grid_level_10):
         """Test string representation of grid."""
         repr_str = repr(grid_level_10)

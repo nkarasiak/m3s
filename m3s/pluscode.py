@@ -3,14 +3,13 @@ Plus codes (Open Location Code) grid implementation.
 """
 
 from functools import cached_property
-from typing import override
 
 import m3s_core
 
-from .base import BaseGrid, GridCell, cell_from_core
+from .base import CoreBackedGrid, GridCell, cell_from_core
 
 
-class PlusCodeGrid(BaseGrid):
+class PlusCodeGrid(CoreBackedGrid):
     """
     Plus codes (Open Location Code) spatial grid system.
 
@@ -18,6 +17,7 @@ class PlusCodeGrid(BaseGrid):
     a base-20 encoding system to create hierarchical grid cells.
     """
 
+    KEY = "pc"
     MIN_PRECISION = 1
     MAX_PRECISION = 7
     DEFAULT_PRECISION = 5
@@ -186,65 +186,6 @@ class PlusCodeGrid(BaseGrid):
 
         return (south, west, north, east)
 
-    @override
-    def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
-        """
-        Get the grid cell containing the given point.
-
-        Parameters
-        ----------
-        lat : float
-            Latitude coordinate
-        lon : float
-            Longitude coordinate
-
-        Returns
-        -------
-        GridCell
-            The grid cell containing the specified point
-        """
-        return cell_from_core(m3s_core.pc_cell_from_point(lat, lon, self.precision))
-
-    @override
-    def get_cell_from_identifier(self, identifier: str) -> GridCell:
-        """
-        Get a grid cell from its identifier.
-
-        Parameters
-        ----------
-        identifier : str
-            The plus code identifier
-
-        Returns
-        -------
-        GridCell
-            The grid cell corresponding to the identifier
-
-        Raises
-        ------
-        ValueError
-            If the identifier contains characters outside the Plus Code
-            alphabet or is too short to encode a cell.
-        """
-        return cell_from_core(m3s_core.pc_cell_from_id(identifier))
-
-    @override
-    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
-        """
-        Get neighboring cells of the given cell.
-
-        Parameters
-        ----------
-        cell : GridCell
-            The cell for which to find neighbors
-
-        Returns
-        -------
-        list[GridCell]
-            List of neighboring grid cells
-        """
-        return [cell_from_core(n) for n in m3s_core.pc_neighbors(cell.identifier)]
-
     def get_children(self, cell: GridCell) -> list[GridCell]:
         """
         Get the child cells one precision level finer.
@@ -293,41 +234,3 @@ class PlusCodeGrid(BaseGrid):
                 "Cell has no parent (already at the coarsest plus code precision)"
             )
         return cell_from_core(m3s_core.pc_parent(cell.identifier))
-
-    @override
-    def get_cells_in_bbox(
-        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> list[GridCell]:
-        """
-        Get all grid cells within the given bounding box.
-
-        Parameters
-        ----------
-        min_lat : float
-            Minimum latitude of bounding box
-        min_lon : float
-            Minimum longitude of bounding box
-        max_lat : float
-            Maximum latitude of bounding box
-        max_lon : float
-            Maximum longitude of bounding box
-
-        Returns
-        -------
-        list[GridCell]
-            List of grid cells that intersect the bounding box
-
-        Notes
-        -----
-        Plus-code cells form a regular square lon/lat lattice, so this returns
-        the exact, complete set of intersecting cells from the shared core
-        (``m3s_core.pc_cells_in_bbox``). It replaces the former dense
-        point-sampling, whose 5%-cell margin and epsilon-expanded boundaries
-        could include a few cells just outside the box.
-        """
-        return [
-            cell_from_core(c)
-            for c in m3s_core.pc_cells_in_bbox(
-                min_lat, min_lon, max_lat, max_lon, self.precision
-            )
-        ]
