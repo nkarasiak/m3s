@@ -179,6 +179,7 @@ const BBOX_FNS = {
   a5: wasm.a5_cells_in_bbox,
   h3: wasm.h3_cells_in_bbox,
   s2: wasm.s2_cells_in_bbox,
+  mgrs: wasm.mgrs_cells_in_bbox,
 };
 
 const loadBbox = (g) =>
@@ -198,6 +199,7 @@ const ALL_BBOX = [
   ...loadBbox("a5"),
   ...loadBbox("h3"),
   ...loadBbox("s2"),
+  ...loadBbox("mgrs"),
 ];
 
 for (const [grid, rec] of ALL_BBOX) {

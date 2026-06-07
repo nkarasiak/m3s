@@ -42,7 +42,7 @@ pub(crate) fn rect_ring(min_lon: f64, min_lat: f64, max_lon: f64, max_lat: f64) 
 }
 
 /// Axis-aligned `(min_lon, min_lat, max_lon, max_lat)` bbox of a ring.
-fn ring_bbox(ring: &[[f64; 2]]) -> (f64, f64, f64, f64) {
+pub(crate) fn ring_bbox(ring: &[[f64; 2]]) -> (f64, f64, f64, f64) {
     let (mut mnx, mut mny, mut mxx, mut mxy) =
         (f64::INFINITY, f64::INFINITY, f64::NEG_INFINITY, f64::NEG_INFINITY);
     for p in ring {

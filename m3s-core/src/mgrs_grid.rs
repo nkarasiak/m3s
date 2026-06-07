@@ -129,3 +129,47 @@ pub fn neighbors(id: &str) -> Result<Vec<Cell>, String> {
     }
     Ok(out)
 }
+
+/// All cells intersecting the bbox at `precision`. Mirrors
+/// `MGRSGrid.get_cells_in_bbox`: dense lat/lon point-sampling over the bbox
+/// extended by 1.5 cells, each sample's cell kept (deduped) iff it intersects
+/// the original box. MGRS is not a lon/lat lattice (UTM), so this stays a
+/// sampling heuristic; degenerate points that `geoconvert` rejects are skipped
+/// (like the Python try/except). Cell rings are UTM-projected (near- but not
+/// exactly axis-aligned), so the intersection uses the ring's bbox envelope.
+pub fn cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<Vec<Cell>, String> {
+    let grid_size_deg = grid_size_m(precision) / 111320.0;
+    let margin = grid_size_deg * 1.5;
+    let (emin_lat, emax_lat) = (min_lat - margin, max_lat + margin);
+    let (emin_lon, emax_lon) = (min_lon - margin, max_lon + margin);
+    let bbox_h = emax_lat - emin_lat;
+    let bbox_w = emax_lon - emin_lon;
+    let lat_samples = (((bbox_h / grid_size_deg) as i64) * 3 + 5).clamp(10, 50);
+    let lon_samples = (((bbox_w / grid_size_deg) as i64) * 3 + 5).clamp(10, 50);
+    let lat_step = bbox_h / lat_samples as f64;
+    let lon_step = bbox_w / lon_samples as f64;
+    let target = (min_lon, min_lat, max_lon, max_lat);
+
+    let mut seen = std::collections::HashSet::new();
+    let mut out = Vec::new();
+    for i in 0..=lat_samples {
+        for j in 0..=lon_samples {
+            let lat = emin_lat + i as f64 * lat_step;
+            let lon = emin_lon + j as f64 * lon_step;
+            if let Ok(cell) = cell_from_point(lat, lon, precision) {
+                if crate::rects_intersect(crate::ring_bbox(&cell.ring), target)
+                    && seen.insert(cell.id.clone())
+                {
+                    out.push(cell);
+                }
+            }
+        }
+    }
+    Ok(out)
+}

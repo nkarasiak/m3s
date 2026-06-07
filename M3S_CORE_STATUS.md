@@ -37,8 +37,8 @@ package — proving parity before any migration.
 | P2 | eaquad, mgrs | ✅ done |
 | P3 | a5, s2 | ✅ done — all 12 grids ported |
 | P4a | Python pkg onto core | ✅ done — all 12 grids' cell ops delegate to `m3s_core` |
-| P5 | core bbox/covering | 🔶 in progress — 11/12 bbox done (see §10) |
-| P4b | browser examples → web WASM | ⬜ blocked on P5 |
+| P5 | core bbox | ✅ 12/12 grids' bbox in core (see §10) |
+| P4b | browser examples → web WASM | ✅ 12/12 tilers WASM-backed |
 
 **Parity: Python 181/181, JS 181/181**, plus 4 geodesic-area tests. All green.
 P0+P1 (8 grids) are committed on branch `feat/rust-wasm-core`; P2 (eaquad, mgrs),
@@ -208,7 +208,7 @@ Then run the §6 commands. Green = done.
   `test_h3_verbs` boundary parity is `pytest.approx` (~1e-13) not byte-exact —
   same class of re-baseline as area (ADR §3).
 
-### P4b — browser examples → web WASM  ✅ 11/12 wired (mgrs deferred)
+### P4b — browser examples → web WASM  ✅ 12/12 tilers WASM-backed
 **Build prerequisite:** `wasm-pack build bindings/js --target web --out-dir pkg-web`
 (gitignored) before building docs with wasm examples. It exports
 `<prefix>_cells_in_bbox(min_lat,min_lon,max_lat,max_lon,res)` + per-cell fns,
@@ -223,16 +223,17 @@ hand-rolled base-32 lattice math is gone. Verified via Playwright: WASM
 instantiates, the tiler returns valid cells, deck.gl renders the two-resolution
 grid (screenshot confirmed). ~960 KB HTML per wasm example (mostly base64 wasm).
 
-**Done (11/12):** geohash, quadkey, slippy, gars, maidenhead, csquares, pluscode,
-eaquad, a5, h3, s2 tilers now call `__M3S__.<prefix>_cells_in_bbox(...)` and map
-`.ring` — all hand-rolled math deleted (net −400 LOC). Dropped the CDN libs:
-h3-js, a5-js, proj4 (eaquad), s2-geometry/long.js (s2). Verified via Playwright
-(quadkey/a5/h3/s2 instantiate the wasm + return valid cells, no page errors).
-**mgrs** keeps its hand-JS tiler (no core bbox; UTM deferred). Note: the core h3/s2
-rings can cross the antimeridian for cells near ±180 (the old hand-JS unwrapped
-seams) — fine for the current viewports; revisit if an example pans to the dateline.
+**Done (12/12):** every tiler — geohash, quadkey, slippy, gars, maidenhead,
+csquares, pluscode, eaquad, a5, h3, s2, mgrs — now calls
+`__M3S__.<prefix>_cells_in_bbox(...)` and maps `.ring`; all hand-rolled
+lattice/projection/seam math deleted (net ~−450 LOC). Dropped the CDN libs:
+h3-js, a5-js, proj4 (eaquad + mgrs), s2-geometry/long.js (s2), mgrs.js.
+Verified via Playwright (quadkey/a5/h3/s2/mgrs instantiate the wasm + return valid
+cells, no page errors). Note: the core h3/s2 rings can cross the antimeridian for
+cells near ±180 (the old hand-JS unwrapped seams) — fine for the current
+viewports; revisit if an example pans to the dateline.
 
-## 10. P5 — core bbox / covering (in progress)
+## 10. P5 — core bbox (12/12 done) + P4b WASM tilers
 
 Goal: grow `m3s-core` with `<prefix>_cells_in_bbox` (and covering) so the Python
 `get_cells_in_bbox` and the browser tilers (P4b) share one engine, unblocking the
@@ -276,19 +277,22 @@ and `parity.cjs`. Grids are added to `BBOX` (generate.py), `BBOX_FNS`
   float_extras). Python bbox migrated. ⚠️ NOT yet: `get_covering_cells` (arbitrary
   polygons, not just a rect) + s2sphere drop. Cap: core returns the complete set
   vs RegionCoverer's `max_cells=1000` truncation for very large boxes.
+- mgrs — `mgrs_cells_in_bbox` reproduces the Python dense lat/lon point-sampling
+  (MGRS is UTM, not a lattice): same f64 sample loop + 1.5-cell margin, cells
+  kept by ring-envelope intersect, zone-edge/degenerate points skipped (Python's
+  try/except). Matches PROJ-backed Python for a single-zone bbox (golden uses a
+  Stuttgart box via `BBOX_RECT_FOR`, not the lon-0 London one that straddles the
+  zone 30/31 boundary where geoconvert is degenerate). Python bbox migrated; dead
+  `_grid_size_to_degrees` + `math`/`Polygon` imports removed.
 
-Parity total now **203** (181 + 22 bbox). **11/12 bbox in core** (all but mgrs).
+Parity total now **205** (181 + 24 bbox). **12/12 bbox in core.**
 
 **Key parity lesson — `py_floordiv` (lib.rs):** CPython's float `//` is NOT
 `(a/b).floor()` (e.g. `180.0 // 0.1 == 1799`, not 1800, due to divmod's
 snap-to-nearest). `cells_in_bbox_regular` must use the reproduced CPython
 algorithm for its col/row bounds or it over-scans a column at lattice seams.
 
-**Remaining bbox (1/12):**
-- **mgrs** — DEFERRED: UTM, not a lon/lat lattice; its Python bbox stays
-  point-sampling (drops no dep). Revisit only if browser MGRS tiling needs it.
-
-**Task #8 — covering + dep-drops + cleanup:**
+**Task #8 — dep-drops + cleanup:**
 - ✅ eaquad pyproj-coupled dead code removed (`_get_transformers`,
   `_make_polygon`, `_make_cell`, + `pyproj`/`lru_cache`/`Polygon` imports);
   `test_eaquad`'s pyproj oracle rewired to a lon-span comparison. Full suite green.

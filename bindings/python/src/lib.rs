@@ -383,6 +383,19 @@ fn mgrs_neighbors(id: &str) -> PyResult<Vec<PyCell>> {
     mgrs::neighbors(id).map(to_py_vec).map_err(err)
 }
 
+#[pyfunction]
+fn mgrs_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> PyResult<Vec<PyCell>> {
+    mgrs::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision)
+        .map(to_py_vec)
+        .map_err(err)
+}
+
 // ---- eaquad -----------------------------------------------------------------
 
 #[pyfunction]
@@ -526,6 +539,7 @@ fn m3s_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(mgrs_cell_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(mgrs_cell_from_id, m)?)?;
     m.add_function(wrap_pyfunction!(mgrs_neighbors, m)?)?;
+    m.add_function(wrap_pyfunction!(mgrs_cells_in_bbox, m)?)?;
     m.add_function(wrap_pyfunction!(eaq_cell_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(eaq_cell_from_id, m)?)?;
     m.add_function(wrap_pyfunction!(eaq_neighbors, m)?)?;

@@ -60,6 +60,10 @@ GRIDS = {
 # must reproduce exactly. Per-grid precisions chosen to keep the frozen set small.
 # Grids are added here as their core `*_cells_in_bbox` lands (ADR P4 bbox phase).
 BBOX_RECT = (51.40, -0.20, 51.60, 0.00)  # (min_lat, min_lon, max_lat, max_lon)
+# Per-grid bbox override. mgrs's default London box straddles lon 0 (the UTM
+# zone 30/31 boundary, a geoconvert-degenerate edge); use a box well inside a
+# single zone (Stuttgart, zone 32) so the core and PROJ-backed Python agree.
+BBOX_RECT_FOR = {"mgrs": (48.40, 9.40, 48.60, 9.60)}
 BBOX = {
     "slippy": [8, 11],
     "quadkey": [8, 11],
@@ -72,6 +76,7 @@ BBOX = {
     "a5": [5, 10],
     "h3": [5, 7],
     "s2": [5, 10],
+    "mgrs": [1, 3],
 }
 
 OUT = Path(__file__).parent
@@ -109,8 +114,8 @@ def build(grid_cls, precisions, hierarchical, points):
     return out
 
 
-def build_bbox(grid_cls, precisions):
-    min_lat, min_lon, max_lat, max_lon = BBOX_RECT
+def build_bbox(grid_cls, precisions, rect=BBOX_RECT):
+    min_lat, min_lon, max_lat, max_lon = rect
     out = []
     for p in precisions:
         grid = grid_cls(p)
@@ -118,7 +123,7 @@ def build_bbox(grid_cls, precisions):
         out.append(
             {
                 "precision": p,
-                "bbox": list(BBOX_RECT),
+                "bbox": list(rect),
                 "cells": sorted(c.identifier for c in cells),
             }
         )
@@ -133,8 +138,9 @@ def main():
         )
     for name, precisions in BBOX.items():
         grid_cls = GRIDS[name][0]
+        rect = BBOX_RECT_FOR.get(name, BBOX_RECT)
         (OUT / f"{name}_bbox.json").write_text(
-            json.dumps(build_bbox(grid_cls, precisions), indent=2)
+            json.dumps(build_bbox(grid_cls, precisions, rect), indent=2)
         )
     print(f"wrote golden vectors for {', '.join(GRIDS)} to {OUT}")
     print(f"wrote bbox golden for {', '.join(BBOX)}")

@@ -26,9 +26,6 @@ DeckExplorer(
     center=(2.35, 48.85),
     zoom=7,
     grid_js=read_grid_js("mgrs"),
-    scripts=[
-        "https://cdn.jsdelivr.net/npm/proj4@2.11.0/dist/proj4.js",
-        "https://cdn.jsdelivr.net/npm/mgrs@2.1.0/dist/mgrs.js",
-    ],
     hover="#332288",
+    wasm=True,
 )

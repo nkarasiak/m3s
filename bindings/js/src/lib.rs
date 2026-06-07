@@ -378,6 +378,17 @@ pub fn mgrs_neighbors(id: &str) -> Result<JsValue, JsValue> {
     cells(mgrs::neighbors(id))
 }
 
+#[wasm_bindgen]
+pub fn mgrs_cells_in_bbox(
+    min_lat: f64,
+    min_lon: f64,
+    max_lat: f64,
+    max_lon: f64,
+    precision: u8,
+) -> Result<JsValue, JsValue> {
+    cells(mgrs::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision))
+}
+
 // ---- eaquad -----------------------------------------------------------------
 
 #[wasm_bindgen]

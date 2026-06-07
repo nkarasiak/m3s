@@ -2,12 +2,10 @@
 MGRS (Military Grid Reference System) grid implementation.
 """
 
-import math
 import re
 from typing import Any, override
 
 import m3s_core
-from shapely.geometry import Polygon
 
 from .base import BaseGrid, GridCell, cell_from_core
 
@@ -119,78 +117,24 @@ class MGRSGrid(BaseGrid):
         """Get neighboring MGRS cells."""
         return [cell_from_core(n) for n in m3s_core.mgrs_neighbors(cell.identifier)]
 
-    def _grid_size_to_degrees(self, lat: float) -> float:
-        """Convert grid size from meters to approximate degrees."""
-        grid_size_m = self._get_grid_size()
-
-        lat_deg_per_m = 1.0 / 111320.0
-
-        # Clamp latitude to avoid division by zero at poles
-        lat_clamped = max(-89.9, min(89.9, lat))
-        cos_lat = math.cos(math.radians(lat_clamped))
-
-        # Ensure cos_lat is not zero (additional safety)
-        cos_lat = max(0.001, cos_lat)
-
-        return grid_size_m * lat_deg_per_m
-
     @override
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
     ) -> list[GridCell]:
-        """Get all MGRS cells within the given bounding box."""
-        cells = set()  # Use set to avoid duplicates
+        """Get all MGRS cells within the given bounding box.
 
-        # For large grids, use a denser sampling pattern to ensure we don't miss cells
-        grid_size_deg = self._grid_size_to_degrees((min_lat + max_lat) / 2)
-
-        # Extend the sampling area to catch cells that intersect the boundary
-        # but whose centers might be outside the bbox
-        margin = grid_size_deg * 1.5
-
-        extended_min_lat = min_lat - margin
-        extended_max_lat = max_lat + margin
-        extended_min_lon = min_lon - margin
-        extended_max_lon = max_lon + margin
-
-        # Use smaller step size for sampling, especially for large grid cells
-        bbox_width = extended_max_lon - extended_min_lon
-        bbox_height = extended_max_lat - extended_min_lat
-
-        # Ensure we sample densely enough to catch boundary intersections
-        lat_samples = max(10, min(50, int(bbox_height / grid_size_deg) * 3 + 5))
-        lon_samples = max(10, min(50, int(bbox_width / grid_size_deg) * 3 + 5))
-
-        lat_step = bbox_height / lat_samples if lat_samples > 1 else bbox_height
-        lon_step = bbox_width / lon_samples if lon_samples > 1 else bbox_width
-
-        # Create bbox polygon for intersection testing
-        bbox_polygon = Polygon(
-            [
-                (min_lon, min_lat),
-                (max_lon, min_lat),
-                (max_lon, max_lat),
-                (min_lon, max_lat),
-                (min_lon, min_lat),
-            ]
-        )
-
-        # Sample points across the extended bounding box
-        for i in range(lat_samples + 1):
-            for j in range(lon_samples + 1):
-                lat = extended_min_lat + (i * lat_step)
-                lon = extended_min_lon + (j * lon_step)
-
-                try:
-                    cell = self.get_cell_from_point(lat, lon)
-                    # Check if cell actually intersects with the original bbox
-                    if cell.polygon.intersects(bbox_polygon):
-                        cells.add(cell)
-                except Exception:
-                    # Skip points that can't be converted to MGRS
-                    pass
-
-        return list(cells)
+        Delegates to the shared core (``m3s_core.mgrs_cells_in_bbox``), which
+        reproduces this grid's dense lat/lon point-sampling (MGRS is UTM-based,
+        not a lon/lat lattice). Zone-edge / equator-meridian points that the
+        core's ``geoconvert`` backend rejects are skipped, as the Python path
+        skipped points that failed MGRS conversion.
+        """
+        return [
+            cell_from_core(c)
+            for c in m3s_core.mgrs_cells_in_bbox(
+                min_lat, min_lon, max_lat, max_lon, self.precision
+            )
+        ]
 
     @override
     def _get_additional_columns(self, cell: GridCell) -> dict[str, Any]:
