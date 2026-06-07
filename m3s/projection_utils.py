@@ -6,13 +6,9 @@ grid system implementations.
 """
 
 import functools
-import logging
 
-import pyproj
 from shapely.geometry import Polygon
-from shapely.ops import transform
 
-from .cache import get_spatial_cache
 from .constants import (
     EARTH_RADIUS_KM,
     UTM_NORTH_HEMISPHERE_BASE_EPSG,
@@ -20,16 +16,14 @@ from .constants import (
     UTM_ZONE_WIDTH_DEGREES,
 )
 
-logger = logging.getLogger(__name__)
-
 
 @functools.lru_cache(maxsize=256)
 def get_utm_epsg_code(lat: float, lon: float) -> int:
     """
     Get the EPSG code for the optimal UTM zone at a given location.
 
-    Uses PyProj 3.5+ auto-detection when available, with fallback to
-    manual calculation. Results are cached for performance.
+    Computed from the 6°-wide UTM zone of ``lon`` and the hemisphere of ``lat``
+    (north base ``32600`` / south base ``32700`` + zone). Results are cached.
 
     Parameters
     ----------
@@ -50,129 +44,11 @@ def get_utm_epsg_code(lat: float, lon: float) -> int:
     >>> get_utm_epsg_code(-33.9, 18.4)  # Cape Town
     32734
     """
-    try:
-        from pyproj.aoi import AreaOfInterest
-        from pyproj.database import query_utm_crs_info
-
-        # Use PyProj 3.5+ auto-detection
-        aoi = AreaOfInterest(
-            west_lon_degree=lon,
-            south_lat_degree=lat,
-            east_lon_degree=lon,
-            north_lat_degree=lat,
-        )
-
-        utm_crs_list = query_utm_crs_info(
-            datum_name="WGS 84",
-            area_of_interest=aoi,
-        )
-
-        if utm_crs_list:
-            # Extract EPSG code as integer
-            code = int(utm_crs_list[0].code)
-            return code
-
-    except (ImportError, AttributeError) as e:
-        logger.debug(f"PyProj 3.5+ not available: {e}. Using manual calculation.")
-
-    # Fallback: manual UTM calculation
     utm_zone = int((lon + 180) / UTM_ZONE_WIDTH_DEGREES) + 1
     base_code = (
         UTM_NORTH_HEMISPHERE_BASE_EPSG if lat >= 0 else UTM_SOUTH_HEMISPHERE_BASE_EPSG
     )
     return base_code + utm_zone
-
-
-@functools.lru_cache(maxsize=128)
-def get_utm_transformer(lat: float, lon: float) -> pyproj.Transformer:
-    """
-    Get a cached Transformer for WGS84 to optimal UTM projection.
-
-    Parameters
-    ----------
-    lat : float
-        Latitude in degrees
-    lon : float
-        Longitude in degrees
-
-    Returns
-    -------
-    pyproj.Transformer
-        Transformer from WGS84 (EPSG:4326) to UTM
-
-    Examples
-    --------
-    >>> transformer = get_utm_transformer(40.7, -74.0)
-    >>> x, y = transformer.transform(-74.0, 40.7)
-    """
-    epsg_code = get_utm_epsg_code(lat, lon)
-    return pyproj.Transformer.from_crs("EPSG:4326", f"EPSG:{epsg_code}", always_xy=True)
-
-
-def calculate_polygon_area_km2(
-    polygon: Polygon, cache_key: str | None = None, use_cache: bool = True
-) -> float:
-    """
-    Calculate polygon area in square kilometers using equal-area projection.
-
-    Automatically selects the optimal UTM zone based on polygon centroid
-    and uses equal-area projection for accurate area calculation.
-
-    Parameters
-    ----------
-    polygon : Polygon
-        Shapely polygon to measure
-    cache_key : str | None, optional
-        Key for caching the result
-    use_cache : bool, optional
-        Whether to use caching, by default True
-
-    Returns
-    -------
-    float
-        Area in square kilometers
-
-    Examples
-    --------
-    >>> from shapely.geometry import box
-    >>> polygon = box(-74.01, 40.70, -74.00, 40.71)
-    >>> area = calculate_polygon_area_km2(polygon)
-    >>> 0.9 < area < 1.0  # Approximately 0.94 km²
-    True
-    """
-    # Check cache first
-    if use_cache and cache_key:
-        cache = get_spatial_cache()
-        cached_area = cache.get_area(cache_key)
-        if cached_area is not None:
-            return cached_area
-
-    try:
-        # Get centroid for UTM zone determination
-        centroid = polygon.centroid
-        lon, lat = centroid.x, centroid.y
-
-        # Get transformer for optimal UTM projection
-        transformer = get_utm_transformer(lat, lon)
-
-        # Transform polygon to UTM
-        projected_polygon = transform(transformer.transform, polygon)
-
-        # Calculate area in square meters, convert to km²
-        area_m2 = projected_polygon.area
-        area_km2 = area_m2 / 1_000_000
-
-        # Cache if requested
-        if use_cache and cache_key:
-            cache = get_spatial_cache()
-            cache.put_area(cache_key, area_km2)
-
-        return area_km2
-
-    except Exception as e:
-        # Fallback: spherical approximation
-        logger.warning(f"UTM projection failed: {e}. Using spherical approximation.")
-        return calculate_polygon_area_spherical(polygon)
 
 
 def calculate_polygon_area_spherical(polygon: Polygon) -> float:
@@ -305,8 +181,6 @@ def format_utm_crs_string(lat: float, lon: float) -> str:
 # Export commonly used functions
 __all__ = [
     "get_utm_epsg_code",
-    "get_utm_transformer",
-    "calculate_polygon_area_km2",
     "calculate_polygon_area_spherical",
     "get_utm_zone_number",
     "get_utm_hemisphere",

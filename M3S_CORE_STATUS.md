@@ -257,9 +257,9 @@ and `parity.cjs`. Grids are added to `BBOX` (generate.py), `BBOX_FNS`
 - eaquad — `eaq_cells_in_bbox` projects the box edges with the core's own
   closed-form EPSG:6933 (no PROJ), floor-div col/row span, intersect-filter.
   Matched pyproj-Python exactly. Python bbox migrated to core; full suite green.
-  ⚠️ pyproj NOT yet dropped: `test_eaquad` still uses `_get_transformers` (pyproj)
-  as a projection oracle (line ~259) and the now-dead `_make_cell`/`_make_polygon`
-  remain. Drop both in the Task-#8 cleanup after rewiring that test.
+  ✅ pyproj-coupled dead code (`_get_transformers`/`_make_polygon`/`_make_cell`)
+  removed and `test_eaquad`'s oracle rewired (the project-wide pyproj drop landed
+  later via `projection_utils`).
 - a5 — `a5_cells_in_bbox` via the a5 crate's `polygon_to_cells` + `uncompact`
   (densify ring + corner/centre sampling). Matched pya5 exactly. Python bbox
   migrated to core. ✅ **pya5 dropped:** added core `a5_cell_area_m2` +
@@ -303,9 +303,11 @@ algorithm for its col/row bounds or it over-scans a column at lattice seams.
 - ✅ h3 `_get_cells_in_bbox_fallback` (~62 lines) removed.
 - **Remaining dep-drops — each is a per-dep surface port + test rewire, NOT an
   unused-import removal:**
-  - `pyproj` — `m3s/projection_utils.py` uses it for UTM-CRS lookup
-    (`query_utm_crs_info`) + `Transformer`, feeding every grid's UTM column. Port
-    UTM logic to drop. (eaquad's own pyproj use is already gone.)
+  - ✅ **`pyproj` dropped:** `projection_utils.get_utm_epsg_code` now uses the
+    manual zone→EPSG calc only (the pyproj auto-detect was just an optimization
+    with an identical fallback); the dead `get_utm_transformer` +
+    `calculate_polygon_area_km2` (obsolete since area is core-geodesic) removed.
+    Gone from deps + mypy.
   - `h3` — large h3-verbs surface (`cell_to_*`, `cell_area`, compact, edge length)
     + `test_h3`/`test_h3_verbs` oracles. Biggest; likely keep.
   - `s2sphere` — `get_covering_cells` (arbitrary-polygon covering) +
