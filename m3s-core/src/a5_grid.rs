@@ -7,8 +7,8 @@
 
 use crate::Cell;
 use a5::{
-    cell_to_boundary, cell_to_children, cell_to_parent, get_resolution, grid_disk, hex_to_u64,
-    lonlat_to_cell, polygon_to_cells, u64_to_hex, uncompact, LonLat,
+    cell_area, cell_to_boundary, cell_to_children, cell_to_parent, get_resolution, grid_disk,
+    hex_to_u64, lonlat_to_cell, polygon_to_cells, u64_to_hex, uncompact, LonLat,
 };
 use std::collections::BTreeSet;
 
@@ -131,4 +131,15 @@ pub fn cells_in_bbox(
     }
 
     ids.into_iter().map(make_cell).collect()
+}
+
+/// Cell area in m² at `precision` (the a5 crate's authalic `cell_area`). The
+/// Python `A5Grid.area_km2` divides this by 1e6.
+pub fn cell_area_m2(precision: u8) -> f64 {
+    cell_area(precision as i32)
+}
+
+/// Resolution (precision) encoded in a hex cell id.
+pub fn resolution(id: &str) -> Result<u8, String> {
+    Ok(get_resolution(id_to_u64(id)?) as u8)
 }

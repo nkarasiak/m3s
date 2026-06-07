@@ -1,12 +1,12 @@
 """
 Tests for the A5 pentagonal grid implementation.
 
-A5Grid is a thin adapter over the ``pya5`` library; these tests check the
-BaseGrid contract and the adapter's coordinate-order / identifier handling
-rather than re-testing pya5's geometry.
+A5Grid is a thin adapter over the shared ``m3s_core`` A5 grid; these tests check
+the BaseGrid contract and the adapter's coordinate-order / identifier handling
+rather than re-testing the core's geometry.
 """
 
-import a5
+import m3s_core
 import pytest
 from shapely.geometry import Point, Polygon
 
@@ -25,9 +25,9 @@ class TestA5Init:
         assert grid.area_km2 == pytest.approx(519.0, rel=0.01)
 
     def test_precision_range(self):
-        """MIN/MAX mirror pya5 (0..30)."""
+        """MIN/MAX mirror the A5 spec (0..30)."""
         assert MIN_PRECISION == 0
-        assert MAX_PRECISION == a5.MAX_RESOLUTION == 30
+        assert MAX_PRECISION == 30
 
     def test_init_invalid_precision(self):
         """Out-of-range precision raises ValueError."""
@@ -37,9 +37,9 @@ class TestA5Init:
             A5Grid(precision=31)
 
     @pytest.mark.parametrize("precision", [0, 1, 5, 9, 20, 30])
-    def test_area_km2_matches_pya5(self, precision):
-        """Grid area is pya5's authalic cell_area (m^2) converted to km^2."""
-        assert A5Grid(precision).area_km2 == a5.cell_area(precision) / 1e6
+    def test_area_km2_matches_core(self, precision):
+        """Grid area is the core's authalic cell area (m^2) converted to km^2."""
+        assert A5Grid(precision).area_km2 == m3s_core.a5_cell_area_m2(precision) / 1e6
 
 
 class TestA5Cells:
@@ -77,7 +77,7 @@ class TestA5Cells:
         assert len(cell.identifier) == 16
         assert set(cell.identifier) <= set("0123456789abcdef")
         # resolution is encoded in the id, not in a fixed-length prefix
-        assert a5.get_resolution(a5.hex_to_u64(cell.identifier)) == 9
+        assert m3s_core.a5_resolution(cell.identifier) == 9
 
     def test_invalid_identifier(self):
         """A non-hex identifier raises ValueError."""

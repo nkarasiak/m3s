@@ -366,6 +366,16 @@ fn a5_cells_in_bbox(
         .map_err(err)
 }
 
+#[pyfunction]
+fn a5_cell_area_m2(precision: u8) -> f64 {
+    a5::cell_area_m2(precision)
+}
+
+#[pyfunction]
+fn a5_resolution(id: &str) -> PyResult<u8> {
+    a5::resolution(id).map_err(err)
+}
+
 // ---- mgrs (non-hierarchical) ------------------------------------------------
 
 #[pyfunction]
@@ -536,6 +546,8 @@ fn m3s_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(a5_children, m)?)?;
     m.add_function(wrap_pyfunction!(a5_parent, m)?)?;
     m.add_function(wrap_pyfunction!(a5_cells_in_bbox, m)?)?;
+    m.add_function(wrap_pyfunction!(a5_cell_area_m2, m)?)?;
+    m.add_function(wrap_pyfunction!(a5_resolution, m)?)?;
     m.add_function(wrap_pyfunction!(mgrs_cell_from_point, m)?)?;
     m.add_function(wrap_pyfunction!(mgrs_cell_from_id, m)?)?;
     m.add_function(wrap_pyfunction!(mgrs_neighbors, m)?)?;

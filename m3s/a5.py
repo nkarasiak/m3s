@@ -8,38 +8,35 @@ exactly into its parent (aperture-4 above resolution 1) on a true equal-area
 projection that accounts for the ellipsoidal shape of the Earth. See
 https://a5geo.org/.
 
-This module is a thin adapter over the official ``pya5`` library
-(``felixpalmer/a5-py``, imported as :mod:`a5`); all of the dodecahedral
-geometry, Hilbert-curve indexing and equal-area projection live there. M3S only
-maps ``pya5`` onto the :class:`~m3s.base.BaseGrid` interface.
+This module is a thin adapter over the shared ``m3s_core`` A5 grid (the Rust
+``a5`` crate, ``felixpalmer/a5-rs`` — the same source ``pya5`` binds); all of the
+dodecahedral geometry, Hilbert-curve indexing and equal-area projection live
+there. M3S only maps it onto the :class:`~m3s.base.BaseGrid` interface.
 
 .. note::
-    Cell identifiers are the ``pya5`` 64-bit cell id rendered as a 16-character
+    Cell identifiers are the A5 64-bit cell id rendered as a 16-character
     hexadecimal string (e.g. ``"63c20e0000000000"``). The resolution is encoded
     in the id itself, so identifiers round-trip without any extra state and a
     cell's :attr:`~m3s.base.GridCell.precision` is read straight from the id.
 
 .. note::
-    Coverage is global. ``pya5`` uses GIS-native ``(lon, lat)`` order; this
+    Coverage is global. The core uses GIS-native ``(lon, lat)`` order; this
     wrapper exposes the M3S ``(lat, lon)`` order on
     :meth:`A5Grid.get_cell_from_point` and swaps at the boundary. Pentagons that
     cross the antimeridian yield a raw lon/lat polygon spanning >180 deg (the
     same caveat the other global M3S grids carry).
 """
 
-import math
 from typing import override
 
-import a5
 import m3s_core
-from shapely.geometry import Polygon
 
 from .base import BaseGrid, GridCell, cell_from_core
 
-# Resolution range exposed by M3S. pya5 supports 0..MAX_RESOLUTION (30); its
-# special WORLD_CELL (resolution -1) is not exposed.
+# Resolution range exposed by M3S. A5 supports 0..30 (the spec's MAX_RESOLUTION);
+# its special WORLD_CELL (resolution -1) is not exposed.
 MIN_PRECISION = 0
-MAX_PRECISION = a5.MAX_RESOLUTION
+MAX_PRECISION = 30
 
 
 class A5Grid(BaseGrid):
@@ -88,23 +85,16 @@ class A5Grid(BaseGrid):
         Theoretical area of a cell at this precision in km^2.
 
         A5 is equal-area, so every cell at a given resolution has the same
-        ground area. The value comes straight from ``pya5`` (authalic,
-        ellipsoid-aware) in m^2 and is converted to km^2.
+        ground area. The value comes straight from the shared core's authalic,
+        ellipsoid-aware ``a5_cell_area_m2`` (the same a5 crate ``pya5`` wraps),
+        in m^2, converted to km^2.
 
         Returns
         -------
         float
             Cell area in square kilometres.
         """
-        return float(a5.cell_area(self.precision)) / 1e6
-
-    def _make_cell(self, cell_id: int) -> GridCell:
-        """Build a :class:`GridCell` from a ``pya5`` integer cell id."""
-        boundary = a5.cell_to_boundary(cell_id)  # closed (lon, lat) ring
-        polygon = Polygon(boundary)
-        identifier = a5.u64_to_hex(cell_id)
-        precision = a5.get_resolution(cell_id)
-        return GridCell(identifier, polygon, precision)
+        return float(m3s_core.a5_cell_area_m2(self.precision)) / 1e6
 
     @override
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
@@ -261,6 +251,6 @@ class A5Grid(BaseGrid):
     def identifier_to_precision(self, identifier: str) -> int | None:
         """Native precision encoded in the identifier, or None if invalid."""
         try:
-            return int(a5.get_resolution(a5.hex_to_u64(identifier)))
+            return int(m3s_core.a5_resolution(identifier))
         except (ValueError, TypeError):
             return None

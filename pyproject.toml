@@ -30,7 +30,6 @@ dependencies = [
     "geopandas>=0.13.0",
     "s2sphere>=0.2.5",
     "psutil>=5.8.0",
-    "pya5>=0.8.0",
 ]
 
 [project.optional-dependencies]
@@ -146,8 +145,6 @@ module = [
     "h3",
     "s2sphere",
     "pyproj",
-    "a5",
-    "a5.*",
 ]
 ignore_missing_imports = true
 

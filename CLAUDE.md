@@ -87,11 +87,12 @@ New modules for enhanced functionality:
 ### UTM Integration
 The system automatically calculates and includes UTM zone information for optimal spatial analysis. UTM zones are determined from cell centroids and cached for performance.
 
-> **Note:** A5 (`m3s/a5.py`) is a supported grid backed by the official
-> [`pya5`](https://a5geo.org/) library — a thin `BaseGrid` adapter that
-> delegates the pentagonal/dodecahedral math to `pya5`. Earlier hand-rolled A5
-> experiments survive only under `m3s/archive/` and are excluded from the built
-> package, linting and type checking; treat those as archived, not the A5 grid.
+> **Note:** A5 (`m3s/a5.py`) is a supported grid backed by the shared
+> [`m3s_core`](https://a5geo.org/) Rust core (the `a5` crate, same source as
+> `pya5`) — a thin `BaseGrid` adapter that delegates the pentagonal/dodecahedral
+> math to the core. Earlier hand-rolled A5 experiments survive only under
+> `m3s/archive/` and are excluded from the built package, linting and type
+> checking; treat those as archived, not the A5 grid.
 
 ## Testing Structure
 

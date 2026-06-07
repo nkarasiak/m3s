@@ -262,9 +262,10 @@ and `parity.cjs`. Grids are added to `BBOX` (generate.py), `BBOX_FNS`
   remain. Drop both in the Task-#8 cleanup after rewiring that test.
 - a5 — `a5_cells_in_bbox` via the a5 crate's `polygon_to_cells` + `uncompact`
   (densify ring + corner/centre sampling). Matched pya5 exactly. Python bbox
-  migrated to core. ⚠️ pya5 NOT yet dropped: still used by `area_km2`
-  (`a5.cell_area`), `_make_cell`, `MAX_RESOLUTION`, `identifier_to_precision`,
-  and `test_a5` oracles. Drop in Task-#8 (needs core a5 area/resolution + tests).
+  migrated to core. ✅ **pya5 dropped:** added core `a5_cell_area_m2` +
+  `a5_resolution`; `a5.py` area/resolution now read those, `MAX_PRECISION` is the
+  spec constant 30, dead `_make_cell` removed, `import a5` gone; `test_a5`
+  oracles rewired to core. Removed from deps + mypy overrides.
 - h3 — `h3_cells_in_bbox` via h3o's geom tiler (the `geo` feature) with
   `ContainmentMode::IntersectsBoundary` == h3-py
   `h3shape_to_cells_experimental(contain="overlap")`. Matched h3-py exactly
@@ -296,25 +297,21 @@ algorithm for its col/row bounds or it over-scans a column at lattice seams.
 - ✅ eaquad pyproj-coupled dead code removed (`_get_transformers`,
   `_make_polygon`, `_make_cell`, + `pyproj`/`lru_cache`/`Polygon` imports);
   `test_eaquad`'s pyproj oracle rewired to a lon-span comparison. Full suite green.
-- ⚠️ **Dep-drops are blocked by out-of-scope secondary usages — the native libs
-  are NOT unused:**
+- ✅ **`pya5` dropped:** added core `a5_cell_area_m2` + `a5_resolution`; `a5.py`
+  reads those (area/resolution), `MAX_PRECISION` = spec constant 30, dead
+  `_make_cell` gone; `test_a5` oracles rewired to core; removed from deps + mypy.
+- ✅ h3 `_get_cells_in_bbox_fallback` (~62 lines) removed.
+- **Remaining dep-drops — each is a per-dep surface port + test rewire, NOT an
+  unused-import removal:**
   - `pyproj` — `m3s/projection_utils.py` uses it for UTM-CRS lookup
-    (`query_utm_crs_info`) + `Transformer`, feeding every grid's UTM column. Would
-    need UTM logic ported to drop.
-  - `pya5` — `a5.py` `area_km2` (`a5.cell_area`), `MAX_RESOLUTION`,
-    `identifier_to_precision`, + `test_a5` oracle.
+    (`query_utm_crs_info`) + `Transformer`, feeding every grid's UTM column. Port
+    UTM logic to drop. (eaquad's own pyproj use is already gone.)
   - `h3` — large h3-verbs surface (`cell_to_*`, `cell_area`, compact, edge length)
     + `test_h3`/`test_h3_verbs` oracles. Biggest; likely keep.
   - `s2sphere` — `get_covering_cells` (arbitrary-polygon covering) +
-    `_create_cell_polygon` + `test_s2`.
-  Each drop = port that surface to core + rewire its `test_*` oracle. Tracked as a
-  separate, larger effort; NOT a simple "remove unused import".
+    `_create_cell_polygon` + `test_s2`. Needs core polygon-covering.
 - `get_covering_cells` (s2 polygon-cover, slippy rect) → core: low value (not in
   the parity contract, not used by the browser examples). Defer.
-- Remaining dead code: h3 `_get_cells_in_bbox_fallback` (~62 lines).
-
-After the cores land: migrate each Python `get_cells_in_bbox`/`get_covering_cells`
-to delegate to `m3s_core` (pluscode already done), drop the freed deps, then P4b.
 
 ## 9. Open issues / watch-outs
 - **Branch `feat/rust-wasm-core`** off `dev`. P0–P3 (all 12 grids) committed+pushed.
