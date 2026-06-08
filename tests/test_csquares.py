@@ -332,32 +332,21 @@ class TestCSquaresGrid:
         assert neighbors == []
 
     def test_decode_csquare_edge_cases(self):
-        """Test edge cases in C-squares decoding."""
+        """Malformed C-squares identifiers are rejected with ValueError."""
         grid = CSquaresGrid(precision=3)
 
-        # Test empty identifier (triggers base identifier error due to empty string)
-        with pytest.raises(ValueError, match="Invalid C-squares base identifier"):
-            grid._decode_csquare("")
-
-        # Test identifier with no meaningful parts
-        with pytest.raises(ValueError, match="Invalid C-squares base identifier"):
-            grid._decode_csquare(":")
-
-        # Test base part too short
-        with pytest.raises(ValueError, match="Invalid C-squares base identifier"):
-            grid._decode_csquare("14")
-
-        # Test invalid base format (wrong length)
-        with pytest.raises(ValueError, match="Invalid C-squares base format"):
-            grid._decode_csquare("14031")  # 5 chars instead of 4
-
-        # Test invalid quadrant
-        with pytest.raises(ValueError, match="Invalid quadrant"):
-            grid._decode_csquare("2403:00:00")  # Quadrant 2 is invalid
-
-        # Test invalid subdivision part
-        with pytest.raises(ValueError, match="Invalid subdivision part"):
-            grid._decode_csquare("1403:0:00")  # Single digit instead of 2
+        # The core validates and rejects every malformed identifier; the Python
+        # adapter re-raises as ValueError (message text is owned by the core).
+        for bad in (
+            "",  # empty
+            ":",  # no meaningful parts
+            "14",  # base part too short
+            "14031",  # base part wrong length (5 chars instead of 4)
+            "2403:00:00",  # invalid quadrant (2)
+            "1403:0:00",  # subdivision part too short (single digit)
+        ):
+            with pytest.raises(ValueError):
+                grid._decode_csquare(bad)
 
 
 class TestCSquaresHierarchy:

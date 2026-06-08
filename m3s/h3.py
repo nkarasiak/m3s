@@ -6,7 +6,6 @@ from typing import Any, override
 
 import h3
 import m3s_core
-from shapely.geometry import Polygon
 
 from .base import CoreBackedGrid, GridCell, cell_from_core
 from .projection_utils import get_utm_epsg_code
@@ -257,25 +256,6 @@ class H3Grid(CoreBackedGrid):
         except Exception:
             return cell
 
-    def _create_h3_polygon(self, h3_index: str) -> Polygon:
-        """
-        Create a polygon from H3 index.
-
-        Parameters
-        ----------
-        h3_index : str
-            H3 cell identifier
-
-        Returns
-        -------
-        Polygon
-            Shapely Polygon representing the hexagonal cell
-        """
-        boundary = h3.cell_to_boundary(h3_index)
-        # Convert lat/lng pairs to lon/lat pairs for Polygon
-        coords = [(lng, lat) for lat, lng in boundary]
-        return Polygon(coords)
-
     def get_resolution_info(self) -> dict:
         """
         Get detailed information about the current resolution level.
@@ -322,7 +302,9 @@ class H3Grid(CoreBackedGrid):
                 cell_resolution = h3.get_resolution(h3_index)
                 compacted_cells.append(
                     GridCell(
-                        h3_index, self._create_h3_polygon(h3_index), cell_resolution
+                        h3_index,
+                        self.get_cell_from_identifier(h3_index).polygon,
+                        cell_resolution,
                     )
                 )
             return compacted_cells
@@ -352,7 +334,11 @@ class H3Grid(CoreBackedGrid):
             uncompacted_indices = h3.uncompact_cells(h3_indices, target_resolution)
 
             return [
-                GridCell(h3_index, self._create_h3_polygon(h3_index), target_resolution)
+                GridCell(
+                    h3_index,
+                    self.get_cell_from_identifier(h3_index).polygon,
+                    target_resolution,
+                )
                 for h3_index in uncompacted_indices
             ]
         except Exception:

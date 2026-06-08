@@ -3,9 +3,8 @@ Maidenhead locator system grid implementation.
 """
 
 from functools import cached_property
-from typing import override
 
-from .base import CoreBackedGrid, GridCell
+from .base import CoreBackedGrid
 
 
 class MaidenheadGrid(CoreBackedGrid):
@@ -83,51 +82,12 @@ class MaidenheadGrid(CoreBackedGrid):
         str
             Maidenhead locator string
         """
-        # Validate inputs
         if not (-90 <= lat <= 90):
             raise ValueError("Latitude must be between -90 and 90")
         if not (-180 <= lon <= 180):
             raise ValueError("Longitude must be between -180 and 180")
 
-        # Shift coordinates to positive values
-        # Longitude: -180 to 180 becomes 0 to 360
-        # Latitude: -90 to 90 becomes 0 to 180
-        adj_lon = lon + 180
-        adj_lat = lat + 90
-
-        locator = ""
-
-        # Field (first pair - letters)
-        if self.precision >= 1:
-            field_lon = int(adj_lon / 20)
-            field_lat = int(adj_lat / 10)
-            locator += chr(ord("A") + field_lon) + chr(ord("A") + field_lat)
-            adj_lon -= field_lon * 20
-            adj_lat -= field_lat * 10
-
-        # Square (second pair - digits)
-        if self.precision >= 2:
-            square_lon = int(adj_lon / 2)
-            square_lat = int(adj_lat / 1)
-            locator += str(square_lon) + str(square_lat)
-            adj_lon -= square_lon * 2
-            adj_lat -= square_lat * 1
-
-        # Subsquare (third pair - letters)
-        if self.precision >= 3:
-            subsquare_lon = int(adj_lon / (2.0 / 24))  # 2°/24 = 5'
-            subsquare_lat = int(adj_lat / (1.0 / 24))  # 1°/24 = 2.5'
-            locator += chr(ord("A") + subsquare_lon) + chr(ord("A") + subsquare_lat)
-            adj_lon -= subsquare_lon * (2.0 / 24)
-            adj_lat -= subsquare_lat * (1.0 / 24)
-
-        # Extended square (fourth pair - digits)
-        if self.precision >= 4:
-            ext_lon = int(adj_lon / (2.0 / 240))  # 2°/240 = 30"
-            ext_lat = int(adj_lat / (1.0 / 240))  # 1°/240 = 15"
-            locator += str(ext_lon) + str(ext_lat)
-
-        return locator
+        return self.get_cell_from_point(lat, lon).identifier
 
     def decode(self, locator: str) -> tuple:
         """
@@ -143,85 +103,7 @@ class MaidenheadGrid(CoreBackedGrid):
         tuple
             (south, west, north, east) bounds
         """
-        locator = locator.upper().strip()
-
-        if len(locator) < 2:
-            raise ValueError("Locator must be at least 2 characters")
-
-        lon = 0.0
-        lat = 0.0
-
-        # Field (first pair - letters)
-        if len(locator) >= 2:
-            lon += (ord(locator[0]) - ord("A")) * 20
-            lat += (ord(locator[1]) - ord("A")) * 10
-            lon_size = 20.0
-            lat_size = 10.0
-
-        # Square (second pair - digits)
-        if len(locator) >= 4:
-            lon += int(locator[2]) * 2
-            lat += int(locator[3]) * 1
-            lon_size = 2.0
-            lat_size = 1.0
-
-        # Subsquare (third pair - letters)
-        if len(locator) >= 6:
-            lon += (ord(locator[4]) - ord("A")) * (2.0 / 24)
-            lat += (ord(locator[5]) - ord("A")) * (1.0 / 24)
-            lon_size = 2.0 / 24
-            lat_size = 1.0 / 24
-
-        # Extended square (fourth pair - digits)
-        if len(locator) >= 8:
-            lon += int(locator[6]) * (2.0 / 240)
-            lat += int(locator[7]) * (1.0 / 240)
-            lon_size = 2.0 / 240
-            lat_size = 1.0 / 240
-
-        # Convert back to standard coordinates
-        west = lon - 180
-        south = lat - 90
-        east = west + lon_size
-        north = south + lat_size
-
-        return (south, west, north, east)
-
-    @override
-    def get_cells_in_bbox(
-        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> list[GridCell]:
-        """
-        Get all grid cells within the given bounding box.
-
-        Parameters
-        ----------
-        min_lat : float
-            Minimum latitude of bounding box
-        min_lon : float
-            Minimum longitude of bounding box
-        max_lat : float
-            Maximum latitude of bounding box
-        max_lon : float
-            Maximum longitude of bounding box
-
-        Returns
-        -------
-        list[GridCell]
-            List of grid cells that intersect the bounding box
-        """
-        # Maidenhead is a regular lon/lat lattice from the global SW corner
-        # (field "AA" starts at -90 lat, -180 lon); enumerate every
-        # intersecting cell deterministically rather than point-sampling.
-        if self.precision == 1:
-            lat_step, lon_step = 10.0, 20.0  # Field
-        elif self.precision == 2:
-            lat_step, lon_step = 1.0, 2.0  # Square
-        elif self.precision == 3:
-            lat_step, lon_step = 1.0 / 24, 2.0 / 24  # Subsquare
-        else:  # precision == 4
-            lat_step, lon_step = 1.0 / 240, 2.0 / 240  # Extended square
-
-        return self._cells_in_bbox_regular(
-            min_lat, min_lon, max_lat, max_lon, lat_step, lon_step
-        )
+        min_lon, min_lat, max_lon, max_lat = self.get_cell_from_identifier(
+            locator
+        ).polygon.bounds
+        return (min_lat, min_lon, max_lat, max_lon)

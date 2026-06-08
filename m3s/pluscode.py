@@ -90,41 +90,7 @@ class PlusCodeGrid(CoreBackedGrid):
         str
             Plus code identifier
         """
-        # Normalize latitude and longitude
-        lat = max(-90, min(90, lat))
-        lon = ((lon + 180) % 360) - 180
-
-        # Shift to positive range
-        lat_range = lat + 90
-        lon_range = lon + 180
-
-        code = ""
-        lat_precision = 20.0
-        lon_precision = 20.0
-
-        for i in range(self.precision):
-            lat_digit = int(lat_range / lat_precision)
-            lon_digit = int(lon_range / lon_precision)
-
-            # Ensure digits are within bounds
-            lat_digit = min(lat_digit, self.BASE - 1)
-            lon_digit = min(lon_digit, self.BASE - 1)
-
-            code += self.ALPHABET[lon_digit] + self.ALPHABET[lat_digit]
-
-            # Remove the encoded portion
-            lat_range -= lat_digit * lat_precision
-            lon_range -= lon_digit * lon_precision
-
-            # Increase precision for next iteration
-            lat_precision /= self.BASE
-            lon_precision /= self.BASE
-
-            # Add separator after 4th character (standard plus code format)
-            if i == 1:
-                code += "+"
-
-        return code
+        return self.get_cell_from_point(lat, lon).identifier
 
     def decode(self, code: str) -> tuple:
         """
@@ -140,51 +106,10 @@ class PlusCodeGrid(CoreBackedGrid):
         tuple
             (south, west, north, east) bounds
         """
-        # Remove separator and normalize
-        code = code.replace("+", "").upper()
-
-        lat_range = 0.0
-        lon_range = 0.0
-        lat_precision = 20.0
-        lon_precision = 20.0
-
-        pairs_decoded = 0
-
-        # Decode pairs of characters
-        for i in range(0, min(len(code), self.precision * 2), 2):
-            if i + 1 >= len(code):
-                break
-
-            lon_char = code[i]
-            lat_char = code[i + 1]
-
-            if lat_char in self.ALPHABET and lon_char in self.ALPHABET:
-                lat_digit = self.ALPHABET.index(lat_char)
-                lon_digit = self.ALPHABET.index(lon_char)
-
-                lat_range += lat_digit * lat_precision
-                lon_range += lon_digit * lon_precision
-
-                lat_precision /= self.BASE
-                lon_precision /= self.BASE
-                pairs_decoded += 1
-
-        # Determine cell size based on actual precision used
-        if pairs_decoded > 0:
-            # Cell size is the precision at the last level
-            final_lat_precision = lat_precision * self.BASE
-            final_lon_precision = lon_precision * self.BASE
-        else:
-            final_lat_precision = 20.0
-            final_lon_precision = 20.0
-
-        # Convert back to lat/lon coordinates
-        south = lat_range - 90
-        west = lon_range - 180
-        north = south + final_lat_precision
-        east = west + final_lon_precision
-
-        return (south, west, north, east)
+        min_lon, min_lat, max_lon, max_lat = self.get_cell_from_identifier(
+            code
+        ).polygon.bounds
+        return (min_lat, min_lon, max_lat, max_lon)
 
     def get_children(self, cell: GridCell) -> list[GridCell]:
         """

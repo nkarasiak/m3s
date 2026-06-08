@@ -175,37 +175,6 @@ class CSquaresGrid(CoreBackedGrid):
             )
         return cell_from_core(m3s_core.cs_parent(cell.identifier))
 
-    @override
-    def get_cells_in_bbox(
-        self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
-    ) -> list[GridCell]:
-        """
-        Get all C-squares cells within the given bounding box.
-
-        Parameters
-        ----------
-        min_lat : float
-            Minimum latitude of bounding box
-        min_lon : float
-            Minimum longitude of bounding box
-        max_lat : float
-            Maximum latitude of bounding box
-        max_lon : float
-            Maximum longitude of bounding box
-
-        Returns
-        -------
-        list[GridCell]
-            List of C-squares cells that intersect the bounding box
-        """
-        # C-squares cells form a regular lon/lat lattice from the global SW
-        # corner; enumerate every intersecting cell deterministically rather
-        # than point-sampling.
-        cell_size = self._get_cell_size(self.precision)
-        return self._cells_in_bbox_regular(
-            min_lat, min_lon, max_lat, max_lon, cell_size, cell_size
-        )
-
     def _encode_csquare(self, lat: float, lon: float, precision: int) -> str:
         """
         Encode latitude and longitude to C-squares identifier.
@@ -224,67 +193,7 @@ class CSquaresGrid(CoreBackedGrid):
         str
             C-squares identifier
         """
-        # Determine global quadrant
-        if lat >= 0 and lon >= 0:
-            quadrant = 1  # Northeast
-            lat_offset = lat
-            lon_offset = lon
-        elif lat >= 0 and lon < 0:
-            quadrant = 3  # Northwest
-            lat_offset = lat
-            lon_offset = lon + 180
-        elif lat < 0 and lon < 0:
-            quadrant = 5  # Southwest
-            lat_offset = lat + 90
-            lon_offset = lon + 180
-        else:  # lat < 0 and lon >= 0
-            quadrant = 7  # Southeast
-            lat_offset = lat + 90
-            lon_offset = lon
-
-        # Start building the code
-        code = str(quadrant)
-
-        # Add hierarchical subdivisions
-        lat_work = lat_offset
-        lon_work = lon_offset
-
-        for level in range(1, precision + 1):
-            if level == 1:
-                # 10-degree level
-                lat_index = int(lat_work // 10)
-                lon_index = int(lon_work // 10)
-                code += f"{lat_index:01d}{lon_index:02d}"  # Use 2 digits for longitude
-                lat_work = lat_work % 10
-                lon_work = lon_work % 10
-            elif level == 2:
-                # 5-degree level
-                lat_index = int(lat_work // 5)
-                lon_index = int(lon_work // 5)
-                code += f":{lat_index:01d}{lon_index:01d}"
-                lat_work = lat_work % 5
-                lon_work = lon_work % 5
-            elif level == 3:
-                # 1-degree level
-                lat_index = int(lat_work // 1)
-                lon_index = int(lon_work // 1)
-                code += f":{lat_index:01d}{lon_index:01d}"
-                lat_work = lat_work % 1
-                lon_work = lon_work % 1
-            elif level == 4:
-                # 0.5-degree level (30 minutes)
-                lat_index = int(lat_work // 0.5)
-                lon_index = int(lon_work // 0.5)
-                code += f":{lat_index:01d}{lon_index:01d}"
-                lat_work = lat_work % 0.5
-                lon_work = lon_work % 0.5
-            elif level == 5:
-                # 0.1-degree level (6 minutes)
-                lat_index = int(lat_work // 0.1)
-                lon_index = int(lon_work // 0.1)
-                code += f":{lat_index:01d}{lon_index:01d}"
-
-        return code
+        return m3s_core.cs_cell_from_point(lat, lon, precision)[0]
 
     def _decode_csquare(self, identifier: str) -> tuple:
         """
@@ -300,75 +209,9 @@ class CSquaresGrid(CoreBackedGrid):
         tuple
             (min_lat, min_lon, max_lat, max_lon)
         """
-        parts = identifier.split(":")
-        if len(parts) < 1:
-            raise ValueError("Invalid C-squares identifier format")
-
-        # Parse base quadrant and 10-degree cell
-        base_part = parts[0]
-        if len(base_part) < 3:
-            raise ValueError("Invalid C-squares base identifier")
-
-        quadrant = int(base_part[0])
-        # Now using consistent format: 1 digit lat + 2 digits lon
-        if len(base_part) == 4:
-            lat_10 = int(base_part[1])
-            lon_10 = int(base_part[2:4])
-        else:
-            raise ValueError(f"Invalid C-squares base format: {base_part}")
-
-        # Calculate base coordinates
-        if quadrant == 1:  # Northeast
-            base_lat = lat_10 * 10
-            base_lon = lon_10 * 10
-        elif quadrant == 3:  # Northwest
-            base_lat = lat_10 * 10
-            base_lon = lon_10 * 10 - 180
-        elif quadrant == 5:  # Southwest
-            base_lat = lat_10 * 10 - 90
-            base_lon = lon_10 * 10 - 180
-        elif quadrant == 7:  # Southeast
-            base_lat = lat_10 * 10 - 90
-            base_lon = lon_10 * 10
-        else:
-            raise ValueError(f"Invalid quadrant: {quadrant}")
-
-        # Start with 10-degree cell
-        lat_size = 10.0
-        lon_size = 10.0
-        lat_offset = 0.0
-        lon_offset = 0.0
-
-        # Process each subdivision level
-        for i, part in enumerate(parts[1:], start=2):
-            if len(part) != 2:
-                raise ValueError(f"Invalid subdivision part: {part}")
-
-            lat_index = int(part[0])
-            lon_index = int(part[1])
-
-            if i == 2:  # 5-degree level
-                lat_size = 5.0
-                lon_size = 5.0
-            elif i == 3:  # 1-degree level
-                lat_size = 1.0
-                lon_size = 1.0
-            elif i == 4:  # 0.5-degree level
-                lat_size = 0.5
-                lon_size = 0.5
-            elif i == 5:  # 0.1-degree level
-                lat_size = 0.1
-                lon_size = 0.1
-
-            lat_offset += lat_index * lat_size
-            lon_offset += lon_index * lon_size
-
-        # Calculate final bounds
-        min_lat = base_lat + lat_offset
-        min_lon = base_lon + lon_offset
-        max_lat = min_lat + lat_size
-        max_lon = min_lon + lon_size
-
+        min_lon, min_lat, max_lon, max_lat = self.get_cell_from_identifier(
+            identifier
+        ).polygon.bounds
         return min_lat, min_lon, max_lat, max_lon
 
     def _get_precision_from_identifier(self, identifier: str) -> int:

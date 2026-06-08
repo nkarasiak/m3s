@@ -8,7 +8,7 @@ from typing import Any, ClassVar
 
 import geopandas as gpd
 import m3s_core
-from shapely.geometry import Point, Polygon, box, mapping
+from shapely.geometry import Point, Polygon, mapping
 
 from .cache import get_spatial_cache
 
@@ -394,65 +394,6 @@ class BaseGrid(ABC):
         """
         point = Point(lon, lat)
         return polygon.contains(point)
-
-    def _cells_in_bbox_regular(
-        self,
-        min_lat: float,
-        min_lon: float,
-        max_lat: float,
-        max_lon: float,
-        lat_step: float,
-        lon_step: float,
-        lat_origin: float = -90.0,
-        lon_origin: float = -180.0,
-    ) -> list[GridCell]:
-        """
-        Enumerate cells of a regular lon/lat grid intersecting a bounding box.
-
-        For grids whose cells form a regular axis-aligned lon/lat lattice
-        (constant ``lat_step``/``lon_step`` from a fixed origin), this returns
-        every intersecting cell deterministically by visiting each candidate
-        cell's centre exactly once. Unlike point-sampling it cannot miss
-        boundary cells and has no sample-count cap.
-
-        Parameters
-        ----------
-        min_lat, min_lon, max_lat, max_lon : float
-            Bounding box in WGS84 degrees.
-        lat_step, lon_step : float
-            Cell size in degrees along latitude and longitude.
-        lat_origin, lon_origin : float, optional
-            Lattice origin (south-west corner of cell index 0), by default the
-            global south-west corner (-90, -180).
-
-        Returns
-        -------
-        list[GridCell]
-            Cells at this grid's precision whose polygon intersects the box.
-        """
-        col_lo = int((min_lon - lon_origin) // lon_step)
-        col_hi = int((max_lon - lon_origin) // lon_step)
-        row_lo = int((min_lat - lat_origin) // lat_step)
-        row_hi = int((max_lat - lat_origin) // lat_step)
-
-        target = box(min_lon, min_lat, max_lon, max_lat)
-        cells: dict[str, GridCell] = {}
-        for col in range(col_lo, col_hi + 1):
-            for row in range(row_lo, row_hi + 1):
-                clat = lat_origin + (row + 0.5) * lat_step
-                clon = lon_origin + (col + 0.5) * lon_step
-                # Clamp a centre that overruns the domain into the valid range.
-                clat = min(max(clat, -90.0), 90.0)
-                clon = min(max(clon, -180.0), 180.0)
-                try:
-                    cell = self.get_cell_from_point(clat, clon)
-                except Exception:
-                    continue
-                if cell.identifier in cells:
-                    continue
-                if cell.polygon.intersects(target):
-                    cells[cell.identifier] = cell
-        return list(cells.values())
 
     def _get_additional_columns(self, cell: GridCell) -> dict[str, Any]:
         """
