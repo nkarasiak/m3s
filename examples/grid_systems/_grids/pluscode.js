@@ -5,6 +5,9 @@
 window.__GRID__ = {
   name: 'Plus Codes', tipName: 'Plus Code', noun: 'cells',
   limit: 3000, fineLimit: 12000, minRes: 1, maxRender: 6000,
+  // Plus Code precisions step x20 per axis (x400 cells per level), so a finer
+  // preview over any sizable view explodes; skip it before generating.
+  fineRatio: 400,
   resForZoom: function (z) {
     if (z <= 3) return 1;
     if (z <= 7) return 2;

@@ -52,16 +52,17 @@ fn sw_corner(m: &Mgrs, precision: u8) -> Result<(f64, f64), String> {
 }
 
 fn cell_of(id: &str, m: &Mgrs, precision: u8) -> Result<Cell, String> {
-    // geoconvert's to_latlon returns the cell CENTRE; the Python `mgrs` lib
-    // returns the SW corner, which m3s then (quirkily) treats as the centre and
-    // expands +/- half a cell. Recover that SW corner (centre - half in UTM) and
-    // reproduce the same offset so the ring matches the Python polygon.
+    // geoconvert's to_latlon returns the cell CENTRE in UTM; the square is the
+    // centre expanded +/- half a cell. (An earlier port stepped to the SW corner
+    // first and then expanded +/- half around *that*, shifting every cell SW by
+    // half its own size — so a cell no longer contained the point it was looked
+    // up from and coarse cells sat half a cell off the finer grid.)
     let centre = m.to_latlon();
     let u = UtmUps::from_latlon(&centre);
     let half = grid_size_m(precision) / 2.0;
     let (zone, north) = (u.zone(), u.is_north());
-    let (cx, cy) = (u.easting() - half, u.northing() - half); // m3s "centre" (SW corner)
-    // Same corner order as m3s: SW, SE, NE, NW, SW (closed).
+    let (cx, cy) = (u.easting(), u.northing());
+    // SW, SE, NE, NW, SW (closed).
     let corners = [
         (cx - half, cy - half),
         (cx + half, cy - half),
@@ -76,6 +77,10 @@ fn cell_of(id: &str, m: &Mgrs, precision: u8) -> Result<Cell, String> {
             .to_latlon();
         ring.push([c.longitude(), c.latitude()]);
     }
+    // A 100 km cell is always drawn as a full UTM square (never clipped at the
+    // zone meridian). Squares from adjacent zones overlap slightly at a seam —
+    // that is intrinsic to MGRS in lon/lat and preferable to the stunted partial
+    // cells clipping would leave.
     Ok(Cell {
         id: id.to_string(),
         ring,
@@ -144,14 +149,23 @@ pub fn cells_in_bbox(
     max_lon: f64,
     precision: u8,
 ) -> Result<Vec<Cell>, String> {
-    let grid_size_deg = grid_size_m(precision) / 111320.0;
-    let margin = grid_size_deg * 1.5;
-    let (emin_lat, emax_lat) = (min_lat - margin, max_lat + margin);
-    let (emin_lon, emax_lon) = (min_lon - margin, max_lon + margin);
+    // A cell's lat extent is ~constant in degrees; its lon extent widens with
+    // latitude (cos), so sample lon on its own, cos-corrected, step. Sampling
+    // <3x per cell (the old flat 50-sample clamp did, at fine precision over a
+    // regional view) steps over whole columns of cells, leaving empty stripes.
+    let cell_lat = grid_size_m(precision) / 111320.0;
+    let mid_lat = (min_lat + max_lat) / 2.0;
+    let cos_lat = mid_lat.to_radians().cos().max(0.05);
+    let cell_lon = grid_size_m(precision) / (111320.0 * cos_lat);
+    let (margin_lat, margin_lon) = (cell_lat * 1.5, cell_lon * 1.5);
+    let (emin_lat, emax_lat) = (min_lat - margin_lat, max_lat + margin_lat);
+    let (emin_lon, emax_lon) = (min_lon - margin_lon, max_lon + margin_lon);
     let bbox_h = emax_lat - emin_lat;
     let bbox_w = emax_lon - emin_lon;
-    let lat_samples = (((bbox_h / grid_size_deg) as i64) * 3 + 5).clamp(10, 50);
-    let lon_samples = (((bbox_w / grid_size_deg) as i64) * 3 + 5).clamp(10, 50);
+    // >=3 samples per cell so no row/column is stepped over; capped to bound the
+    // O(n^2) UTM round-trips (the caller throttles huge fine-level views).
+    let lat_samples = (((bbox_h / cell_lat) * 3.0).ceil() as i64 + 5).clamp(10, 600);
+    let lon_samples = (((bbox_w / cell_lon) * 3.0).ceil() as i64 + 5).clamp(10, 600);
     let lat_step = bbox_h / lat_samples as f64;
     let lon_step = bbox_w / lon_samples as f64;
     let target = (min_lon, min_lat, max_lon, max_lat);

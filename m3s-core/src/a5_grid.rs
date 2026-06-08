@@ -8,7 +8,7 @@
 use crate::Cell;
 use a5::{
     cell_area, cell_to_boundary, cell_to_children, cell_to_parent, get_resolution, grid_disk,
-    hex_to_u64, lonlat_to_cell, polygon_to_cells, u64_to_hex, uncompact, LonLat,
+    hex_to_u64, lonlat_to_cell, u64_to_hex, LonLat,
 };
 use std::collections::BTreeSet;
 
@@ -82,11 +82,97 @@ pub fn parent(id: &str) -> Result<Cell, String> {
     make_cell(cell_to_parent(cid, None)?)
 }
 
-/// All cells covering the bbox at `precision`. Mirrors
-/// `A5Grid.get_cells_in_bbox`: densify the box ring into ≤10° segments (so
-/// `polygon_to_cells` reads the edges as lon/lat rather than bowing along
-/// geodesics), expand the centre-containment result with `uncompact`, and add
-/// the four corner + centre cells so a sub-cell box still returns its cover.
+/// Lon/lat bounding box of a cell's boundary ring. Longitudes are normalised to
+/// [-180, 180); a ring that wraps the antimeridian (normalised lon span > 180°)
+/// is reported as full-width so the overlap test keeps it rather than dropping
+/// it on the wrong side of the seam (cells near 180° otherwise leave a gap).
+fn cell_bbox(cell_id: u64) -> Result<(f64, f64, f64, f64), String> {
+    let boundary = cell_to_boundary(cell_id, None)?;
+    let (mut w, mut s, mut e, mut n) = (180.0_f64, 90.0_f64, -180.0_f64, -90.0_f64);
+    for p in &boundary {
+        let lon = (p.longitude() + 180.0).rem_euclid(360.0) - 180.0;
+        let lat = p.latitude();
+        w = w.min(lon);
+        s = s.min(lat);
+        e = e.max(lon);
+        n = n.max(lat);
+    }
+    if e - w > 180.0 {
+        w = -180.0;
+        e = 180.0;
+    }
+    Ok((w, s, e, n))
+}
+
+/// True if the cell's boundary polygon actually intersects the axis-aligned
+/// lon/lat rect. `cell_bbox` overlap is only a cheap pre-filter for the walk; a
+/// cell can have an overlapping bbox yet not touch the box, so this drops that
+/// "overdraw" for normal (non-seam) queries. Tests vertex-in-rect,
+/// rect-corner-in-polygon and edge crossings, so it is correct without assuming
+/// the pentagon is convex.
+fn ring_intersects_rect(cell_id: u64, w: f64, s: f64, e: f64, n: f64) -> Result<bool, String> {
+    let b = cell_to_boundary(cell_id, None)?;
+    let pts: Vec<[f64; 2]> = b.iter().map(|p| [p.longitude(), p.latitude()]).collect();
+    for p in &pts {
+        if p[0] >= w && p[0] <= e && p[1] >= s && p[1] <= n {
+            return Ok(true);
+        }
+    }
+    for c in [[w, s], [e, s], [e, n], [w, n]] {
+        if point_in_ring(c, &pts) {
+            return Ok(true);
+        }
+    }
+    let rect = [[w, s], [e, s], [e, n], [w, n], [w, s]];
+    for i in 0..pts.len().saturating_sub(1) {
+        for j in 0..4 {
+            if segs_cross(pts[i], pts[i + 1], rect[j], rect[j + 1]) {
+                return Ok(true);
+            }
+        }
+    }
+    Ok(false)
+}
+
+/// Even-odd point-in-polygon for a closed lon/lat ring.
+fn point_in_ring(p: [f64; 2], ring: &[[f64; 2]]) -> bool {
+    let n = ring.len();
+    if n < 3 {
+        return false;
+    }
+    let mut inside = false;
+    let mut j = n - 1;
+    for i in 0..n {
+        let (xi, yi) = (ring[i][0], ring[i][1]);
+        let (xj, yj) = (ring[j][0], ring[j][1]);
+        if (yi > p[1]) != (yj > p[1]) && p[0] < (xj - xi) * (p[1] - yi) / (yj - yi) + xi {
+            inside = !inside;
+        }
+        j = i;
+    }
+    inside
+}
+
+/// True if segments `ab` and `cd` properly straddle each other.
+fn segs_cross(a: [f64; 2], b: [f64; 2], c: [f64; 2], d: [f64; 2]) -> bool {
+    let cross = |p: [f64; 2], q: [f64; 2], r: [f64; 2]| {
+        (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0])
+    };
+    let (d1, d2) = (cross(c, d, a), cross(c, d, b));
+    let (d3, d4) = (cross(a, b, c), cross(a, b, d));
+    ((d1 > 0.0) != (d2 > 0.0)) && ((d3 > 0.0) != (d4 > 0.0))
+}
+
+/// All cells covering the bbox at `precision`. Mirrors `A5Grid.get_cells_in_bbox`.
+///
+/// A5's `polygon_to_cells` uses a spherical winding/centre-containment test that
+/// silently under-covers large or awkward lon/lat rectangles (a near-global box
+/// returned ~3 cells), so this instead flood-fills: seed with the cells under a
+/// coarse grid of sample points (so disconnected lon spans and antimeridian
+/// crossings are both reached), then expand via edge neighbours, keeping every
+/// cell whose own bounding box overlaps the query box. Walking the grid graph
+/// guarantees no interior gaps; a cell straddling the edge is kept (slight,
+/// harmless overdraw) rather than dropped.
 pub fn cells_in_bbox(
     min_lat: f64,
     min_lon: f64,
@@ -100,37 +186,74 @@ pub fn cells_in_bbox(
         ));
     }
     let res = precision as i32;
-    let corners = [
-        (min_lon, min_lat),
-        (max_lon, min_lat),
-        (max_lon, max_lat),
-        (min_lon, max_lat),
-    ];
-    let mut ring: Vec<LonLat> = Vec::new();
-    for k in 0..4 {
-        let (x0, y0) = corners[k];
-        let (x1, y1) = corners[(k + 1) % 4];
-        let steps = (((x1 - x0).abs().max((y1 - y0).abs())) / 10.0).ceil().max(1.0) as i64;
-        for i in 0..steps {
-            let f = i as f64 / steps as f64;
-            ring.push(LonLat::new(x0 + (x1 - x0) * f, y0 + (y1 - y0) * f));
+    // The query box may arrive un-normalised (deck.gl returns lon outside
+    // [-180, 180) when panned across the Pacific). Normalise the lon interval to
+    // a circle so it overlaps cell bboxes correctly even when it wraps the seam.
+    let norm = |x: f64| (x + 180.0).rem_euclid(360.0) - 180.0;
+    let lon_full = (max_lon - min_lon).abs() >= 360.0;
+    let (q_w, q_e) = (norm(min_lon), norm(max_lon));
+    let overlaps = |(w, s, e, n): (f64, f64, f64, f64)| {
+        if n < min_lat || s > max_lat {
+            return false;
+        }
+        if lon_full || e - w >= 360.0 {
+            return true;
+        }
+        if q_w <= q_e {
+            !(e < q_w || w > q_e) // query interval does not wrap the seam
+        } else {
+            e >= q_w || w <= q_e // query wraps: cell touches either segment
+        }
+    };
+
+    // Seed: cells under a ~6×6 grid of sample points across the box, so both
+    // halves of an antimeridian-spanning or otherwise disconnected box are hit.
+    let lat_step = ((max_lat - min_lat) / 6.0).max(1.0);
+    let lon_step = ((max_lon - min_lon) / 6.0).max(1.0);
+    let mut stack: Vec<u64> = Vec::new();
+    let mut lat = min_lat;
+    while lat <= max_lat {
+        let mut lon = min_lon;
+        while lon <= max_lon {
+            stack.push(lonlat_to_cell(LonLat::new(lon, lat), res)?);
+            lon += lon_step;
+        }
+        lat += lat_step;
+    }
+
+    let mut seen: BTreeSet<u64> = BTreeSet::new();
+    let mut kept: BTreeSet<u64> = BTreeSet::new();
+    while let Some(cid) = stack.pop() {
+        if !seen.insert(cid) {
+            continue;
+        }
+        // `grid_disk` crosses dodecahedron-face seams into coarser cells, so the
+        // walk can surface ids at a resolution other than the one queried. Those
+        // leaked coarse cells span 100°+ of longitude and, drawn raw, streak
+        // across the whole map — keep and expand only cells at the target res.
+        if get_resolution(cid) != res {
+            continue;
+        }
+        if !overlaps(cell_bbox(cid)?) {
+            continue;
+        }
+        kept.insert(cid);
+        for nb in grid_disk(cid, 1)? {
+            if !seen.contains(&nb) {
+                stack.push(nb);
+            }
         }
     }
 
-    let compacted = polygon_to_cells(&ring, res)?;
-    let mut ids: BTreeSet<u64> = uncompact(&compacted, res)?.into_iter().collect();
-
-    // polygon_to_cells uses centre containment, so it can miss a cell covering a
-    // box smaller than itself; sample the corners + centre too.
-    let mid = (
-        (min_lon + max_lon) / 2.0,
-        (min_lat + max_lat) / 2.0,
-    );
-    for (lon, lat) in [corners[0], corners[1], corners[2], corners[3], mid] {
-        ids.insert(lonlat_to_cell(LonLat::new(lon, lat), res)?);
-    }
-
-    ids.into_iter().map(make_cell).collect()
+    // Refine: for a normal (non-seam, non-global) query, drop cells whose bbox
+    // overlapped but whose polygon doesn't actually touch the box. Seam-wrapping
+    // and full-width queries keep the bbox-overlap result (the cheap test is all
+    // that is sound across the antimeridian).
+    let strict = !lon_full && q_w <= q_e;
+    kept.into_iter()
+        .filter(|&id| !strict || ring_intersects_rect(id, q_w, min_lat, q_e, max_lat).unwrap_or(true))
+        .map(make_cell)
+        .collect()
 }
 
 /// Cell area in m² at `precision` (the a5 crate's authalic `cell_area`). The

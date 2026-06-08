@@ -8,6 +8,9 @@ window.__GRID__ = (function () {
   return {
     name: 'MGRS', noun: 'cells',
     limit: 3000, fineLimit: 12000, minRes: 0, maxRender: 6000,
+    // MGRS precisions step x10 per axis (x100 cells per level); skip the finer
+    // preview when it would blanket the view in tiny cells that alias to strips.
+    fineRatio: 100,
     resForZoom: function (z) {
       if (z <= 8) return 0;
       if (z <= 11) return 1;

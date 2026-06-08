@@ -9,6 +9,8 @@ window.__GRID__ = {
   // 0.5deg cells can draw -- it never blanks out.
   name: 'GARS', noun: 'cells',
   limit: 8000, fineLimit: 12000, minRes: 1, maxRender: 30000, minZoom: 4,
+  // GARS stops at precision 3; don't request/announce a finer level past it.
+  maxRes: 3,
   resForZoom: function (z) {
     return Math.max(1, Math.min(3, Math.floor((z - 7) / 2) + 1));
   },

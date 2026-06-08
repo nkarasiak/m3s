@@ -77,6 +77,22 @@ const DATA = __DATA__;
 const G = window.__GRID__;
 const badge = document.getElementById('badge');
 
+// A cell straddling the antimeridian comes back with longitudes that jump ~360°
+// between consecutive vertices; drawn raw it streaks clear across the map.
+// Unwrap each ring so neighbouring lons stay within 180° of each other (the
+// polygon may then run past ±180°, which the Mercator view renders correctly).
+function unwrap(ring) {
+  const out = [ring[0].slice()];
+  for (let i = 1; i < ring.length; i++) {
+    let lon = ring[i][0];
+    const prev = out[i - 1][0];
+    while (lon - prev > 180) lon -= 360;
+    while (lon - prev < -180) lon += 360;
+    out.push([lon, ring[i][1]]);
+  }
+  return out;
+}
+
 // CartoDB Positron raster basemap, drawn entirely by deck.gl (no MapLibre).
 const basemap = new TileLayer({
   id: 'carto-positron',
@@ -119,14 +135,27 @@ function build(vs) {
     return [basemap];
   }
   const tipName = G.tipName || G.name;
-  cells.forEach(d => { d.tip = tipName + ' ' + d.id + (d.sub ? '<br>' + d.sub : ''); });
+  cells.forEach(d => {
+    d.poly = unwrap(d.poly);
+    d.tip = tipName + ' ' + d.id + (d.sub ? '<br>' + d.sub : '');
+  });
   // Finer level (res + fineStep; one step finer by default, but a grid whose
   // resolutions step by less than aperture-4 can preview two steps so the
   // nesting reads). Drawn first with a light, thin border so the current
   // level's darker cells sit on top and the nesting stays visible.
   const fineStep = G.fineStep || 1;
-  const fine = G.cells(res + fineStep, b, DATA);
-  const fineData = fine.length <= (G.fineLimit || 12000) ? fine : [];
+  const fineRes = res + fineStep;
+  // Skip the finer preview when it cannot help: past the grid's max resolution
+  // (G.maxRes), or when one finer step would explode the cell count. High-
+  // aperture grids (Plus Codes step x400 per level) declare G.fineRatio so the
+  // blow-up is caught *before* generating — otherwise the page locks building
+  // hundreds of thousands of polygons it would then discard.
+  const fineLimit = G.fineLimit || 12000;
+  const skipFine = (G.maxRes != null && fineRes > G.maxRes) ||
+    (G.fineRatio && cells.length * G.fineRatio > fineLimit);
+  const fine = skipFine ? [] : G.cells(fineRes, b, DATA);
+  const fineData = fine.length <= fineLimit ? fine : [];
+  fineData.forEach(d => { d.poly = unwrap(d.poly); });
   const layers = [
     basemap,
     new PolygonLayer({
@@ -145,21 +174,53 @@ function build(vs) {
       highlightColor: [HOVER[0], HOVER[1], HOVER[2], 140]
     })
   ];
-  const cur = G.label(res), nxt = G.label(res + fineStep);
+  const cur = G.label(res), nxt = skipFine ? '' : G.label(fineRes);
   badge.innerHTML = '<b>' + G.name + '</b> &middot; ' + cur + ' &middot; ' +
     cells.length + ' ' + noun +
     (nxt ? ' <span style="color:#999">(+ ' + nxt + ')</span>' : '');
   return layers;
 }
 
-const INIT = {longitude: __LON__, latitude: __LAT__, zoom: __ZOOM__};
+// Persist the view in the page URL as #zoom/lat/lon so a particular grid view
+// is shareable and reproducible. The map is a same-origin `srcdoc` iframe, so it
+// reads/writes the hosting page's hash via window.top; the zoom carries the
+// resolution (resForZoom). Wrapped in try/catch in case the frame is ever
+// embedded cross-origin.
+function readHash() {
+  try {
+    const p = (window.top.location.hash || '').replace(/^#/, '').split('/').map(Number);
+    if (p.length === 3 && p.every(Number.isFinite)) {
+      return {zoom: p[0], latitude: p[1], longitude: p[2]};
+    }
+  } catch (e) {}
+  return null;
+}
+let hashPending = false;
+function writeHash(vs) {
+  if (hashPending) return;
+  hashPending = true;
+  requestAnimationFrame(() => {
+    hashPending = false;
+    const h = '#' + vs.zoom.toFixed(2) + '/' + vs.latitude.toFixed(4) +
+      '/' + vs.longitude.toFixed(4);
+    try {
+      const loc = window.top.location;
+      window.top.history.replaceState(null, '', loc.pathname + loc.search + h);
+    } catch (e) {}
+  });
+}
+const INIT = Object.assign(
+  {longitude: __LON__, latitude: __LAT__, zoom: __ZOOM__}, readHash() || {});
 function start() {
   const deckgl = new DeckGL({
     container: 'map', initialViewState: INIT,
     controller: G.minZoom ? {minZoom: G.minZoom} : true,
     getTooltip: ({object}) => object && {html: object.tip},
     layers: build(INIT),
-    onViewStateChange: ({viewState}) => deckgl.setProps({layers: build(viewState)})
+    onViewStateChange: ({viewState}) => {
+      writeHash(viewState);
+      deckgl.setProps({layers: build(viewState)});
+    }
   });
 }
 // When the grid's cells come from the WASM core, wait for it to instantiate.

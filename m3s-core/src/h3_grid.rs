@@ -96,14 +96,26 @@ pub fn cells_in_bbox(
     precision: u8,
 ) -> Result<Vec<Cell>, String> {
     let resolution = res(precision)?;
-    let exterior = LineString::from(vec![
-        (min_lon, min_lat),
-        (max_lon, min_lat),
-        (max_lon, max_lat),
-        (min_lon, max_lat),
-        (min_lon, min_lat),
-    ]);
-    let poly = Polygon::new(exterior, vec![]);
+    // Densify the rectangle edges into ≤5° segments. h3o reads polygon edges as
+    // spherical geodesics, so a single long edge (e.g. the 360°-wide bottom of a
+    // world view) is taken the *short* way across the dateline — collapsing the
+    // box to a thin sliver and tiling almost nothing. Explicit intermediate
+    // vertices pin each edge to its lon/lat path so large boxes tile fully.
+    let step = 5.0_f64;
+    let mut pts: Vec<(f64, f64)> = Vec::new();
+    let mut edge = |x0: f64, y0: f64, x1: f64, y1: f64| {
+        let n = (((x1 - x0).abs().max((y1 - y0).abs())) / step).ceil().max(1.0) as i64;
+        for i in 0..n {
+            let f = i as f64 / n as f64;
+            pts.push((x0 + (x1 - x0) * f, y0 + (y1 - y0) * f));
+        }
+    };
+    edge(min_lon, min_lat, max_lon, min_lat);
+    edge(max_lon, min_lat, max_lon, max_lat);
+    edge(max_lon, max_lat, min_lon, max_lat);
+    edge(min_lon, max_lat, min_lon, min_lat);
+    pts.push((min_lon, min_lat));
+    let poly = Polygon::new(LineString::from(pts), vec![]);
     let mut tiler = TilerBuilder::new(resolution)
         .containment_mode(ContainmentMode::IntersectsBoundary)
         .build();
