@@ -77,7 +77,7 @@ class TestA5Cells:
         assert len(cell.identifier) == 16
         assert set(cell.identifier) <= set("0123456789abcdef")
         # resolution is encoded in the id, not in a fixed-length prefix
-        assert m3s_core.a5_resolution(cell.identifier) == 9
+        assert A5Grid(precision=9).identifier_to_precision(cell.identifier) == 9
 
     def test_invalid_identifier(self):
         """A non-hex identifier raises ValueError."""

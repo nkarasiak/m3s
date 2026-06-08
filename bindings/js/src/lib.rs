@@ -120,6 +120,13 @@ grid_base!(gars);
 grid_base!(mh);
 grid_base!(mgrs);
 
+// a5-only extra: A5 is equal-area, so a resolution has one exact cell area.
+// Mirrored from the Python binding so both expose the same surface.
+#[wasm_bindgen]
+pub fn a5_cell_area_m2(precision: u8) -> f64 {
+    a5::cell_area_m2(precision)
+}
+
 // ---- shared -----------------------------------------------------------------
 
 #[wasm_bindgen]

@@ -10,6 +10,8 @@ the migration introduced no behaviour change. Regenerate only deliberately.
 import json
 from pathlib import Path
 
+import m3s_core
+
 from m3s import (
     A5Grid,
     CSquaresGrid,
@@ -142,8 +144,26 @@ def main():
         (OUT / f"{name}_bbox.json").write_text(
             json.dumps(build_bbox(grid_cls, precisions, rect), indent=2)
         )
+    # Precision-bounds registry: {name: [min, max, default]}, the single source
+    # of truth both bindings serve. Frozen so parity.cjs can assert the JS
+    # `all_precision_bounds()` reproduces it exactly.
+    bounds = {
+        name: list(mnmxd)
+        for name, mnmxd in sorted(m3s_core.all_precision_bounds().items())
+    }
+    (OUT / "precision_bounds.json").write_text(json.dumps(bounds, indent=2))
+    # Binding symbol contract: the public function set both bindings must export.
+    # Frozen from the Python binding; the Python and JS parity gates each assert
+    # their side reproduces it, so the two surfaces can never diverge.
+    symbols = sorted(
+        name
+        for name in dir(m3s_core)
+        if not name.startswith("_") and callable(getattr(m3s_core, name))
+    )
+    (OUT / "binding_symbols.json").write_text(json.dumps(symbols, indent=2))
     print(f"wrote golden vectors for {', '.join(GRIDS)} to {OUT}")
     print(f"wrote bbox golden for {', '.join(BBOX)}")
+    print("wrote precision_bounds + binding_symbols golden")
 
 
 if __name__ == "__main__":

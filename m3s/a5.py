@@ -189,6 +189,6 @@ class A5Grid(CoreBackedGrid):
     def identifier_to_precision(self, identifier: str) -> int | None:
         """Native precision encoded in the identifier, or None if invalid."""
         try:
-            return int(m3s_core.a5_resolution(identifier))
+            return int(m3s_core.a5_cell_from_id(identifier)[2])
         except (ValueError, TypeError):
             return None

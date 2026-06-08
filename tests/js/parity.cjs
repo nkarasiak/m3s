@@ -214,6 +214,46 @@ for (const [grid, rec] of ALL_BBOX) {
   }
 }
 
+// Precision-bounds registry: the JS all_precision_bounds() must reproduce the
+// frozen golden (written from the Python binding). Keys sorted for a stable
+// compare; values are [min, max, default].
+try {
+  const golden = JSON.parse(
+    fs.readFileSync(path.join(GOLDEN, "precision_bounds.json"), "utf8")
+  );
+  // serde-wasm-bindgen serializes the Rust HashMap as a JS Map; normalize both
+  // sides to a key-sorted plain object before comparing.
+  const js = wasm.all_precision_bounds();
+  const toSorted = (m) => {
+    const entries = m instanceof Map ? [...m.entries()] : Object.entries(m);
+    return Object.fromEntries(entries.sort(([a], [b]) => a.localeCompare(b)));
+  };
+  if (!eq(toSorted(js), toSorted(golden))) throw `precision_bounds mismatch`;
+  pass++;
+} catch (e) {
+  fails.push(`precision_bounds: ${e}`);
+}
+
+// Symbol contract: the JS exports must equal the frozen set the Python binding
+// also asserts (tests/golden/binding_symbols.json), so neither side can grow a
+// function the other lacks.
+try {
+  const expected = JSON.parse(
+    fs.readFileSync(path.join(GOLDEN, "binding_symbols.json"), "utf8")
+  ).sort();
+  const actual = Object.keys(wasm)
+    .filter((k) => typeof wasm[k] === "function" && !k.startsWith("__"))
+    .sort();
+  if (!eq(actual, expected)) {
+    const a = new Set(actual);
+    const e = new Set(expected);
+    throw `js-only: ${actual.filter((k) => !e.has(k))} python-only: ${expected.filter((k) => !a.has(k))}`;
+  }
+  pass++;
+} catch (e) {
+  fails.push(`binding_symbols: ${e}`);
+}
+
 console.log(`PASS ${pass}  FAIL ${fails.length}`);
 if (fails.length) {
   for (const f of fails) console.error("  " + f);

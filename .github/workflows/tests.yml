@@ -42,10 +42,29 @@ jobs:
         file: ./coverage.xml
         fail_ci_if_error: false
 
+  # JS half of the ADR 0001 parity gate: build the wasm binding from the same
+  # core and replay the committed golden vectors, proving JS == Python.
+  js-parity:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install wasm-pack
+      uses: jetli/wasm-pack-action@v0.4.0
+
+    - name: Build wasm binding (nodejs target)
+      run: wasm-pack build bindings/js --target nodejs --out-dir pkg
+
+    - name: Run JS parity
+      run: node tests/js/parity.cjs
+
   # Summary job that all matrix jobs must pass
   tests-complete:
     runs-on: ubuntu-24.04
-    needs: test
+    needs: [test, js-parity]
     steps:
     - name: All tests passed
       run: echo "All test matrix jobs completed successfully"

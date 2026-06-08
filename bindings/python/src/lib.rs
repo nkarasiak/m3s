@@ -107,15 +107,10 @@ grid_base!(gars);
 grid_base!(mh);
 grid_base!(mgrs);
 
-// a5-only extras.
+// a5-only extra: A5 is equal-area, so a resolution has one exact cell area.
 #[pyfunction]
 fn a5_cell_area_m2(precision: u8) -> f64 {
     a5::cell_area_m2(precision)
-}
-
-#[pyfunction]
-fn a5_resolution(id: &str) -> PyResult<u8> {
-    a5::resolution(id).map_err(err)
 }
 
 // ---- shared -----------------------------------------------------------------
@@ -181,7 +176,6 @@ fn m3s_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     reg_base!(m, mh);
     reg_base!(m, mgrs);
     m.add_function(wrap_pyfunction!(a5_cell_area_m2, m)?)?;
-    m.add_function(wrap_pyfunction!(a5_resolution, m)?)?;
     m.add_function(wrap_pyfunction!(geodesic_area_km2, m)?)?;
     m.add_function(wrap_pyfunction!(all_precision_bounds, m)?)?;
     Ok(())

@@ -138,8 +138,3 @@ pub fn cells_in_bbox(
 pub fn cell_area_m2(precision: u8) -> f64 {
     cell_area(precision as i32)
 }
-
-/// Resolution (precision) encoded in a hex cell id.
-pub fn resolution(id: &str) -> Result<u8, String> {
-    Ok(get_resolution(id_to_u64(id)?) as u8)
-}
