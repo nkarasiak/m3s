@@ -236,6 +236,28 @@ def cell_from_core(core_cell: tuple[str, list[list[float]], int]) -> GridCell:
     return GridCell(identifier, Polygon(ring), precision)
 
 
+def validate_lat_lon(lat: float, lon: float) -> None:
+    """
+    Validate that a coordinate lies within valid WGS84 bounds.
+
+    Parameters
+    ----------
+    lat : float
+        Latitude coordinate
+    lon : float
+        Longitude coordinate
+
+    Raises
+    ------
+    ValueError
+        If ``lat`` is outside [-90, 90] or ``lon`` is outside [-180, 180].
+    """
+    if not -90 <= lat <= 90:
+        raise ValueError("Latitude must be between -90 and 90")
+    if not -180 <= lon <= 180:
+        raise ValueError("Longitude must be between -180 and 180")
+
+
 class BaseGrid(ABC):
     """
     Abstract base class for all grid systems.
@@ -267,8 +289,17 @@ class BaseGrid(ABC):
     MIN_PRECISION: ClassVar[int]
     MAX_PRECISION: ClassVar[int]
     DEFAULT_PRECISION: ClassVar[int]
+    # Human-readable name used in the precision-range error (e.g. "C-squares").
+    # Defaults to the class name when a subclass does not set it.
+    GRID_NAME: ClassVar[str] = ""
 
     def __init__(self, precision: int):
+        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
+            name = self.GRID_NAME or type(self).__name__
+            raise ValueError(
+                f"{name} precision must be between {self.MIN_PRECISION} and "
+                f"{self.MAX_PRECISION}"
+            )
         self.precision = precision
 
     @classmethod
@@ -443,14 +474,9 @@ class BaseGrid(ABC):
         )
 
         if gdf.empty:
-            # Create columns without duplicating 'geometry'
-            result_columns = ["cell_id", "precision"] + additional_cols + ["geometry"]
-            result_columns.extend([col for col in gdf.columns if col != "geometry"])
-            return gpd.GeoDataFrame(columns=result_columns, crs=gdf.crs)
+            return self._empty_intersection_result(gdf, additional_cols, gdf.crs)
 
         original_crs = gdf.crs
-
-        # Transform to target CRS if needed
         if original_crs is None:
             raise ValueError("GeoDataFrame CRS must be defined")
 
@@ -459,50 +485,63 @@ class BaseGrid(ABC):
         else:
             gdf_transformed = gdf.copy()
 
-        # Collect all intersecting cells with source geometry indices
-        all_cells = []
-        source_indices = []
-
-        for idx, geometry in enumerate(gdf_transformed.geometry):
-            if geometry is not None and not geometry.is_empty:
-                bounds = geometry.bounds
-                min_lon, min_lat, max_lon, max_lat = bounds
-                candidate_cells = self.get_cells_in_bbox(
-                    min_lat, min_lon, max_lat, max_lon
-                )
-                intersecting_cells = self._filter_intersecting_cells(
-                    candidate_cells, geometry, use_spatial_index
-                )
-                for cell in intersecting_cells:
-                    cell_data = {
-                        "cell_id": cell.identifier,
-                        "precision": cell.precision,
-                        "geometry": cell.polygon,
-                    }
-                    # Add grid-specific columns from hook
-                    cell_data.update(self._get_additional_columns(cell))
-                    all_cells.append(cell_data)
-                    source_indices.append(idx)
+        all_cells, source_indices = self._collect_intersecting_cells(
+            gdf_transformed, use_spatial_index
+        )
 
         if not all_cells:
-            # Create columns without duplicating 'geometry'
-            result_columns = ["cell_id", "precision"] + additional_cols + ["geometry"]
-            result_columns.extend([col for col in gdf.columns if col != "geometry"])
-            return gpd.GeoDataFrame(columns=result_columns, crs=target_crs)
+            return self._empty_intersection_result(gdf, additional_cols, target_crs)
 
-        # Create result GeoDataFrame
         result_gdf = gpd.GeoDataFrame(all_cells, crs=target_crs)
 
-        # Add original data for each intersecting cell
+        # Carry the source geometry's other columns onto each intersecting cell
         for col in gdf.columns:
             if col != "geometry":
                 result_gdf[col] = [gdf.iloc[idx][col] for idx in source_indices]
 
-        # Transform back to original CRS if different
         if original_crs != target_crs:
             result_gdf = result_gdf.to_crs(original_crs)
 
         return result_gdf
+
+    def _empty_intersection_result(
+        self, gdf: gpd.GeoDataFrame, additional_cols: list[str], crs: Any
+    ) -> gpd.GeoDataFrame:
+        """Build an empty intersection result with the full column schema."""
+        result_columns = ["cell_id", "precision", *additional_cols, "geometry"]
+        result_columns.extend(col for col in gdf.columns if col != "geometry")
+        return gpd.GeoDataFrame(columns=result_columns, crs=crs)
+
+    def _collect_intersecting_cells(
+        self, gdf: gpd.GeoDataFrame, use_spatial_index: bool
+    ) -> tuple[list[dict[str, Any]], list[int]]:
+        """
+        Collect intersecting cells (as row dicts) and their source row indices.
+
+        Returns a parallel pair: the per-cell column dicts and the index of the
+        source geometry each cell came from.
+        """
+        all_cells: list[dict[str, Any]] = []
+        source_indices: list[int] = []
+
+        for idx, geometry in enumerate(gdf.geometry):
+            if geometry is None or geometry.is_empty:
+                continue
+            min_lon, min_lat, max_lon, max_lat = geometry.bounds
+            candidate_cells = self.get_cells_in_bbox(min_lat, min_lon, max_lat, max_lon)
+            for cell in self._filter_intersecting_cells(
+                candidate_cells, geometry, use_spatial_index
+            ):
+                cell_data = {
+                    "cell_id": cell.identifier,
+                    "precision": cell.precision,
+                    "geometry": cell.polygon,
+                }
+                cell_data.update(self._get_additional_columns(cell))
+                all_cells.append(cell_data)
+                source_indices.append(idx)
+
+        return all_cells, source_indices
 
     # ------------------------------------------------------------------
     # h3-compat backend hooks
@@ -531,6 +570,9 @@ class BaseGrid(ABC):
             self.get_cell_from_identifier(identifier)
             return True
         except Exception:
+            # Any failure to parse/resolve the id means it is not valid here;
+            # the core backends raise heterogeneous exception types, so a
+            # catch-all is the honest contract for this boolean probe.
             return False
 
     def identifier_to_precision(self, identifier: str) -> int | None:

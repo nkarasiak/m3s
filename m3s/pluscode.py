@@ -18,6 +18,7 @@ class PlusCodeGrid(CoreBackedGrid):
     """
 
     KEY = "pc"
+    GRID_NAME = "Plus code"
     MIN_PRECISION = 1
     MAX_PRECISION = 7
     DEFAULT_PRECISION = 5
@@ -53,11 +54,6 @@ class PlusCodeGrid(CoreBackedGrid):
         ValueError
             If precision is not between 1 and 7
         """
-        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
-            raise ValueError(
-                f"Plus code precision must be between {self.MIN_PRECISION} and "
-                f"{self.MAX_PRECISION}"
-            )
         super().__init__(precision)
 
     @cached_property

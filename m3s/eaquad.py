@@ -44,7 +44,7 @@ from typing import override
 
 import m3s_core
 
-from .base import CoreBackedGrid, GridCell, cell_from_core
+from .base import CoreBackedGrid, GridCell, cell_from_core, validate_lat_lon
 
 # EPSG:6933 (EASE-Grid 2.0 Global) valid projected domain, in metres.
 # Full mathematical domain: lon +/-180 -> x +/-X_MAX, lat +/-90 -> y +/-Y_MAX.
@@ -151,6 +151,7 @@ class EAQuadGrid(CoreBackedGrid):
     """
 
     KEY = "eaq"
+    GRID_NAME = "EA-Quad"
     # Mirror the module-level bounds as the BaseGrid metadata attributes so
     # consumers (GridWrapper, AreaCalculator, ...) see EA-Quad's true 0-10 range.
     MIN_PRECISION = MIN_PRECISION
@@ -179,11 +180,6 @@ class EAQuadGrid(CoreBackedGrid):
         ValueError
             If precision is not between 0 and 10.
         """
-        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
-            raise ValueError(
-                f"EA-Quad precision must be between {self.MIN_PRECISION} and "
-                f"{self.MAX_PRECISION}"
-            )
         super().__init__(precision)
 
     @property
@@ -234,11 +230,7 @@ class EAQuadGrid(CoreBackedGrid):
         ValueError
             If coordinates are out of valid range.
         """
-        if not -90 <= lat <= 90:
-            raise ValueError("Latitude must be between -90 and 90")
-        if not -180 <= lon <= 180:
-            raise ValueError("Longitude must be between -180 and 180")
-
+        validate_lat_lon(lat, lon)
         return cell_from_core(m3s_core.eaq_cell_from_point(lat, lon, self.precision))
 
     def get_parent(self, cell: GridCell) -> GridCell:

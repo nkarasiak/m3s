@@ -154,11 +154,7 @@ class GridRelationshipAnalyzer:
         list[GridCell]
             List of contained cells
         """
-        contained = []
-        for cell in cells:
-            if container.polygon.contains(cell.polygon):
-                contained.append(cell)
-        return contained
+        return [cell for cell in cells if container.polygon.contains(cell.polygon)]
 
     def find_overlapping_cells(
         self, target: GridCell, cells: list[GridCell]
@@ -178,13 +174,12 @@ class GridRelationshipAnalyzer:
         list[GridCell]
             List of overlapping cells
         """
-        overlapping = []
-        for cell in cells:
-            if target.polygon.overlaps(cell.polygon) or target.polygon.intersects(
-                cell.polygon
-            ):
-                overlapping.append(cell)
-        return overlapping
+        return [
+            cell
+            for cell in cells
+            if target.polygon.overlaps(cell.polygon)
+            or target.polygon.intersects(cell.polygon)
+        ]
 
     def find_adjacent_cells(
         self, target: GridCell, cells: list[GridCell]
@@ -204,11 +199,7 @@ class GridRelationshipAnalyzer:
         list[GridCell]
             List of adjacent cells
         """
-        adjacent = []
-        for cell in cells:
-            if self.is_adjacent(target, cell):
-                adjacent.append(cell)
-        return adjacent
+        return [cell for cell in cells if self.is_adjacent(target, cell)]
 
     def create_relationship_matrix(self, cells: list[GridCell]) -> pd.DataFrame:
         """

@@ -6,7 +6,7 @@ from typing import override
 
 import m3s_core
 
-from .base import CoreBackedGrid, GridCell, cell_from_core
+from .base import CoreBackedGrid, GridCell, cell_from_core, validate_lat_lon
 
 
 class CSquaresGrid(CoreBackedGrid):
@@ -19,6 +19,7 @@ class CSquaresGrid(CoreBackedGrid):
     """
 
     KEY = "cs"
+    GRID_NAME = "C-squares"
     MIN_PRECISION = 1
     MAX_PRECISION = 5
     DEFAULT_PRECISION = 5
@@ -44,11 +45,6 @@ class CSquaresGrid(CoreBackedGrid):
         ValueError
             If precision is not between 1 and 5
         """
-        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
-            raise ValueError(
-                f"C-squares precision must be between {self.MIN_PRECISION} and "
-                f"{self.MAX_PRECISION}"
-            )
         super().__init__(precision)
 
     @override
@@ -73,11 +69,7 @@ class CSquaresGrid(CoreBackedGrid):
         ValueError
             If coordinates are out of valid range
         """
-        if not -90 <= lat <= 90:
-            raise ValueError("Latitude must be between -90 and 90")
-        if not -180 <= lon <= 180:
-            raise ValueError("Longitude must be between -180 and 180")
-
+        validate_lat_lon(lat, lon)
         return cell_from_core(m3s_core.cs_cell_from_point(lat, lon, self.precision))
 
     @override

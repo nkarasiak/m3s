@@ -31,6 +31,7 @@ class QuadkeyGrid(CoreBackedGrid):
     """
 
     KEY = "qk"
+    GRID_NAME = "Quadkey"
     MIN_PRECISION = 1
     MAX_PRECISION = 23
     DEFAULT_PRECISION = 12
@@ -44,12 +45,6 @@ class QuadkeyGrid(CoreBackedGrid):
         precision : int, optional
             Precision level for quadkey tiles (1-23), by default 12.
         """
-        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
-            raise ValueError(
-                f"Quadkey precision must be between {self.MIN_PRECISION} and "
-                f"{self.MAX_PRECISION}"
-            )
-
         super().__init__(precision)
 
     @property

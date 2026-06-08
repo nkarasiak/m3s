@@ -68,15 +68,12 @@ class MultiResolutionGrid:
 
         # Create grid instances for each resolution level
         for level_idx, precision in enumerate(self.resolution_levels):
-            grid_copy = type(grid_system).__new__(type(grid_system))
-            grid_copy.__dict__.update(grid_system.__dict__)
-            grid_copy.precision = precision
-
-            self.grids[precision] = grid_copy
+            grid = type(grid_system)(precision=precision)
+            self.grids[precision] = grid
             self.levels[level_idx] = ResolutionLevel(
                 level=level_idx,
                 precision=precision,
-                area_km2=grid_copy.area_km2,
+                area_km2=grid.area_km2,
                 cells=[],
             )
 

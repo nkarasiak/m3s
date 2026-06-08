@@ -29,6 +29,7 @@ class SlippyGrid(CoreBackedGrid):
     """
 
     KEY = "sl"
+    GRID_NAME = "Slippy"
     MIN_PRECISION = 0
     MAX_PRECISION = 22
     DEFAULT_PRECISION = 12
@@ -47,12 +48,6 @@ class SlippyGrid(CoreBackedGrid):
             Precision 15: 32768×32768 = ~1B tiles (~1.2km tiles)
             Precision 18: 262144×262144 tiles (~150m tiles)
         """
-        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
-            raise ValueError(
-                f"Slippy precision must be between {self.MIN_PRECISION} and "
-                f"{self.MAX_PRECISION}"
-            )
-
         super().__init__(precision)
 
     @property
@@ -119,7 +114,7 @@ class SlippyGrid(CoreBackedGrid):
         """
         try:
             return [cell_from_core(n) for n in m3s_core.sl_neighbors(cell.identifier)]
-        except Exception:
+        except ValueError:
             return []
 
     def get_children(self, cell: GridCell) -> list[GridCell]:
@@ -141,7 +136,7 @@ class SlippyGrid(CoreBackedGrid):
 
         try:
             return [cell_from_core(c) for c in m3s_core.sl_children(cell.identifier)]
-        except Exception:
+        except ValueError:
             return []
 
     def get_parent(self, cell: GridCell) -> GridCell | None:
@@ -163,7 +158,7 @@ class SlippyGrid(CoreBackedGrid):
 
         try:
             return cell_from_core(m3s_core.sl_parent(cell.identifier))
-        except Exception:
+        except ValueError:
             return None
 
     def get_covering_cells(

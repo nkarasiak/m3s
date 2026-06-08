@@ -4,7 +4,7 @@ Maidenhead locator system grid implementation.
 
 from functools import cached_property
 
-from .base import CoreBackedGrid
+from .base import CoreBackedGrid, validate_lat_lon
 
 
 class MaidenheadGrid(CoreBackedGrid):
@@ -16,6 +16,7 @@ class MaidenheadGrid(CoreBackedGrid):
     """
 
     KEY = "mh"
+    GRID_NAME = "Maidenhead"
     MIN_PRECISION = 1
     MAX_PRECISION = 4
     DEFAULT_PRECISION = 4
@@ -40,11 +41,6 @@ class MaidenheadGrid(CoreBackedGrid):
         ValueError
             If precision is not between 1 and 4
         """
-        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
-            raise ValueError(
-                f"Maidenhead precision must be between {self.MIN_PRECISION} and "
-                f"{self.MAX_PRECISION}"
-            )
         super().__init__(precision)
 
     @cached_property
@@ -82,11 +78,7 @@ class MaidenheadGrid(CoreBackedGrid):
         str
             Maidenhead locator string
         """
-        if not (-90 <= lat <= 90):
-            raise ValueError("Latitude must be between -90 and 90")
-        if not (-180 <= lon <= 180):
-            raise ValueError("Longitude must be between -180 and 180")
-
+        validate_lat_lon(lat, lon)
         return self.get_cell_from_point(lat, lon).identifier
 
     def decode(self, locator: str) -> tuple:

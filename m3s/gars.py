@@ -4,7 +4,7 @@ GARS (Global Area Reference System) grid implementation.
 
 from functools import cached_property
 
-from .base import CoreBackedGrid
+from .base import CoreBackedGrid, validate_lat_lon
 
 
 class GARSGrid(CoreBackedGrid):
@@ -16,6 +16,7 @@ class GARSGrid(CoreBackedGrid):
     """
 
     KEY = "gars"
+    GRID_NAME = "GARS"
     MIN_PRECISION = 1
     MAX_PRECISION = 3
     DEFAULT_PRECISION = 2
@@ -39,11 +40,6 @@ class GARSGrid(CoreBackedGrid):
         ValueError
             If precision is not between 1 and 3
         """
-        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
-            raise ValueError(
-                f"GARS precision must be between {self.MIN_PRECISION} and "
-                f"{self.MAX_PRECISION}"
-            )
         super().__init__(precision)
 
     @cached_property
@@ -76,11 +72,7 @@ class GARSGrid(CoreBackedGrid):
         str
             GARS identifier string
         """
-        if not (-90 <= lat <= 90):
-            raise ValueError("Latitude must be between -90 and 90")
-        if not (-180 <= lon <= 180):
-            raise ValueError("Longitude must be between -180 and 180")
-
+        validate_lat_lon(lat, lon)
         return self.get_cell_from_point(lat, lon).identifier
 
     def decode(self, gars_id: str) -> tuple:

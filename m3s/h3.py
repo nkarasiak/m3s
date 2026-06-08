@@ -20,6 +20,7 @@ class H3Grid(CoreBackedGrid):
     """
 
     KEY = "h3"
+    GRID_NAME = "H3"
     MIN_PRECISION = 0
     MAX_PRECISION = 15
     DEFAULT_PRECISION = 7
@@ -56,11 +57,6 @@ class H3Grid(CoreBackedGrid):
         ValueError
             If precision is not between 0 and 15
         """
-        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
-            raise ValueError(
-                f"H3 precision must be between {self.MIN_PRECISION} and "
-                f"{self.MAX_PRECISION}"
-            )
         super().__init__(precision)
 
     @property
@@ -143,7 +139,7 @@ class H3Grid(CoreBackedGrid):
         """
         try:
             return [cell_from_core(n) for n in m3s_core.h3_neighbors(cell.identifier)]
-        except Exception:
+        except ValueError:
             return []
 
     def get_edge_length_km(self) -> float:
@@ -231,7 +227,7 @@ class H3Grid(CoreBackedGrid):
 
         try:
             return [cell_from_core(c) for c in m3s_core.h3_children(cell.identifier)]
-        except Exception:
+        except ValueError:
             return []
 
     def get_parent(self, cell: GridCell) -> GridCell:
@@ -253,7 +249,7 @@ class H3Grid(CoreBackedGrid):
 
         try:
             return cell_from_core(m3s_core.h3_parent(cell.identifier))
-        except Exception:
+        except ValueError:
             return cell
 
     def get_resolution_info(self) -> dict:

@@ -109,23 +109,20 @@ class PrecisionFinder:
         if isinstance(method, int):
             # Target specific cell count
             return self._find_precision_for_count(geometry, method, candidates)
-        elif method == "auto":
-            # Minimize coverage variance (user preference)
-            return self._find_precision_minimize_variance(geometry, candidates)
-        elif method == "less":
-            # Prefer fewer, larger cells
-            return self._find_precision_fewer_cells(geometry, candidates)
-        elif method == "more":
-            # Prefer more, smaller cells
-            return self._find_precision_more_cells(geometry, candidates)
-        elif method == "balanced":
-            # Balance coverage and count
-            return self._find_precision_balanced(geometry, candidates)
-        else:
+
+        strategies = {
+            "auto": self._find_precision_minimize_variance,  # min coverage variance
+            "less": self._find_precision_fewer_cells,  # prefer fewer, larger cells
+            "more": self._find_precision_more_cells,  # prefer more, smaller cells
+            "balanced": self._find_precision_balanced,  # balance coverage and count
+        }
+        strategy = strategies.get(method)
+        if strategy is None:
             raise ValueError(
                 f"Invalid method: {method}. "
                 "Use 'auto', 'less', 'more', 'balanced', or integer count."
             )
+        return strategy(geometry, candidates)
 
     def for_area(self, target_km2: float, tolerance: float = 0.2) -> int:
         """

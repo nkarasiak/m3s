@@ -20,6 +20,7 @@ class GeohashGrid(CoreBackedGrid):
     """
 
     KEY = "gh"
+    GRID_NAME = "Geohash"
     MIN_PRECISION = 1
     MAX_PRECISION = 12
     DEFAULT_PRECISION = 5
@@ -39,11 +40,6 @@ class GeohashGrid(CoreBackedGrid):
         ValueError
             If precision is not between 1 and 12
         """
-        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
-            raise ValueError(
-                f"Geohash precision must be between {self.MIN_PRECISION} and "
-                f"{self.MAX_PRECISION}"
-            )
         super().__init__(precision)
 
     @property

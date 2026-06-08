@@ -31,6 +31,7 @@ class S2Grid(CoreBackedGrid):
     """
 
     KEY = "s2"
+    GRID_NAME = "S2"
     MIN_PRECISION = 0
     MAX_PRECISION = 30
     DEFAULT_PRECISION = 10
@@ -48,12 +49,6 @@ class S2Grid(CoreBackedGrid):
             Precision 20: ~20 m edge length
             Precision 30: ~1 cm edge length
         """
-        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
-            raise ValueError(
-                f"S2 precision must be between {self.MIN_PRECISION} and "
-                f"{self.MAX_PRECISION}"
-            )
-
         super().__init__(precision)
 
     @property

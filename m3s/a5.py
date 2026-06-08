@@ -31,7 +31,7 @@ from typing import override
 
 import m3s_core
 
-from .base import CoreBackedGrid, GridCell, cell_from_core
+from .base import CoreBackedGrid, GridCell, cell_from_core, validate_lat_lon
 
 # Resolution range exposed by M3S. A5 supports 0..30 (the spec's MAX_RESOLUTION);
 # its special WORLD_CELL (resolution -1) is not exposed.
@@ -55,6 +55,7 @@ class A5Grid(CoreBackedGrid):
     """
 
     KEY = "a5"
+    GRID_NAME = "A5"
     MIN_PRECISION = MIN_PRECISION
     MAX_PRECISION = MAX_PRECISION
     DEFAULT_PRECISION = 8
@@ -73,11 +74,6 @@ class A5Grid(CoreBackedGrid):
         ValueError
             If precision is not between 0 and 30.
         """
-        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
-            raise ValueError(
-                f"A5 precision must be between {self.MIN_PRECISION} and "
-                f"{self.MAX_PRECISION}"
-            )
         super().__init__(precision)
 
     @property
@@ -119,11 +115,7 @@ class A5Grid(CoreBackedGrid):
         ValueError
             If coordinates are out of valid range.
         """
-        if not -90 <= lat <= 90:
-            raise ValueError("Latitude must be between -90 and 90")
-        if not -180 <= lon <= 180:
-            raise ValueError("Longitude must be between -180 and 180")
-
+        validate_lat_lon(lat, lon)
         return cell_from_core(m3s_core.a5_cell_from_point(lat, lon, self.precision))
 
     @override

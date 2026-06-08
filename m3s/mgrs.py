@@ -19,6 +19,7 @@ class MGRSGrid(CoreBackedGrid):
     """
 
     KEY = "mgrs"
+    GRID_NAME = "MGRS"
     MIN_PRECISION = 0
     MAX_PRECISION = 5
     DEFAULT_PRECISION = 3
@@ -45,11 +46,6 @@ class MGRSGrid(CoreBackedGrid):
         ValueError
             If precision is not between 0 and 5
         """
-        if not self.MIN_PRECISION <= precision <= self.MAX_PRECISION:
-            raise ValueError(
-                f"MGRS precision must be between {self.MIN_PRECISION} and "
-                f"{self.MAX_PRECISION}"
-            )
         super().__init__(precision)
 
     @property

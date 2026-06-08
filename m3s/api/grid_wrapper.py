@@ -112,17 +112,13 @@ class GridWrapper(H3VerbsMixin):
 
         if geom_type == "point":
             return self.from_point(*geometry, precision=precision)  # type: ignore
-        elif geom_type == "bbox":
+        if geom_type == "shapely_point":
+            return self.from_point(geometry.x, geometry.y, precision=precision)  # type: ignore
+        if geom_type == "bbox":
             return self.from_bbox(geometry, precision=precision)  # type: ignore
-        elif geom_type == "shapely_point":
-            pt = geometry  # type: ignore
-            return self.from_point(pt.x, pt.y, precision=precision)
-        elif geom_type in ["polygon", "multipolygon"]:
+        if geom_type in ("polygon", "multipolygon", "gdf"):
             return self.from_polygon(geometry, precision=precision)  # type: ignore
-        elif geom_type == "gdf":
-            return self.from_polygon(geometry, precision=precision)  # type: ignore
-        else:
-            raise TypeError(f"Unsupported geometry type: {type(geometry)}")
+        raise TypeError(f"Unsupported geometry type: {type(geometry)}")
 
     # Specific geometry type methods (for clarity when needed)
 

@@ -399,143 +399,148 @@ class GridBuilder:
         # Instantiate grid
         grid = self._create_grid(self._grid_system, self._precision)
 
-        # Execute operation pipeline
+        # Execute operation pipeline. Each operation maps to a handler that takes
+        # the current cells (always normalised to a list) and returns the next.
         cells: Union[GridCell, List[GridCell]] = []
+        dispatch: Dict[
+            str, Callable[[List[GridCell], Dict[str, Any], BaseGrid], List[GridCell]]
+        ] = {
+            "point": self._op_point,
+            "points": self._op_points,
+            "bbox": self._op_bbox,
+            "polygon": self._op_polygon,
+            "neighbors": self._op_neighbors,
+            "children": self._op_children,
+            "parent": self._op_parent,
+            "convert": self._op_convert,
+            "filter": self._op_filter,
+            "limit": self._op_limit,
+        }
 
         for op_name, op_params in self._operations:
-            if op_name == "point":
-                cells = [
-                    grid.get_cell_from_point(
-                        op_params["latitude"], op_params["longitude"]
-                    )
-                ]
-
-            elif op_name == "points":
-                points = op_params["points"]
-                cells = []
-                for point in points:
-                    if isinstance(point, (list, tuple)):
-                        lon, lat = point
-                    else:  # numpy array row
-                        lon, lat = float(point[0]), float(point[1])
-                    cells.append(grid.get_cell_from_point(lat, lon))
-
-            elif op_name == "bbox":
-                bbox_geom = box(
-                    op_params["min_lon"],
-                    op_params["min_lat"],
-                    op_params["max_lon"],
-                    op_params["max_lat"],
-                )
-                # Convert to GeoDataFrame for intersects method
-                import geopandas as gpd
-
-                bbox_gdf = gpd.GeoDataFrame({"geometry": [bbox_geom]}, crs="EPSG:4326")
-                result_gdf = grid.intersects(
-                    bbox_gdf, use_spatial_index=self._use_spatial_index
-                )
-                # Convert GeoDataFrame to list of GridCell objects
-                cells = self._gdf_to_cells(result_gdf, grid)
-
-            elif op_name == "polygon":
-                # Convert to GeoDataFrame for intersects method
-                import geopandas as gpd
-
-                polygon_gdf = gpd.GeoDataFrame(
-                    {"geometry": [op_params["polygon"]]}, crs="EPSG:4326"
-                )
-                result_gdf = grid.intersects(
-                    polygon_gdf, use_spatial_index=self._use_spatial_index
-                )
-                # Convert GeoDataFrame to list of GridCell objects
-                cells = self._gdf_to_cells(result_gdf, grid)
-
-            elif op_name == "neighbors":
-                depth = op_params["depth"]
-                # Get neighbors for all current cells
-                if not isinstance(cells, list):
-                    cells = [cells]
-
-                all_neighbors = {}
-                for cell in cells:
-                    # Add original cell
-                    all_neighbors[cell.identifier] = cell
-                    # Add neighbors up to specified depth
-                    current_ring = {cell}
-                    for _ in range(depth):
-                        next_ring = set()
-                        for c in current_ring:
-                            neighbors = grid.get_neighbors(c)
-                            for n in neighbors:
-                                all_neighbors[n.identifier] = n
-                                next_ring.add(n)
-                        current_ring = next_ring
-
-                # Convert to list
-                cells = list(all_neighbors.values())
-
-            elif op_name == "children":
-                child_precision = op_params["child_precision"]
-                if child_precision is None:
-                    child_precision = self._precision + 1
-
-                if not isinstance(cells, list):
-                    cells = [cells]
-
-                all_children = []
-                for cell in cells:
-                    children = self._get_children_to_precision(
-                        grid, cell, child_precision
-                    )
-                    all_children.extend(children)
-                cells = all_children
-
-            elif op_name == "parent":
-                parent_precision = op_params["parent_precision"]
-                if parent_precision is None:
-                    parent_precision = self._precision - 1
-
-                if not isinstance(cells, list):
-                    cells = [cells]
-
-                parents: List[GridCell] = []
-                for cell in cells:
-                    parent = self._get_parent_to_precision(grid, cell, parent_precision)
-                    if parent and parent.identifier not in [
-                        p.identifier for p in parents
-                    ]:
-                        parents.append(parent)
-                cells = parents
-
-            elif op_name == "convert":
-                from ..conversion import convert_cell
-
-                if not isinstance(cells, list):
-                    cells = [cells]
-
-                target_system = op_params["target_system"]
-                method = op_params["method"]
-
-                converted = []
-                for cell in cells:
-                    result = convert_cell(cell, target_system, method=method)
-                    if isinstance(result, list):
-                        converted.extend(result)
-                    else:
-                        converted.append(result)
-                cells = converted
-
-            elif op_name == "filter":
-                if not isinstance(cells, list):
-                    cells = [cells]
-                cells = [c for c in cells if op_params["predicate"](c)]
-
-            elif op_name == "limit":
-                if not isinstance(cells, list):
-                    cells = [cells]
-                cells = cells[: op_params["count"]]
+            current = cells if isinstance(cells, list) else [cells]
+            cells = dispatch[op_name](current, op_params, grid)
 
         return GridQueryResult(cells, metadata=self._metadata)
+
+    def _op_point(
+        self, cells: List[GridCell], op_params: Dict[str, Any], grid: BaseGrid
+    ) -> List[GridCell]:
+        return [grid.get_cell_from_point(op_params["latitude"], op_params["longitude"])]
+
+    def _op_points(
+        self, cells: List[GridCell], op_params: Dict[str, Any], grid: BaseGrid
+    ) -> List[GridCell]:
+        result = []
+        for point in op_params["points"]:
+            if isinstance(point, (list, tuple)):
+                lon, lat = point
+            else:  # numpy array row
+                lon, lat = float(point[0]), float(point[1])
+            result.append(grid.get_cell_from_point(lat, lon))
+        return result
+
+    def _op_bbox(
+        self, cells: List[GridCell], op_params: Dict[str, Any], grid: BaseGrid
+    ) -> List[GridCell]:
+        bbox_geom = box(
+            op_params["min_lon"],
+            op_params["min_lat"],
+            op_params["max_lon"],
+            op_params["max_lat"],
+        )
+        bbox_gdf = gpd.GeoDataFrame({"geometry": [bbox_geom]}, crs="EPSG:4326")
+        result_gdf = grid.intersects(
+            bbox_gdf, use_spatial_index=self._use_spatial_index
+        )
+        return self._gdf_to_cells(result_gdf, grid)
+
+    def _op_polygon(
+        self, cells: List[GridCell], op_params: Dict[str, Any], grid: BaseGrid
+    ) -> List[GridCell]:
+        polygon_gdf = gpd.GeoDataFrame(
+            {"geometry": [op_params["polygon"]]}, crs="EPSG:4326"
+        )
+        result_gdf = grid.intersects(
+            polygon_gdf, use_spatial_index=self._use_spatial_index
+        )
+        return self._gdf_to_cells(result_gdf, grid)
+
+    def _op_neighbors(
+        self, cells: List[GridCell], op_params: Dict[str, Any], grid: BaseGrid
+    ) -> List[GridCell]:
+        depth = op_params["depth"]
+        all_neighbors: Dict[str, GridCell] = {}
+        for cell in cells:
+            all_neighbors[cell.identifier] = cell
+            current_ring = {cell}
+            for _ in range(depth):
+                next_ring = set()
+                for c in current_ring:
+                    for n in grid.get_neighbors(c):
+                        all_neighbors[n.identifier] = n
+                        next_ring.add(n)
+                current_ring = next_ring
+        return list(all_neighbors.values())
+
+    def _op_children(
+        self, cells: List[GridCell], op_params: Dict[str, Any], grid: BaseGrid
+    ) -> List[GridCell]:
+        assert self._precision is not None  # guaranteed by build()
+        child_precision = op_params["child_precision"]
+        if child_precision is None:
+            child_precision = self._precision + 1
+
+        all_children: List[GridCell] = []
+        for cell in cells:
+            all_children.extend(
+                self._get_children_to_precision(grid, cell, child_precision)
+            )
+        return all_children
+
+    def _op_parent(
+        self, cells: List[GridCell], op_params: Dict[str, Any], grid: BaseGrid
+    ) -> List[GridCell]:
+        assert self._precision is not None  # guaranteed by build()
+        parent_precision = op_params["parent_precision"]
+        if parent_precision is None:
+            parent_precision = self._precision - 1
+
+        parents: List[GridCell] = []
+        seen: set[str] = set()
+        for cell in cells:
+            parent = self._get_parent_to_precision(grid, cell, parent_precision)
+            if parent and parent.identifier not in seen:
+                seen.add(parent.identifier)
+                parents.append(parent)
+        return parents
+
+    def _op_convert(
+        self, cells: List[GridCell], op_params: Dict[str, Any], grid: BaseGrid
+    ) -> List[GridCell]:
+        from ..conversion import convert_cell
+
+        target_system = op_params["target_system"]
+        method = op_params["method"]
+
+        converted: List[GridCell] = []
+        for cell in cells:
+            result = convert_cell(cell, target_system, method=method)
+            if isinstance(result, list):
+                converted.extend(result)
+            else:
+                converted.append(result)
+        return converted
+
+    def _op_filter(
+        self, cells: List[GridCell], op_params: Dict[str, Any], grid: BaseGrid
+    ) -> List[GridCell]:
+        return [c for c in cells if op_params["predicate"](c)]
+
+    def _op_limit(
+        self, cells: List[GridCell], op_params: Dict[str, Any], grid: BaseGrid
+    ) -> List[GridCell]:
+        return cells[: op_params["count"]]
 
     def _gdf_to_cells(self, gdf: gpd.GeoDataFrame, grid: BaseGrid) -> List[GridCell]:
         """
