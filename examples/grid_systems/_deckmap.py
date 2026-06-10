@@ -121,16 +121,44 @@ function viewBounds(vs) {
   return {w: b[0], s: b[1], e: b[2], n: b[3]};
 }
 
-function build(vs) {
-  let res = G.resForZoom(vs.zoom);
-  const b = viewBounds(vs);
+// Cells are generated for a view padded by PAD on each side and the resulting
+// layers cached, so panning inside the padded area (and any view change that
+// keeps the same resolution) reuses the existing GPU buffers instead of
+// re-tiling the grid on every camera frame. PAD_AREA is how much bigger the
+// padded view is; the per-grid cell caps scale by it so the on-screen density
+// thresholds stay as authored.
+const PAD = 0.25, PAD_AREA = (1 + 2 * PAD) * (1 + 2 * PAD);
+function padBounds(b) {
+  const dw = (b.e - b.w) * PAD, dh = (b.n - b.s) * PAD;
+  return {w: b.w - dw, e: b.e + dw,
+          s: Math.max(-85.0511, b.s - dh), n: Math.min(85.0511, b.n + dh)};
+}
+function covers(outer, b) {
+  return b.w >= outer.w && b.e <= outer.e && b.s >= outer.s && b.n <= outer.n;
+}
+let cache = null;  // {want, bounds, layers}
+function layersFor(vs) {
+  const want = G.resForZoom(vs.zoom);
+  const view = viewBounds(vs);
+  if (cache && cache.want === want && covers(cache.bounds, view)) {
+    return cache.layers;
+  }
+  const bounds = padBounds(view);
+  const layers = build(want, bounds);
+  cache = {want, bounds, layers};
+  return layers;
+}
+
+function build(want, b) {
+  let res = want;
   let cells = G.cells(res, b, DATA);
-  const limit = G.limit || 3000, minRes = G.minRes || 0, noun = G.noun || 'cells';
+  const limit = (G.limit || 3000) * PAD_AREA;
+  const minRes = G.minRes || 0, noun = G.noun || 'cells';
   // Step coarser until the current level is a manageable size.
   while (cells.length > limit && res > minRes) {
     res -= 1; cells = G.cells(res, b, DATA);
   }
-  if (G.maxRender && cells.length > G.maxRender) {
+  if (G.maxRender && cells.length > G.maxRender * PAD_AREA) {
     badge.innerHTML = '<b>' + G.name + '</b> &middot; zoom in to render ' + noun;
     return [basemap];
   }
@@ -150,7 +178,7 @@ function build(vs) {
   // aperture grids (Plus Codes step x400 per level) declare G.fineRatio so the
   // blow-up is caught *before* generating — otherwise the page locks building
   // hundreds of thousands of polygons it would then discard.
-  const fineLimit = G.fineLimit || 12000;
+  const fineLimit = (G.fineLimit || 12000) * PAD_AREA;
   const skipFine = (G.maxRes != null && fineRes > G.maxRes) ||
     (G.fineRatio && cells.length * G.fineRatio > fineLimit);
   const fine = skipFine ? [] : G.cells(fineRes, b, DATA);
@@ -212,14 +240,25 @@ function writeHash(vs) {
 const INIT = Object.assign(
   {longitude: __LON__, latitude: __LAT__, zoom: __ZOOM__}, readHash() || {});
 function start() {
+  // Coalesce camera events to one layer update per animation frame; most
+  // frames hit the bounds cache and hand deck the same layer instances (a
+  // no-op diff), so cells regenerate only on a resolution change or when the
+  // view escapes the padded bounds.
+  let pendingVS = null, rafId = 0;
   const deckgl = new DeckGL({
     container: 'map', initialViewState: INIT,
     controller: G.minZoom ? {minZoom: G.minZoom} : true,
     getTooltip: ({object}) => object && {html: object.tip},
-    layers: build(INIT),
+    layers: layersFor(INIT),
     onViewStateChange: ({viewState}) => {
       writeHash(viewState);
-      deckgl.setProps({layers: build(viewState)});
+      pendingVS = viewState;
+      if (!rafId) {
+        rafId = requestAnimationFrame(() => {
+          rafId = 0;
+          deckgl.setProps({layers: layersFor(pendingVS)});
+        });
+      }
     }
   });
 }
