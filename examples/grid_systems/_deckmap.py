@@ -192,10 +192,13 @@ function build(want, b) {
   // (G.maxRes), or when one finer step would explode the cell count. High-
   // aperture grids (Plus Codes step x400 per level) declare G.fineRatio so the
   // blow-up is caught *before* generating — otherwise the page locks building
-  // hundreds of thousands of polygons it would then discard.
+  // hundreds of thousands of polygons it would then discard. Grids whose
+  // aperture varies by level (Maidenhead alternates x100/x576) declare it as a
+  // function of the current resolution.
   const fineLimit = (G.fineLimit || 12000) * PAD_AREA;
+  const fineRatio = typeof G.fineRatio === 'function' ? G.fineRatio(res) : G.fineRatio;
   const skipFine = (G.maxRes != null && fineRes > G.maxRes) ||
-    (G.fineRatio && cells.length * G.fineRatio > fineLimit);
+    (fineRatio && cells.length * fineRatio > fineLimit);
   const fine = skipFine ? [] : G.cells(fineRes, b, DATA);
   const fineData = fine.length <= fineLimit ? fine : [];
   fineData.forEach(d => { d.poly = unwrap(d.poly); });
@@ -294,7 +297,10 @@ fs.onclick = () => {
 _DOC = """<!DOCTYPE html>
 <html><head><meta charset="utf-8">
 <style>
-  html, body { margin: 0; padding: 0; height: 100%; }
+  /* overflow:hidden matters: at fractional devicePixelRatio (Windows 125%
+     scaling) the deck.gl canvas buffer rounds up past the viewport, summoning
+     scrollbars that shrink it again — an every-frame resize/flicker loop. */
+  html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
   #map { position: absolute; inset: 0; }
   #badge { position: absolute; top: 8px; right: 8px; z-index: 1;
     background: #fff; padding: 4px 8px; border-radius: 4px;
@@ -342,8 +348,8 @@ class DeckExplorer:
         argument, for grids whose cells are pre-computed by M3S (S2, MGRS).
     hover : str, optional
         Hex colour used to highlight the hovered cell.
-    height : int, optional
-        Iframe height in pixels.
+    height : str, optional
+        Iframe CSS height (e.g. ``"50vh"`` or ``"400px"``).
     """
 
     def __init__(
@@ -355,7 +361,7 @@ class DeckExplorer:
         scripts=(),
         data=None,
         hover="#ffeb3b",
-        height=600,
+        height="50vh",
         wasm=False,
     ):
         self.lon, self.lat = center
@@ -393,6 +399,6 @@ class DeckExplorer:
     def _repr_html_(self):
         srcdoc = html.escape(self._doc(), quote=True)
         return (
-            '<iframe srcdoc="{}" style="width:100%;height:{}px;border:none;" '
+            '<iframe srcdoc="{}" style="width:100%;height:{};border:none;" '
             "allowfullscreen></iframe>"
         ).format(srcdoc, self.height)

@@ -5,6 +5,11 @@
 window.__GRID__ = {
   name: 'Maidenhead', noun: 'cells',
   limit: 3000, fineLimit: 12000, minRes: 1, maxRender: 6000,
+  // Maidenhead apertures alternate: field -> square is x100 (10x10), square ->
+  // subsquare x576 (24x24), then x100 again. Guard the finer preview before
+  // generating it, or a continent-wide square view asks the core for ~2M
+  // subsquares and freezes the page.
+  fineRatio: function (p) { return p % 2 === 1 ? 100 : 576; },
   resForZoom: function (z) {
     if (z <= 4) return 1;
     if (z <= 7) return 2;
