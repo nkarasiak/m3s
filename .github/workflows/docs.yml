@@ -32,9 +32,30 @@ jobs:
       with:
         enable-cache: true
 
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache Rust build
+      uses: Swatinem/rust-cache@v2
+
+    - name: Install wasm-pack
+      uses: jetli/wasm-pack-action@v0.4.0
+
+    # m3s imports the shared Rust core (m3s_core); the gallery examples also
+    # embed the web-target wasm build (bindings/js/pkg-web, gitignored).
+    - name: Build m3s_core wheel
+      run: >
+        uv run --no-project --with maturin
+        maturin build --release -m bindings/python/Cargo.toml -o dist -i python
+
+    - name: Build wasm binding (web target)
+      run: wasm-pack build bindings/js --target web --out-dir pkg-web
+
     - name: Build documentation
       working-directory: docs
-      run: uv run --no-default-groups --extra docs sphinx-build -b html . _build/html --keep-going
+      run: >
+        uv run --no-default-groups --extra docs --with ../dist/m3s_core-*.whl
+        sphinx-build -b html . _build/html --keep-going
     
     - name: Upload artifact
       if: github.ref == 'refs/heads/main'

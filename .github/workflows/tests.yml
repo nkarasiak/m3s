@@ -23,16 +23,31 @@ jobs:
       with:
         enable-cache: true
 
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Cache Rust build
+      uses: Swatinem/rust-cache@v2
+
+    # m3s imports the shared Rust core (m3s_core); build its wheel for the
+    # matrix interpreter and overlay it onto the test env via --with.
+    - name: Build m3s_core wheel
+      run: >
+        uv run --python ${{ matrix.python-version }} --no-project --with maturin
+        maturin build --release -m bindings/python/Cargo.toml -o dist -i python
+
     - name: Run tests (with coverage)
       if: matrix.python-version == '3.13'
       run: >
         uv run --python ${{ matrix.python-version }} --no-default-groups --extra test
+        --with dist/m3s_core-*.whl
         pytest tests/ -v --cov=m3s --cov-report=xml --cov-report=term
 
     - name: Run tests
       if: matrix.python-version != '3.13'
       run: >
         uv run --python ${{ matrix.python-version }} --no-default-groups --extra test
+        --with dist/m3s_core-*.whl
         pytest tests/ -v
 
     - name: Upload coverage
