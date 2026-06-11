@@ -7,9 +7,16 @@ license = "MIT"
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+# rustc >=1.87 emits bulk-memory/nontrapping-fptoint by default; wasm-pack's
+# bundled wasm-opt rejects them unless enabled. -O4 for speed-focused opt.
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ["-O4", "--enable-bulk-memory", "--enable-nontrapping-float-to-int"]
+
 [dependencies]
 m3s-core = { path = "../../m3s-core" }
 wasm-bindgen = "0.2"
+# js-sys typed arrays carry the columnar bulk results (no per-cell serde).
+js-sys = "0.3"
 serde = { version = "1", features = ["derive"] }
 serde-wasm-bindgen = "0.6"
 paste = "1"

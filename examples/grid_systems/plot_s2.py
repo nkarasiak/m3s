@@ -15,6 +15,35 @@ the next finer level with a lighter, thinner one — so the quadtree nesting sta
 visible. It is powered by the shared ``m3s_core`` Rust/WASM build so the cell
 ids and edges match M3S exactly. GIS-native ``(lon, lat)`` order is used
 throughout.
+
+Usage
+-----
+
+Encode a point and tile a small bounding box around Paris — same result in
+Python and JavaScript (both call the shared core):
+
+.. tab-set::
+
+   .. tab-item:: Python
+
+      .. code-block:: python
+
+         import m3s
+
+         cell = m3s.S2.from_geometry((2.35, 48.86))            # (lon, lat)
+         cells = m3s.S2.from_geometry((2.2, 48.8, 2.4, 48.9))  # bbox
+         print(cell.id, len(cells))
+
+   .. tab-item:: JavaScript
+
+      .. code-block:: javascript
+
+         import * as m3s from "m3s";
+         await m3s.ready();
+
+         const cell = m3s.S2.fromPoint(2.35, 48.86);            // (lon, lat)
+         const cells = m3s.S2.fromBbox([2.2, 48.8, 2.4, 48.9]); // bbox
+         console.log(cell.id, cells.length);
 """
 
 from _deckmap import DeckExplorer, read_grid_js

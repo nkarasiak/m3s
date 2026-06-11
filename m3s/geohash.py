@@ -6,7 +6,12 @@ from typing import Any, override
 
 import m3s_core
 
-from .base import CoreBackedGrid, GridCell, cell_from_core
+from .base import (
+    CoreBackedGrid,
+    GridCell,
+    cell_from_core,
+    cells_from_core_packed,
+)
 from .cache import cached_method, cell_cache_key, geo_cache_key
 from .projection_utils import get_utm_epsg_code
 
@@ -107,7 +112,7 @@ class GeohashGrid(CoreBackedGrid):
         list[GridCell]
             List of neighboring geohash cells
         """
-        return [cell_from_core(n) for n in m3s_core.gh_neighbors(cell.identifier)]
+        return cells_from_core_packed(m3s_core.gh_neighbors(cell.identifier))
 
     def get_children(self, cell: GridCell) -> list[GridCell]:
         """
@@ -130,7 +135,7 @@ class GeohashGrid(CoreBackedGrid):
         """
         if len(cell.identifier) >= self.MAX_PRECISION:
             return []
-        return [cell_from_core(c) for c in m3s_core.gh_children(cell.identifier)]
+        return cells_from_core_packed(m3s_core.gh_children(cell.identifier))
 
     def get_parent(self, cell: GridCell) -> GridCell:
         """

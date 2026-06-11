@@ -7,7 +7,7 @@ window.__GRID__ = {
   resForZoom: function (z) { return Math.max(1, Math.min(10, Math.round(z / 2))); },
   label: function (p) { return 'precision ' + p; },
   cells: function (p, b) {
-    return window.__M3S__.gh_cells_in_bbox(b.s, b.w, b.n, b.e, p).map(function (c) {
+    return window.__M3S_CELLS__(window.__M3S__.gh_cells_in_bbox(b.s, b.w, b.n, b.e, p)).map(function (c) {
       return { id: c.id, sub: 'precision ' + p, poly: c.ring.slice(0, -1) };
     });
   }

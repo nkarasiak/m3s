@@ -1,7 +1,7 @@
 M3S: Multi Spatial Subdivision System
 =====================================
 
-**Unified spatial grid systems for Python — one consistent API across 12 indexing systems.**
+**Unified spatial grid systems for Python and JavaScript — one consistent API, one shared Rust/WASM core, across 12 indexing systems.**
 
 .. image:: https://img.shields.io/pypi/v/m3s.svg
    :target: https://pypi.org/project/m3s/
@@ -43,7 +43,7 @@ M3S: Multi Spatial Subdivision System
 
          ⭐ GitHub
 
-M3S (Multi Spatial Subdivision System) is a Python library that provides an intuitive interface for working with **12 spatial grid systems** including **H3**, **Geohash**, **S2**, **MGRS**, **A5**, and more.
+M3S (Multi Spatial Subdivision System) provides an intuitive interface for working with **12 spatial grid systems** including **H3**, **Geohash**, **S2**, **MGRS**, **A5**, and more — in **Python** and in **JavaScript** (via WASM). Both bindings call the same Rust core, so a cell encoded in one language decodes identically in the other.
 
 **New in v0.5.1**: Simplified API with direct grid access, universal geometry handling, and intelligent auto-precision selection. No instantiation required—just ``import m3s`` and start working!
 
@@ -89,31 +89,59 @@ Quick Example - Simplified API (v0.5.1+)
 
 The easiest way to get started:
 
-.. code-block:: python
+.. tab-set::
 
-   import m3s
-   from shapely.geometry import Polygon
+   .. tab-item:: Python
 
-   # Direct grid access - no instantiation needed!  (lon, lat)
-   cell = m3s.Geohash.from_geometry((-74.0060, 40.7128))
-   print(f"Cell: {cell.id}, Area: {cell.area_km2:.2f} km²")
+      .. code-block:: python
 
-   # Works with any geometry type
-   polygon = Polygon([(-74.1, 40.7), (-73.9, 40.7), (-73.9, 40.8), (-74.1, 40.8)])
-   cells = m3s.H3.from_geometry(polygon)
+         import m3s
+         from shapely.geometry import Polygon
 
-   # Get neighbors
-   neighbors = m3s.Geohash.neighbors(cell)
+         # Direct grid access - no instantiation needed!  (lon, lat)
+         cell = m3s.Geohash.from_geometry((-74.0060, 40.7128))
+         print(f"Cell: {cell.id}, Area: {cell.area_km2:.2f} km²")
 
-   # Convert to GeoDataFrame
-   gdf = cells.to_gdf()
+         # Works with any geometry type
+         polygon = Polygon([(-74.1, 40.7), (-73.9, 40.7), (-73.9, 40.8), (-74.1, 40.8)])
+         cells = m3s.H3.from_geometry(polygon)
 
-   # Convert between grid systems
-   h3_cells = cells.to_h3()
+         # Get neighbors
+         neighbors = m3s.Geohash.neighbors(cell)
 
-   # Find optimal precision
-   precision = m3s.H3.find_precision(polygon, method='auto')
-   cells = m3s.H3.from_geometry(polygon, precision=precision)
+         # Convert to GeoDataFrame
+         gdf = cells.to_gdf()
+
+         # Convert between grid systems
+         h3_cells = cells.to_h3()
+
+         # Find optimal precision
+         precision = m3s.H3.find_precision(polygon, method='auto')
+         cells = m3s.H3.from_geometry(polygon, precision=precision)
+
+   .. tab-item:: JavaScript
+
+      .. code-block:: javascript
+
+         import * as m3s from "m3s";
+         await m3s.ready();
+
+         // Direct grid access — (lon, lat, precision)
+         const cell = m3s.Geohash.fromPoint(-74.0060, 40.7128, 6);
+         console.log(`Cell: ${cell.id}, Area: ${cell.areaKm2.toFixed(2)} km²`);
+
+         // Cells across a bounding box  [minLon, minLat, maxLon, maxLat]
+         const cells = m3s.H3.fromBbox([-74.1, 40.7, -73.9, 40.8], 8);
+
+         // Get neighbors
+         const neighbors = m3s.Geohash.neighbors(cell);
+         console.log(`${cells.length} cells, ${neighbors.length} neighbors`);
+
+      .. note::
+
+         The JS build wraps the shared core. True polygon fill, ``find_precision``,
+         GeoPandas export and cross-grid conversion are Python-only — see
+         :doc:`javascript`.
 
 Advanced Example - GridBuilder API
 -----------------------------------
@@ -275,12 +303,14 @@ Documentation
 
    grid_comparison
    grid_picker
+   javascript
 
 .. toctree::
    :maxdepth: 2
    :caption: Reference
 
    api
+   js_api
    changelog
 
 Community & Support

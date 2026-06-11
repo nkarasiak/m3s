@@ -117,7 +117,8 @@ const ringsClose = (a, b, tol) => {
   );
 };
 
-const ids = (cells) => cells.map((c) => c.id).sort();
+// Bulk fns return the columnar `{ids, coords, offsets, precisions}` shape.
+const ids = (packed) => (packed.ids ? packed.ids.split("\n") : []).sort();
 
 const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 

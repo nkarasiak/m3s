@@ -8,7 +8,7 @@ window.__GRID__ = {
   label: function (p) { return 'p' + p + ' (' + Math.pow(2, 10 - p) + ' km)'; },
   cells: function (p, b) {
     var area = Math.pow(2, 10 - p) * Math.pow(2, 10 - p);
-    return window.__M3S__.eaq_cells_in_bbox(b.s, b.w, b.n, b.e, p).map(function (c) {
+    return window.__M3S_CELLS__(window.__M3S__.eaq_cells_in_bbox(b.s, b.w, b.n, b.e, p)).map(function (c) {
       return { id: c.id, sub: area + ' km²', poly: c.ring.slice(0, -1) };
     });
   }

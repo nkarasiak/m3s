@@ -12,20 +12,37 @@ use ::m3s_core::{
     h3_grid as h3, maidenhead_grid as mh, mgrs_grid as mgrs, pluscode_grid as pc,
     quadkey_grid as qk, s2_grid as s2, slippy_grid as sl, Cell,
 };
+use numpy::{IntoPyArray, PyArray1};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use std::collections::HashMap;
 
-/// `(id, [(lon, lat), ...], precision)` — the shape the Python parity layer reads.
+/// `(id, [(lon, lat), ...], precision)` — the shape the Python parity layer
+/// reads for scalar results (`cell_from_point`, `cell_from_id`, `parent`).
 type PyCell = (String, Vec<(f64, f64)>, u8);
+
+/// Columnar bulk result: `(ids, coords, offsets, precisions)` with the arrays
+/// as numpy (`m3s.base.cells_from_core_packed` rebuilds GridCells vectorized).
+type PyPacked<'py> = (
+    String,
+    Bound<'py, PyArray1<f64>>,
+    Bound<'py, PyArray1<u32>>,
+    Bound<'py, PyArray1<u8>>,
+);
 
 fn to_py(c: Cell) -> PyCell {
     let ring = c.ring.into_iter().map(|p| (p[0], p[1])).collect();
     (c.id, ring, c.precision)
 }
 
-fn to_py_vec(cells: Vec<Cell>) -> Vec<PyCell> {
-    cells.into_iter().map(to_py).collect()
+fn to_packed(py: Python<'_>, cells: Vec<Cell>) -> PyPacked<'_> {
+    let p = ::m3s_core::pack_cells(cells);
+    (
+        p.ids,
+        p.coords.into_pyarray(py),
+        p.offsets.into_pyarray(py),
+        p.precisions.into_pyarray(py),
+    )
 }
 
 fn err(e: String) -> PyErr {
@@ -47,20 +64,25 @@ macro_rules! grid_base {
                 $p::cell_from_id(id).map(to_py).map_err(err)
             }
             #[pyfunction]
-            fn [<$p _neighbors>](id: &str) -> PyResult<Vec<PyCell>> {
-                $p::neighbors(id).map(to_py_vec).map_err(err)
+            fn [<$p _neighbors>]<'py>(py: Python<'py>, id: &str) -> PyResult<PyPacked<'py>> {
+                let cells = py.allow_threads(|| $p::neighbors(id)).map_err(err)?;
+                Ok(to_packed(py, cells))
             }
             #[pyfunction]
-            fn [<$p _cells_in_bbox>](
+            fn [<$p _cells_in_bbox>]<'py>(
+                py: Python<'py>,
                 min_lat: f64,
                 min_lon: f64,
                 max_lat: f64,
                 max_lon: f64,
                 precision: u8,
-            ) -> PyResult<Vec<PyCell>> {
-                $p::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision)
-                    .map(to_py_vec)
-                    .map_err(err)
+            ) -> PyResult<PyPacked<'py>> {
+                let cells = py
+                    .allow_threads(|| {
+                        $p::cells_in_bbox(min_lat, min_lon, max_lat, max_lon, precision)
+                    })
+                    .map_err(err)?;
+                Ok(to_packed(py, cells))
             }
         }
     };
@@ -71,8 +93,9 @@ macro_rules! grid_hierarchy {
     ($p:ident) => {
         ::paste::paste! {
             #[pyfunction]
-            fn [<$p _children>](id: &str) -> PyResult<Vec<PyCell>> {
-                $p::children(id).map(to_py_vec).map_err(err)
+            fn [<$p _children>]<'py>(py: Python<'py>, id: &str) -> PyResult<PyPacked<'py>> {
+                let cells = py.allow_threads(|| $p::children(id)).map_err(err)?;
+                Ok(to_packed(py, cells))
             }
             #[pyfunction]
             fn [<$p _parent>](id: &str) -> PyResult<PyCell> {

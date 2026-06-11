@@ -6,7 +6,12 @@ from functools import cached_property
 
 import m3s_core
 
-from .base import CoreBackedGrid, GridCell, cell_from_core
+from .base import (
+    CoreBackedGrid,
+    GridCell,
+    cell_from_core,
+    cells_from_core_packed,
+)
 
 
 class PlusCodeGrid(CoreBackedGrid):
@@ -129,7 +134,7 @@ class PlusCodeGrid(CoreBackedGrid):
         """
         if self.precision >= self.MAX_PRECISION:
             return []
-        return [cell_from_core(c) for c in m3s_core.pc_children(cell.identifier)]
+        return cells_from_core_packed(m3s_core.pc_children(cell.identifier))
 
     def get_parent(self, cell: GridCell) -> GridCell:
         """

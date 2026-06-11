@@ -15,3 +15,10 @@ a5 = "0.8.0"
 # default-features off drops `float_extras` (libc FFI math, won't build to WASM)
 # and `serde`; neither is on our cell/id/ring/neighbour/child/parent path.
 s2 = { version = "0.0.13", default-features = false }
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bench]]
+name = "bbox"
+harness = false

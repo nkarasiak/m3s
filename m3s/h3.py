@@ -7,7 +7,12 @@ from typing import Any, override
 import h3
 import m3s_core
 
-from .base import CoreBackedGrid, GridCell, cell_from_core
+from .base import (
+    CoreBackedGrid,
+    GridCell,
+    cell_from_core,
+    cells_from_core_packed,
+)
 from .projection_utils import get_utm_epsg_code
 
 
@@ -138,7 +143,7 @@ class H3Grid(CoreBackedGrid):
             List of neighboring H3 cells (typically 6 for hexagons)
         """
         try:
-            return [cell_from_core(n) for n in m3s_core.h3_neighbors(cell.identifier)]
+            return cells_from_core_packed(m3s_core.h3_neighbors(cell.identifier))
         except ValueError:
             return []
 
@@ -226,7 +231,7 @@ class H3Grid(CoreBackedGrid):
             return [cell]  # No children at maximum resolution
 
         try:
-            return [cell_from_core(c) for c in m3s_core.h3_children(cell.identifier)]
+            return cells_from_core_packed(m3s_core.h3_children(cell.identifier))
         except ValueError:
             return []
 

@@ -8,6 +8,8 @@ from typing import Any, ClassVar
 
 import geopandas as gpd
 import m3s_core
+import numpy as np
+import shapely
 from shapely.geometry import Point, Polygon, mapping
 
 from .cache import get_spatial_cache
@@ -228,12 +230,39 @@ def cell_from_core(core_cell: tuple[str, list[list[float]], int]) -> GridCell:
     """
     Build a :class:`GridCell` from a shared-core ``(id, ring, precision)`` tuple.
 
-    The ``m3s_core`` bindings return cells as ``(id, ring, precision)`` where
-    ``ring`` is a closed ``[lon, lat]`` ring (GIS axis order, ADR 0001 §4). This
-    wraps that contract once so every grid's binding-backed methods stay thin.
+    The ``m3s_core`` bindings return scalar cells as ``(id, ring, precision)``
+    where ``ring`` is a closed ``[lon, lat]`` ring (GIS axis order, ADR 0001
+    §4). This wraps that contract once so every grid's binding-backed methods
+    stay thin.
     """
     identifier, ring, precision = core_cell
     return GridCell(identifier, Polygon(ring), precision)
+
+
+def cells_from_core_packed(packed: tuple[str, Any, Any, Any]) -> list[GridCell]:
+    """
+    Build :class:`GridCell` objects from a shared-core columnar bulk result.
+
+    Bulk operations (``cells_in_bbox``, ``children``, ``neighbors``) return
+    ``(ids, coords, offsets, precisions)``: newline-joined ids plus flat numpy
+    arrays. Geometries are constructed vectorized through
+    ``shapely.linearrings``/``polygons`` (GEOS C loop) — orders of magnitude
+    faster than a per-cell ``Polygon(ring)`` Python loop on large results.
+    """
+    ids, coords, offsets, precisions = packed
+    if not ids:
+        return []
+    counts = np.diff(offsets.astype(np.int64))
+    rings = shapely.linearrings(
+        coords.reshape(-1, 2), indices=np.repeat(np.arange(len(counts)), counts)
+    )
+    polygons = shapely.polygons(rings)
+    return [
+        GridCell(identifier, polygon, int(precision))
+        for identifier, polygon, precision in zip(
+            ids.split("\n"), polygons, precisions, strict=True
+        )
+    ]
 
 
 def validate_lat_lon(lat: float, lon: float) -> None:
@@ -727,15 +756,14 @@ class CoreBackedGrid(BaseGrid):
 
     def get_neighbors(self, cell: GridCell) -> list[GridCell]:
         """Get ``cell``'s neighbours via the shared core."""
-        return [cell_from_core(n) for n in self._core("neighbors")(cell.identifier)]
+        return cells_from_core_packed(self._core("neighbors")(cell.identifier))
 
     def get_cells_in_bbox(
         self, min_lat: float, min_lon: float, max_lat: float, max_lon: float
     ) -> list[GridCell]:
         """Get the cells intersecting the bounding box via the shared core."""
-        return [
-            cell_from_core(c)
-            for c in self._core("cells_in_bbox")(
+        return cells_from_core_packed(
+            self._core("cells_in_bbox")(
                 min_lat, min_lon, max_lat, max_lon, self.precision
             )
-        ]
+        )

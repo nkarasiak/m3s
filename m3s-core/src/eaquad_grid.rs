@@ -31,6 +31,9 @@ pub fn precision_bounds() -> (u8, u8, u8) {
     (MIN_PRECISION, MAX_PRECISION, DEFAULT_PRECISION)
 }
 
+// NOTE: these stay plain functions of literal constants on purpose — LLVM
+// const-folds them to compile-time values. A LazyLock variant benched ~20%
+// *slower* on the bbox loop (atomic check per use blocks the folding).
 fn e() -> f64 {
     E2.sqrt()
 }

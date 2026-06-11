@@ -11,7 +11,12 @@ from typing import override
 import m3s_core
 from shapely.geometry import Polygon
 
-from .base import CoreBackedGrid, GridCell, cell_from_core
+from .base import (
+    CoreBackedGrid,
+    GridCell,
+    cell_from_core,
+    cells_from_core_packed,
+)
 
 
 class SlippyGrid(CoreBackedGrid):
@@ -113,7 +118,7 @@ class SlippyGrid(CoreBackedGrid):
             List of neighboring tiles (up to 8 neighbors)
         """
         try:
-            return [cell_from_core(n) for n in m3s_core.sl_neighbors(cell.identifier)]
+            return cells_from_core_packed(m3s_core.sl_neighbors(cell.identifier))
         except ValueError:
             return []
 
@@ -135,7 +140,7 @@ class SlippyGrid(CoreBackedGrid):
             return []  # No children at maximum zoom
 
         try:
-            return [cell_from_core(c) for c in m3s_core.sl_children(cell.identifier)]
+            return cells_from_core_packed(m3s_core.sl_children(cell.identifier))
         except ValueError:
             return []
 

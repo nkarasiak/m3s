@@ -12,7 +12,12 @@ from typing import override
 import m3s_core
 from shapely.geometry import Polygon
 
-from .base import CoreBackedGrid, GridCell, cell_from_core
+from .base import (
+    CoreBackedGrid,
+    GridCell,
+    cell_from_core,
+    cells_from_core_packed,
+)
 
 
 class QuadkeyGrid(CoreBackedGrid):
@@ -172,7 +177,7 @@ class QuadkeyGrid(CoreBackedGrid):
         if self.precision >= self.MAX_PRECISION:
             return []  # No children at maximum level
 
-        return [cell_from_core(c) for c in m3s_core.qk_children(cell.identifier)]
+        return cells_from_core_packed(m3s_core.qk_children(cell.identifier))
 
     def _create_tile_polygon_for_level(
         self, tile_x: int, tile_y: int, level: int

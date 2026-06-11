@@ -12,7 +12,12 @@ from typing import override
 import m3s_core
 from shapely.geometry import Polygon
 
-from .base import CoreBackedGrid, GridCell, cell_from_core
+from .base import (
+    CoreBackedGrid,
+    GridCell,
+    cell_from_core,
+    cells_from_core_packed,
+)
 
 
 class S2Grid(CoreBackedGrid):
@@ -110,7 +115,7 @@ class S2Grid(CoreBackedGrid):
         if self.precision >= self.MAX_PRECISION:
             return []  # No children at maximum level
 
-        return [cell_from_core(c) for c in m3s_core.s2_children(cell.identifier)]
+        return cells_from_core_packed(m3s_core.s2_children(cell.identifier))
 
     def get_parent(self, cell: GridCell) -> GridCell | None:
         """

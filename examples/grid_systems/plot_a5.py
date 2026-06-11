@@ -20,6 +20,35 @@ aperture-4 nesting stays visible. It is powered by
 ``pya5`` is the Python port of, pinned to the version M3S ships — so the
 hexadecimal cell ids and pentagon edges match M3S exactly. GIS-native
 ``(lon, lat)`` order is used throughout.
+
+Usage
+-----
+
+Encode a point and tile a small bounding box around Paris — same result in
+Python and JavaScript (both call the shared core):
+
+.. tab-set::
+
+   .. tab-item:: Python
+
+      .. code-block:: python
+
+         import m3s
+
+         cell = m3s.A5.from_geometry((2.35, 48.86))            # (lon, lat)
+         cells = m3s.A5.from_geometry((2.2, 48.8, 2.4, 48.9))  # bbox
+         print(cell.id, len(cells))
+
+   .. tab-item:: JavaScript
+
+      .. code-block:: javascript
+
+         import * as m3s from "m3s";
+         await m3s.ready();
+
+         const cell = m3s.A5.fromPoint(2.35, 48.86);            // (lon, lat)
+         const cells = m3s.A5.fromBbox([2.2, 48.8, 2.4, 48.9]); // bbox
+         console.log(cell.id, cells.length, m3s.A5.cellAreaM2(8)); // equal-area
 """
 
 from _deckmap import DeckExplorer, read_grid_js

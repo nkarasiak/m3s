@@ -7,13 +7,31 @@ This guide shows you how to get started with M3S. Choose your workflow:
 2. **GridBuilder API (Advanced)** - Fluent interface for complex workflows
 3. **Help me choose precision** - Intelligent precision selection
 
+The **Simplified API** is available in both Python and JavaScript (the JS build
+wraps the same Rust core). The GridBuilder, PrecisionSelector and GeoPandas
+features are Python-only; see :doc:`javascript` for the JS surface.
+
 Installation
 ------------
 
-.. code-block:: bash
+.. tab-set::
 
-   uv pip install m3s
-   # or: pip install m3s
+   .. tab-item:: Python
+
+      .. code-block:: bash
+
+         uv pip install m3s
+         # or: pip install m3s
+
+   .. tab-item:: JavaScript
+
+      Build the WASM targets from source (no npm package yet):
+
+      .. code-block:: bash
+
+         cd m3s/bindings/js
+         wasm-pack build --target nodejs --out-dir pkg
+         wasm-pack build --target web    --out-dir pkg-web
 
 Simplified API (Recommended)
 -----------------------------
@@ -23,164 +41,332 @@ The easiest way to work with spatial grids. Direct access, no instantiation need
 Get Cell at a Point
 ~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: python
+.. tab-set::
 
-   import m3s
+   .. tab-item:: Python
 
-   # Get cell at New York City
-   cell = m3s.Geohash.from_geometry((40.7128, -74.0060))
-   print(f"Cell: {cell.id}")
-   print(f"Area: {cell.area_km2:.2f} km²")
-   print(f"Centroid: {cell.centroid}")
+      .. code-block:: python
 
-   # Works with all 10 grid systems!
-   h3_cell = m3s.H3.from_geometry((40.7128, -74.0060))
-   mgrs_cell = m3s.MGRS.from_geometry((40.7128, -74.0060))
-   s2_cell = m3s.S2.from_geometry((40.7128, -74.0060))
+         import m3s
+
+         # Get cell at New York City  (lon, lat)
+         cell = m3s.Geohash.from_geometry((-74.0060, 40.7128))
+         print(f"Cell: {cell.id}")
+         print(f"Area: {cell.area_km2:.2f} km²")
+         print(f"Centroid: {cell.centroid}")
+
+         # Works with all 12 grid systems!
+         h3_cell = m3s.H3.from_geometry((-74.0060, 40.7128))
+         mgrs_cell = m3s.MGRS.from_geometry((-74.0060, 40.7128))
+         s2_cell = m3s.S2.from_geometry((-74.0060, 40.7128))
+
+   .. tab-item:: JavaScript
+
+      .. code-block:: javascript
+
+         import * as m3s from "m3s";
+         await m3s.ready();
+
+         // Get cell at New York City  (lon, lat, precision)
+         const cell = m3s.Geohash.fromPoint(-74.0060, 40.7128, 6);
+         console.log(`Cell: ${cell.id}`);
+         console.log(`Area: ${cell.areaKm2.toFixed(2)} km²`);
+         console.log(`Centroid: ${cell.centroid}`);
+
+         // Works with all 12 grid systems!
+         const h3Cell = m3s.H3.fromPoint(-74.0060, 40.7128, 7);
+         const mgrsCell = m3s.MGRS.fromPoint(-74.0060, 40.7128, 3);
+         const s2Cell = m3s.S2.fromPoint(-74.0060, 40.7128, 10);
 
 Generate Cells for an Area
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: python
+.. tab-set::
 
-   import m3s
-   from shapely.geometry import Polygon
-   import geopandas as gpd
+   .. tab-item:: Python
 
-   # Create a polygon
-   polygon = Polygon([
-       (-74.1, 40.7), (-73.9, 40.7),
-       (-73.9, 40.8), (-74.1, 40.8)
-   ])
+      .. code-block:: python
 
-   # Get cells (uses sensible default precision)
-   cells = m3s.H3.from_geometry(polygon)
-   print(f"Found {len(cells)} cells")
+         import m3s
+         from shapely.geometry import Polygon
+         import geopandas as gpd
 
-   # Convert to GeoDataFrame
-   gdf = cells.to_gdf()
+         # Create a polygon
+         polygon = Polygon([
+             (-74.1, 40.7), (-73.9, 40.7),
+             (-73.9, 40.8), (-74.1, 40.8)
+         ])
 
-   # Or from GeoDataFrame
-   my_gdf = gpd.read_file("my_region.geojson")
-   cells = m3s.MGRS.from_geometry(my_gdf)
+         # Get cells (uses sensible default precision)
+         cells = m3s.H3.from_geometry(polygon)
+         print(f"Found {len(cells)} cells")
+
+         # Convert to GeoDataFrame
+         gdf = cells.to_gdf()
+
+         # Or from GeoDataFrame
+         my_gdf = gpd.read_file("my_region.geojson")
+         cells = m3s.MGRS.from_geometry(my_gdf)
+
+   .. tab-item:: JavaScript
+
+      .. code-block:: javascript
+
+         import * as m3s from "m3s";
+         await m3s.ready();
+
+         // Cells across a bounding box  [minLon, minLat, maxLon, maxLat]
+         const cells = m3s.H3.fromBbox([-74.1, 40.7, -73.9, 40.8], 8);
+         console.log(`Found ${cells.length} cells`);
+
+         // Export as GeoJSON for a map
+         const geojson = cells.toGeoJSON();
+
+      .. note::
+
+         JS fills a **bounding box**, not an arbitrary polygon, and has no
+         GeoPandas. True polygon fill and ``to_gdf()`` are Python-only.
 
 Get Neighbors
 ~~~~~~~~~~~~~
 
-.. code-block:: python
+.. tab-set::
 
-   import m3s
+   .. tab-item:: Python
 
-   # Get cell
-   cell = m3s.Geohash.from_geometry((40.7, -74.0))
+      .. code-block:: python
 
-   # Get neighbors (includes origin cell)
-   neighbors = m3s.Geohash.neighbors(cell, depth=1)
-   print(f"Found {len(neighbors)} neighbors")
+         import m3s
 
-   # Convert to GeoDataFrame for visualization
-   gdf = neighbors.to_gdf()
+         # Get cell  (lon, lat)
+         cell = m3s.Geohash.from_geometry((-74.0, 40.7))
+
+         # Get neighbors (includes origin cell)
+         neighbors = m3s.Geohash.neighbors(cell, depth=1)
+         print(f"Found {len(neighbors)} neighbors")
+
+         # Convert to GeoDataFrame for visualization
+         gdf = neighbors.to_gdf()
+
+   .. tab-item:: JavaScript
+
+      .. code-block:: javascript
+
+         import * as m3s from "m3s";
+         await m3s.ready();
+
+         // Get cell  (lon, lat, precision)
+         const cell = m3s.Geohash.fromPoint(-74.0, 40.7, 6);
+
+         // Get neighbors (includes origin cell)
+         const neighbors = m3s.Geohash.neighbors(cell, 1);
+         console.log(`Found ${neighbors.length} neighbors`);
+
+         // Export for a map
+         const geojson = neighbors.toGeoJSON();
 
 Convert Between Grid Systems
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: python
+.. tab-set::
 
-   import m3s
-   from shapely.geometry import box
+   .. tab-item:: Python
 
-   # Get H3 cells
-   bbox = box(-74.1, 40.7, -73.9, 40.8)
-   h3_cells = m3s.H3.from_geometry(bbox)
+      .. code-block:: python
 
-   # Convert to Geohash
-   geohash_cells = h3_cells.to_geohash()
+         import m3s
+         from shapely.geometry import box
 
-   # Convert to S2
-   s2_cells = h3_cells.to_s2()
+         # Get H3 cells
+         bbox = box(-74.1, 40.7, -73.9, 40.8)
+         h3_cells = m3s.H3.from_geometry(bbox)
 
-   print(f"H3: {len(h3_cells)} cells")
-   print(f"Geohash: {len(geohash_cells)} cells")
+         # Convert to Geohash
+         geohash_cells = h3_cells.to_geohash()
+
+         # Convert to S2
+         s2_cells = h3_cells.to_s2()
+
+         print(f"H3: {len(h3_cells)} cells")
+         print(f"Geohash: {len(geohash_cells)} cells")
+
+   .. tab-item:: JavaScript
+
+      Cross-grid conversion is **Python-only** — it relies on the
+      ``m3s.conversion`` module, which has no JS counterpart. In JS, query each
+      grid directly for the same area:
+
+      .. code-block:: javascript
+
+         import * as m3s from "m3s";
+         await m3s.ready();
+
+         const bbox = [-74.1, 40.7, -73.9, 40.8];
+         const h3Cells = m3s.H3.fromBbox(bbox, 8);
+         const geohashCells = m3s.Geohash.fromBbox(bbox, 6);
+         const s2Cells = m3s.S2.fromBbox(bbox, 13);
 
 Find Optimal Precision
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: python
+.. tab-set::
 
-   import m3s
-   from shapely.geometry import Polygon
+   .. tab-item:: Python
 
-   polygon = Polygon([(-74.1, 40.7), (-73.9, 40.7), (-73.9, 40.8), (-74.1, 40.8)])
+      .. code-block:: python
 
-   # Find precision by method
-   precision_auto = m3s.H3.find_precision(polygon, method='auto')  # Best quality
-   precision_less = m3s.H3.find_precision(polygon, method='less')  # Fewer cells
-   precision_more = m3s.H3.find_precision(polygon, method='more')  # More cells
-   precision_100 = m3s.H3.find_precision(polygon, method=100)      # Target ~100 cells
+         import m3s
+         from shapely.geometry import Polygon
 
-   # Use the precision
-   cells = m3s.H3.from_geometry(polygon, precision=precision_auto)
+         polygon = Polygon([(-74.1, 40.7), (-73.9, 40.7), (-73.9, 40.8), (-74.1, 40.8)])
 
-   # Or by use case
-   precision = m3s.Geohash.find_precision_for_use_case('neighborhood')
-   # Available: 'building', 'block', 'neighborhood', 'city', 'region', 'country'
+         # Find precision by method
+         precision_auto = m3s.H3.find_precision(polygon, method='auto')  # Best quality
+         precision_less = m3s.H3.find_precision(polygon, method='less')  # Fewer cells
+         precision_more = m3s.H3.find_precision(polygon, method='more')  # More cells
+         precision_100 = m3s.H3.find_precision(polygon, method=100)      # Target ~100 cells
 
-   # Or by target area
-   precision = m3s.H3.find_precision_for_area(target_km2=10.0)
+         # Use the precision
+         cells = m3s.H3.from_geometry(polygon, precision=precision_auto)
+
+         # Or by use case
+         precision = m3s.Geohash.find_precision_for_use_case('neighborhood')
+         # Available: 'building', 'block', 'neighborhood', 'city', 'region', 'country'
+
+         # Or by target area
+         precision = m3s.H3.find_precision_for_area(target_km2=10.0)
+
+   .. tab-item:: JavaScript
+
+      Precision-selection strategies are **Python-only**. In JS, pass an
+      explicit precision (the per-grid range and default come from the core):
+
+      .. code-block:: javascript
+
+         import * as m3s from "m3s";
+         await m3s.ready();
+
+         m3s.H3.precisionRange;     // [0, 15]
+         m3s.H3.defaultPrecision;   // 7
+         m3s.precisionBounds("h3"); // [min, max, default] = [0, 15, 7]
+
+         const cells = m3s.H3.fromBbox([-74.1, 40.7, -73.9, 40.8], 9);
 
 Collection Operations
 ~~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: python
+.. tab-set::
 
-   import m3s
-   from shapely.geometry import Polygon
+   .. tab-item:: Python
 
-   polygon = Polygon([(-74.1, 40.7), (-73.9, 40.7), (-73.9, 40.8), (-74.1, 40.8)])
-   cells = m3s.H3.from_geometry(polygon)
+      .. code-block:: python
 
-   # Filter cells
-   large_cells = cells.filter(lambda c: c.area_km2 > 10.0)
+         import m3s
+         from shapely.geometry import Polygon
 
-   # Map over cells
-   areas = cells.map(lambda c: c.area_km2)
+         polygon = Polygon([(-74.1, 40.7), (-73.9, 40.7), (-73.9, 40.8), (-74.1, 40.8)])
+         cells = m3s.H3.from_geometry(polygon)
 
-   # Get IDs
-   ids = cells.to_ids()
+         # Filter cells
+         large_cells = cells.filter(lambda c: c.area_km2 > 10.0)
 
-   # Get polygons
-   polygons = cells.to_polygons()
+         # Map over cells
+         areas = cells.map(lambda c: c.area_km2)
 
-   # Total area
-   total_area = cells.total_area_km2
+         # Get IDs
+         ids = cells.to_ids()
 
-   # Bounds
-   min_lon, min_lat, max_lon, max_lat = cells.bounds
+         # Get polygons
+         polygons = cells.to_polygons()
+
+         # Total area
+         total_area = cells.total_area_km2
+
+         # Bounds
+         min_lon, min_lat, max_lon, max_lat = cells.bounds
+
+   .. tab-item:: JavaScript
+
+      .. code-block:: javascript
+
+         import * as m3s from "m3s";
+         await m3s.ready();
+
+         const cells = m3s.H3.fromBbox([-74.1, 40.7, -73.9, 40.8], 8);
+
+         // Filter cells
+         const largeCells = cells.filter((c) => c.areaKm2 > 10.0);
+
+         // Map over cells
+         const areas = cells.map((c) => c.areaKm2);
+
+         // Get IDs
+         const ids = cells.toIds();
+
+         // Get polygons (closed [lon,lat] rings)
+         const polygons = cells.toPolygons();
+
+         // Total area
+         const totalArea = cells.totalAreaKm2;
+
+         // Bounds  [minLon, minLat, maxLon, maxLat]
+         const [minLon, minLat, maxLon, maxLat] = cells.bounds;
 
 Available Grid Systems
 ~~~~~~~~~~~~~~~~~~~~~~
 
-All 12 grid systems are directly accessible:
+All 12 grid systems are directly accessible, with matching names in both
+languages:
 
-.. code-block:: python
+.. tab-set::
 
-   import m3s
+   .. tab-item:: Python
 
-   # Access any grid system
-   m3s.A5           # Pentagonal DGGS
-   m3s.Geohash      # Base32 spatial index
-   m3s.H3           # Hexagonal grid
-   m3s.MGRS         # Military Grid Reference
-   m3s.S2           # Google's spherical geometry
-   m3s.Quadkey      # Bing Maps tiles
-   m3s.Slippy       # OpenStreetMap tiles
-   m3s.CSquares     # Marine data indexing
-   m3s.GARS         # Global Area Reference
-   m3s.Maidenhead   # Amateur radio locator
-   m3s.PlusCode     # Open Location Codes
+      .. code-block:: python
+
+         import m3s
+
+         m3s.A5           # Pentagonal DGGS
+         m3s.Geohash      # Base32 spatial index
+         m3s.H3           # Hexagonal grid
+         m3s.MGRS         # Military Grid Reference
+         m3s.S2           # Google's spherical geometry
+         m3s.Quadkey      # Bing Maps tiles
+         m3s.Slippy       # OpenStreetMap tiles
+         m3s.CSquares     # Marine data indexing
+         m3s.GARS         # Global Area Reference
+         m3s.Maidenhead   # Amateur radio locator
+         m3s.PlusCode     # Open Location Codes
+         m3s.EAQuad       # Equal-area quadtree
+
+   .. tab-item:: JavaScript
+
+      .. code-block:: javascript
+
+         import * as m3s from "m3s";
+         await m3s.ready();
+
+         m3s.A5;          // Pentagonal DGGS
+         m3s.Geohash;     // Base32 spatial index
+         m3s.H3;          // Hexagonal grid
+         m3s.MGRS;        // Military Grid Reference
+         m3s.S2;          // Google's spherical geometry
+         m3s.Quadkey;     // Bing Maps tiles
+         m3s.Slippy;      // OpenStreetMap tiles
+         m3s.CSquares;    // Marine data indexing
+         m3s.GARS;        // Global Area Reference
+         m3s.Maidenhead;  // Amateur radio locator
+         m3s.PlusCode;    // Open Location Codes
+         m3s.EAQuad;      // Equal-area quadtree
 
 GridBuilder API (Advanced)
 --------------------------
+
+.. note::
+
+   The GridBuilder, PrecisionSelector and MultiGridComparator APIs below are
+   **Python-only**. The JavaScript build exposes the Simplified API above; see
+   :doc:`javascript`.
 
 For complex workflows with method chaining, use the GridBuilder API.
 

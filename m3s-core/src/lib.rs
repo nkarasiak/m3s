@@ -95,7 +95,7 @@ pub(crate) fn cells_in_bbox_regular(
     lon_step: f64,
     lat_origin: f64,
     lon_origin: f64,
-    point: fn(f64, f64, u8) -> Result<Cell, String>,
+    point: impl Fn(f64, f64, u8) -> Result<Cell, String>,
     precision: u8,
 ) -> Vec<Cell> {
     let col_lo = py_floordiv(min_lon - lon_origin, lon_step) as i64;
@@ -103,6 +103,9 @@ pub(crate) fn cells_in_bbox_regular(
     let row_lo = py_floordiv(min_lat - lat_origin, lat_step) as i64;
     let row_hi = py_floordiv(max_lat - lat_origin, lat_step) as i64;
     let target = (min_lon, min_lat, max_lon, max_lat);
+    // Duplicate ids only arise where the centre clamp folds out-of-domain
+    // rows/cols onto edge cells; a seen-set keeps the dedup O(1) per candidate.
+    let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
     let mut out: Vec<Cell> = Vec::new();
     for col in col_lo..=col_hi {
         for row in row_lo..=row_hi {
@@ -111,7 +114,7 @@ pub(crate) fn cells_in_bbox_regular(
             let Ok(cell) = point(clat, clon, precision) else {
                 continue;
             };
-            if out.iter().any(|c| c.id == cell.id) {
+            if !seen.insert(cell.id.clone()) {
                 continue;
             }
             if rects_intersect(ring_bbox(&cell.ring), target) {
@@ -120,6 +123,49 @@ pub(crate) fn cells_in_bbox_regular(
         }
     }
     out
+}
+
+/// Columnar encoding of a cell list — the zero-churn shape both bindings ship
+/// across their FFI boundary for bulk results (`cells_in_bbox`, `children`,
+/// `neighbors`). One string + three flat buffers instead of one object per
+/// cell: Python views them as numpy arrays (vectorized shapely construction),
+/// JS as typed arrays (no per-cell serde).
+pub struct PackedCells {
+    /// `\n`-joined cell ids (empty when there are no cells).
+    pub ids: String,
+    /// All rings concatenated: `[lon0, lat0, lon1, lat1, ...]`.
+    pub coords: Vec<f64>,
+    /// Ring start, in vertices, per cell plus a final end sentinel
+    /// (`len == n + 1`); cell `i`'s ring is `coords[2*offsets[i]..2*offsets[i+1]]`.
+    pub offsets: Vec<u32>,
+    /// Per-cell precision.
+    pub precisions: Vec<u8>,
+}
+
+/// Flatten cells into the columnar wire shape (consumes the cells; no clones).
+pub fn pack_cells(cells: Vec<Cell>) -> PackedCells {
+    let n = cells.len();
+    let mut ids = String::new();
+    let mut coords: Vec<f64> = Vec::new();
+    let mut offsets: Vec<u32> = Vec::with_capacity(n + 1);
+    let mut precisions: Vec<u8> = Vec::with_capacity(n);
+    offsets.push(0);
+    let mut total: u32 = 0;
+    for (i, c) in cells.into_iter().enumerate() {
+        if i > 0 {
+            ids.push('\n');
+        }
+        ids.push_str(&c.id);
+        total += c.ring.len() as u32;
+        offsets.push(total);
+        coords.reserve(c.ring.len() * 2);
+        for p in c.ring {
+            coords.push(p[0]);
+            coords.push(p[1]);
+        }
+        precisions.push(c.precision);
+    }
+    PackedCells { ids, coords, offsets, precisions }
 }
 
 /// Per-grid `(min, max, default)` precision bounds, keyed by canonical grid

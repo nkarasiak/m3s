@@ -11,4 +11,6 @@ crate-type = ["cdylib"]
 [dependencies]
 m3s-core = { path = "../../m3s-core" }
 pyo3 = { version = "0.24", features = ["extension-module"] }
+# Bulk results cross as numpy arrays (columnar wire format); 0.24 matches pyo3.
+numpy = "0.24"
 paste = "1"

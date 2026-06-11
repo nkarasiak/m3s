@@ -42,10 +42,30 @@ fn cell(r: Result<Cell, String>) -> Result<JsValue, JsValue> {
         .and_then(ok)
 }
 
+/// Columnar bulk result `{ids, coords, offsets, precisions}`: one string + three
+/// typed arrays per call instead of one JS object tree per cell. The wrapper
+/// (`bindings/js/wrapper/cell.js` unpack) rebuilds `{id, ring, precision}`.
 fn cells(r: Result<Vec<Cell>, String>) -> Result<JsValue, JsValue> {
-    r.map(|cs| cs.into_iter().map(JsCell::from).collect::<Vec<_>>())
-        .map_err(|e| JsValue::from_str(&e))
-        .and_then(ok)
+    let cells = r.map_err(|e| JsValue::from_str(&e))?;
+    let p = m3s_core::pack_cells(cells);
+    let obj = js_sys::Object::new();
+    js_sys::Reflect::set(&obj, &"ids".into(), &JsValue::from_str(&p.ids))?;
+    js_sys::Reflect::set(
+        &obj,
+        &"coords".into(),
+        &js_sys::Float64Array::from(p.coords.as_slice()),
+    )?;
+    js_sys::Reflect::set(
+        &obj,
+        &"offsets".into(),
+        &js_sys::Uint32Array::from(p.offsets.as_slice()),
+    )?;
+    js_sys::Reflect::set(
+        &obj,
+        &"precisions".into(),
+        &js_sys::Uint8Array::from(p.precisions.as_slice()),
+    )?;
+    Ok(obj.into())
 }
 
 /// The four operations every grid exposes. `$p` is both the module alias and the

@@ -17,6 +17,35 @@ aperture-4 nesting stays visible. Cell geometry is produced by the shared
 ``m3s_core`` WASM build (EPSG:6933 projection, power-of-two km grid, base-4
 quadtree ids), so the browser and the Python package produce identical cells.
 GIS-native ``(lon, lat)`` order is used throughout.
+
+Usage
+-----
+
+Encode a point and tile a small bounding box around Paris — same result in
+Python and JavaScript (both call the shared core):
+
+.. tab-set::
+
+   .. tab-item:: Python
+
+      .. code-block:: python
+
+         import m3s
+
+         cell = m3s.EAQuad.from_geometry((2.35, 48.86))            # (lon, lat)
+         cells = m3s.EAQuad.from_geometry((2.2, 48.8, 2.4, 48.9))  # bbox
+         print(cell.id, len(cells))
+
+   .. tab-item:: JavaScript
+
+      .. code-block:: javascript
+
+         import * as m3s from "m3s";
+         await m3s.ready();
+
+         const cell = m3s.EAQuad.fromPoint(2.35, 48.86);            // (lon, lat)
+         const cells = m3s.EAQuad.fromBbox([2.2, 48.8, 2.4, 48.9]); // bbox
+         console.log(cell.id, cells.length);
 """
 
 from _deckmap import DeckExplorer, read_grid_js

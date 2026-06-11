@@ -59,6 +59,21 @@ def _wasm_loader():
         f'const _bytes = Uint8Array.from(atob("{wasm_b64}"), c => c.charCodeAt(0));\n'
         "await init({module_or_path: _bytes});\n"
         "window.__M3S__ = m3s;\n"
+        # Bulk core results are columnar {ids, coords, offsets, precisions};
+        # this rebuilds the [{id, ring, precision}] list the grid files map over.
+        "window.__M3S_CELLS__ = function (packed) {\n"
+        "  if (!packed.ids) return [];\n"
+        '  const ids = packed.ids.split("\\n");\n'
+        "  const out = new Array(ids.length);\n"
+        "  for (let i = 0; i < ids.length; i++) {\n"
+        "    const ring = [];\n"
+        "    for (let v = packed.offsets[i]; v < packed.offsets[i + 1]; v++) {\n"
+        "      ring.push([packed.coords[2 * v], packed.coords[2 * v + 1]]);\n"
+        "    }\n"
+        "    out[i] = { id: ids[i], ring: ring, precision: packed.precisions[i] };\n"
+        "  }\n"
+        "  return out;\n"
+        "};\n"
         'window.dispatchEvent(new Event("m3s-ready"));\n'
         "</script>"
     )

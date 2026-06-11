@@ -6,7 +6,13 @@ from typing import override
 
 import m3s_core
 
-from .base import CoreBackedGrid, GridCell, cell_from_core, validate_lat_lon
+from .base import (
+    CoreBackedGrid,
+    GridCell,
+    cell_from_core,
+    cells_from_core_packed,
+    validate_lat_lon,
+)
 
 
 class CSquaresGrid(CoreBackedGrid):
@@ -113,7 +119,7 @@ class CSquaresGrid(CoreBackedGrid):
             List of neighboring C-squares cells (up to 8 neighbors)
         """
         try:
-            return [cell_from_core(n) for n in m3s_core.cs_neighbors(cell.identifier)]
+            return cells_from_core_packed(m3s_core.cs_neighbors(cell.identifier))
         except Exception:
             # Return empty list if cell lookup fails
             return []
@@ -140,7 +146,7 @@ class CSquaresGrid(CoreBackedGrid):
         """
         if self.precision >= self.MAX_PRECISION:
             return []
-        return [cell_from_core(c) for c in m3s_core.cs_children(cell.identifier)]
+        return cells_from_core_packed(m3s_core.cs_children(cell.identifier))
 
     def get_parent(self, cell: GridCell) -> GridCell:
         """

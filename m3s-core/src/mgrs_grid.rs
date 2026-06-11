@@ -170,16 +170,24 @@ pub fn cells_in_bbox(
     let lon_step = bbox_w / lon_samples as f64;
     let target = (min_lon, min_lat, max_lon, max_lat);
 
+    // Sampling visits each cell >=9 times; resolve the sample to its MGRS id
+    // first (one forward encode) and build the ring (5 UTM round-trips) only the
+    // first time an id is seen. Same ids, same construction path, ~9x less work.
     let mut seen = std::collections::HashSet::new();
     let mut out = Vec::new();
     for i in 0..=lat_samples {
         for j in 0..=lon_samples {
             let lat = emin_lat + i as f64 * lat_step;
             let lon = emin_lon + j as f64 * lon_step;
-            if let Ok(cell) = cell_from_point(lat, lon, precision) {
-                if crate::rects_intersect(crate::ring_bbox(&cell.ring), target)
-                    && seen.insert(cell.id.clone())
-                {
+            let Ok(ll) = LatLon::create(lat, lon) else {
+                continue;
+            };
+            let id = Mgrs::from_latlon(&ll, precision as i32).to_string();
+            if !seen.insert(id.clone()) {
+                continue;
+            }
+            if let Ok(cell) = cell_from_id(&id) {
+                if crate::rects_intersect(crate::ring_bbox(&cell.ring), target) {
                     out.push(cell);
                 }
             }

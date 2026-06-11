@@ -44,7 +44,13 @@ from typing import override
 
 import m3s_core
 
-from .base import CoreBackedGrid, GridCell, cell_from_core, validate_lat_lon
+from .base import (
+    CoreBackedGrid,
+    GridCell,
+    cell_from_core,
+    cells_from_core_packed,
+    validate_lat_lon,
+)
 
 # EPSG:6933 (EASE-Grid 2.0 Global) valid projected domain, in metres.
 # Full mathematical domain: lon +/-180 -> x +/-X_MAX, lat +/-90 -> y +/-Y_MAX.
@@ -275,7 +281,7 @@ class EAQuadGrid(CoreBackedGrid):
         size_km, _, _ = _parse_id(cell.identifier)
         if size_km <= _precision_to_size_km(MAX_PRECISION):
             return []
-        return [cell_from_core(c) for c in m3s_core.eaq_children(cell.identifier)]
+        return cells_from_core_packed(m3s_core.eaq_children(cell.identifier))
 
     @override
     def identifier_to_precision(self, identifier: str) -> int | None:

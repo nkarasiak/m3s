@@ -13,7 +13,7 @@ window.__GRID__ = {
   },
   label: function (p) { return 'precision ' + p; },
   cells: function (p, b) {
-    return window.__M3S__.mh_cells_in_bbox(b.s, b.w, b.n, b.e, p).map(function (c) {
+    return window.__M3S_CELLS__(window.__M3S__.mh_cells_in_bbox(b.s, b.w, b.n, b.e, p)).map(function (c) {
       return { id: c.id, sub: 'precision ' + p, poly: c.ring.slice(0, -1) };
     });
   }

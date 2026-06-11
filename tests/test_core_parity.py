@@ -142,8 +142,10 @@ def _rings_close(a, b, tol):
     )
 
 
-def _ids(cells):
-    return sorted(c[0] for c in cells)
+def _ids(packed):
+    """Sorted ids from a columnar bulk result ``(ids, coords, offsets, precs)``."""
+    ids = packed[0]
+    return sorted(ids.split("\n")) if ids else []
 
 
 @pytest.mark.parametrize("grid,rec", CASES, ids=[f"{g}-{r['id']}" for g, r in CASES])
@@ -216,5 +218,5 @@ BBOX_CASES = (
 )
 def test_core_bbox_matches_golden(grid, rec):
     min_lat, min_lon, max_lat, max_lon = rec["bbox"]
-    cells = BBOX_FNS[grid](min_lat, min_lon, max_lat, max_lon, rec["precision"])
-    assert sorted(c[0] for c in cells) == rec["cells"]
+    packed = BBOX_FNS[grid](min_lat, min_lon, max_lat, max_lon, rec["precision"])
+    assert _ids(packed) == rec["cells"]

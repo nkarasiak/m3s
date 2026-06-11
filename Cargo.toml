@@ -5,3 +5,12 @@
 [workspace]
 resolver = "2"
 members = ["m3s-core", "bindings/python", "bindings/js"]
+
+# Shared by the PyO3 wheel and the wasm-pack build (both compile --release).
+# No `panic = "abort"`: geoconvert can panic on degenerate MGRS input and PyO3
+# must catch that as PanicException instead of aborting the interpreter.
+[profile.release]
+lto = "fat"
+codegen-units = 1
+opt-level = 3
+strip = true

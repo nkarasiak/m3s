@@ -31,7 +31,13 @@ from typing import override
 
 import m3s_core
 
-from .base import CoreBackedGrid, GridCell, cell_from_core, validate_lat_lon
+from .base import (
+    CoreBackedGrid,
+    GridCell,
+    cell_from_core,
+    cells_from_core_packed,
+    validate_lat_lon,
+)
 
 # Resolution range exposed by M3S. A5 supports 0..30 (the spec's MAX_RESOLUTION);
 # its special WORLD_CELL (resolution -1) is not exposed.
@@ -183,7 +189,7 @@ class A5Grid(CoreBackedGrid):
         """
         if cell.precision >= self.MAX_PRECISION:
             return []
-        return [cell_from_core(c) for c in m3s_core.a5_children(cell.identifier)]
+        return cells_from_core_packed(m3s_core.a5_children(cell.identifier))
 
     @override
     def identifier_to_precision(self, identifier: str) -> int | None:

@@ -61,6 +61,9 @@ jobs:
     - name: Run JS parity
       run: node tests/js/parity.cjs
 
+    - name: Run JS wrapper parity
+      run: node tests/js/wrapper_parity.mjs
+
   # Summary job that all matrix jobs must pass
   tests-complete:
     runs-on: ubuntu-24.04

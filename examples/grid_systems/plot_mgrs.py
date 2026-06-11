@@ -16,6 +16,35 @@ from `mgrs <https://github.com/proj4js/mgrs>`_ and the per-zone UTM squares from
 references and edges match :mod:`m3s.mgrs`. MGRS only refines down to 100 km, so
 it has no whole-globe level — zoom out and the explorer asks you to zoom back in.
 GIS-native ``(lon, lat)`` order is used throughout.
+
+Usage
+-----
+
+Encode a point and tile a small bounding box around Paris — same result in
+Python and JavaScript (both call the shared core):
+
+.. tab-set::
+
+   .. tab-item:: Python
+
+      .. code-block:: python
+
+         import m3s
+
+         cell = m3s.MGRS.from_geometry((2.35, 48.86))            # (lon, lat)
+         cells = m3s.MGRS.from_geometry((2.2, 48.8, 2.4, 48.9))  # bbox
+         print(cell.id, len(cells))
+
+   .. tab-item:: JavaScript
+
+      .. code-block:: javascript
+
+         import * as m3s from "m3s";
+         await m3s.ready();
+
+         const cell = m3s.MGRS.fromPoint(2.35, 48.86);            // (lon, lat)
+         const cells = m3s.MGRS.fromBbox([2.2, 48.8, 2.4, 48.9]); // bbox
+         console.log(cell.id, cells.length);
 """
 
 from _deckmap import DeckExplorer, read_grid_js

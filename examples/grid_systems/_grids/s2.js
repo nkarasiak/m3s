@@ -9,7 +9,7 @@ window.__GRID__ = {
   cells: function (res, b) {
     var areakm2 = 510072000.0 / (6 * Math.pow(4, res));
     var sub = areakm2.toFixed(res < 6 ? 0 : 2) + ' km²';
-    return window.__M3S__.s2_cells_in_bbox(b.s, b.w, b.n, b.e, res).map(function (c) {
+    return window.__M3S_CELLS__(window.__M3S__.s2_cells_in_bbox(b.s, b.w, b.n, b.e, res)).map(function (c) {
       return { id: c.id, sub: sub, poly: c.ring.slice(0, -1) };
     });
   }

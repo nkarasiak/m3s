@@ -17,6 +17,35 @@ subdivide 20×20 per level, so the next finer preview only fits once you have
 zoomed in. The base-20 encoder is the exact one in :mod:`m3s.pluscode`,
 reproduced in JavaScript so the codes and edges match M3S. GIS-native
 ``(lon, lat)`` order is used throughout.
+
+Usage
+-----
+
+Encode a point and tile a small bounding box around Paris — same result in
+Python and JavaScript (both call the shared core):
+
+.. tab-set::
+
+   .. tab-item:: Python
+
+      .. code-block:: python
+
+         import m3s
+
+         cell = m3s.PlusCode.from_geometry((2.35, 48.86))            # (lon, lat)
+         cells = m3s.PlusCode.from_geometry((2.2, 48.8, 2.4, 48.9))  # bbox
+         print(cell.id, len(cells))
+
+   .. tab-item:: JavaScript
+
+      .. code-block:: javascript
+
+         import * as m3s from "m3s";
+         await m3s.ready();
+
+         const cell = m3s.PlusCode.fromPoint(2.35, 48.86);            // (lon, lat)
+         const cells = m3s.PlusCode.fromBbox([2.2, 48.8, 2.4, 48.9]); // bbox
+         console.log(cell.id, cells.length);
 """
 
 from _deckmap import DeckExplorer, read_grid_js

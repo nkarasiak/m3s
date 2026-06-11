@@ -10,7 +10,7 @@ use a5::{
     cell_area, cell_to_boundary, cell_to_children, cell_to_parent, get_resolution, grid_disk,
     hex_to_u64, lonlat_to_cell, u64_to_hex, LonLat,
 };
-use std::collections::BTreeSet;
+use std::collections::HashSet;
 
 pub const MIN_PRECISION: u8 = 0;
 pub const MAX_PRECISION: u8 = 30;
@@ -86,12 +86,11 @@ pub fn parent(id: &str) -> Result<Cell, String> {
 /// [-180, 180); a ring that wraps the antimeridian (normalised lon span > 180°)
 /// is reported as full-width so the overlap test keeps it rather than dropping
 /// it on the wrong side of the seam (cells near 180° otherwise leave a gap).
-fn cell_bbox(cell_id: u64) -> Result<(f64, f64, f64, f64), String> {
-    let boundary = cell_to_boundary(cell_id, None)?;
+fn ring_bbox_norm(pts: &[[f64; 2]]) -> (f64, f64, f64, f64) {
     let (mut w, mut s, mut e, mut n) = (180.0_f64, 90.0_f64, -180.0_f64, -90.0_f64);
-    for p in &boundary {
-        let lon = (p.longitude() + 180.0).rem_euclid(360.0) - 180.0;
-        let lat = p.latitude();
+    for p in pts {
+        let lon = (p[0] + 180.0).rem_euclid(360.0) - 180.0;
+        let lat = p[1];
         w = w.min(lon);
         s = s.min(lat);
         e = e.max(lon);
@@ -101,37 +100,35 @@ fn cell_bbox(cell_id: u64) -> Result<(f64, f64, f64, f64), String> {
         w = -180.0;
         e = 180.0;
     }
-    Ok((w, s, e, n))
+    (w, s, e, n)
 }
 
 /// True if the cell's boundary polygon actually intersects the axis-aligned
-/// lon/lat rect. `cell_bbox` overlap is only a cheap pre-filter for the walk; a
+/// lon/lat rect. Bbox overlap is only a cheap pre-filter for the walk; a
 /// cell can have an overlapping bbox yet not touch the box, so this drops that
 /// "overdraw" for normal (non-seam) queries. Tests vertex-in-rect,
 /// rect-corner-in-polygon and edge crossings, so it is correct without assuming
 /// the pentagon is convex.
-fn ring_intersects_rect(cell_id: u64, w: f64, s: f64, e: f64, n: f64) -> Result<bool, String> {
-    let b = cell_to_boundary(cell_id, None)?;
-    let pts: Vec<[f64; 2]> = b.iter().map(|p| [p.longitude(), p.latitude()]).collect();
-    for p in &pts {
+fn ring_intersects_rect(pts: &[[f64; 2]], w: f64, s: f64, e: f64, n: f64) -> bool {
+    for p in pts {
         if p[0] >= w && p[0] <= e && p[1] >= s && p[1] <= n {
-            return Ok(true);
+            return true;
         }
     }
     for c in [[w, s], [e, s], [e, n], [w, n]] {
-        if point_in_ring(c, &pts) {
-            return Ok(true);
+        if point_in_ring(c, pts) {
+            return true;
         }
     }
     let rect = [[w, s], [e, s], [e, n], [w, n], [w, s]];
     for i in 0..pts.len().saturating_sub(1) {
         for j in 0..4 {
             if segs_cross(pts[i], pts[i + 1], rect[j], rect[j + 1]) {
-                return Ok(true);
+                return true;
             }
         }
     }
-    Ok(false)
+    false
 }
 
 /// Even-odd point-in-polygon for a closed lon/lat ring.
@@ -221,8 +218,11 @@ pub fn cells_in_bbox(
         lat += lat_step;
     }
 
-    let mut seen: BTreeSet<u64> = BTreeSet::new();
-    let mut kept: BTreeSet<u64> = BTreeSet::new();
+    // Each cell's boundary is fetched once and reused for the bbox pre-filter,
+    // the strict polygon/rect test, and the output ring (it used to be
+    // recomputed for each of the three).
+    let mut seen: HashSet<u64> = HashSet::new();
+    let mut kept: Vec<(u64, Vec<[f64; 2]>)> = Vec::new();
     while let Some(cid) = stack.pop() {
         if !seen.insert(cid) {
             continue;
@@ -234,26 +234,35 @@ pub fn cells_in_bbox(
         if get_resolution(cid) != res {
             continue;
         }
-        if !overlaps(cell_bbox(cid)?) {
+        let boundary = cell_to_boundary(cid, None)?; // closed (lon, lat) ring
+        let pts: Vec<[f64; 2]> =
+            boundary.iter().map(|p| [p.longitude(), p.latitude()]).collect();
+        if !overlaps(ring_bbox_norm(&pts)) {
             continue;
         }
-        kept.insert(cid);
+        kept.push((cid, pts));
         for nb in grid_disk(cid, 1)? {
             if !seen.contains(&nb) {
                 stack.push(nb);
             }
         }
     }
+    kept.sort_unstable_by_key(|&(cid, _)| cid); // same order BTreeSet iteration gave
 
     // Refine: for a normal (non-seam, non-global) query, drop cells whose bbox
     // overlapped but whose polygon doesn't actually touch the box. Seam-wrapping
     // and full-width queries keep the bbox-overlap result (the cheap test is all
     // that is sound across the antimeridian).
     let strict = !lon_full && q_w <= q_e;
-    kept.into_iter()
-        .filter(|&id| !strict || ring_intersects_rect(id, q_w, min_lat, q_e, max_lat).unwrap_or(true))
-        .map(make_cell)
-        .collect()
+    Ok(kept
+        .into_iter()
+        .filter(|(_, pts)| !strict || ring_intersects_rect(pts, q_w, min_lat, q_e, max_lat))
+        .map(|(cid, pts)| Cell {
+            id: u64_to_hex(cid),
+            ring: pts,
+            precision: get_resolution(cid) as u8,
+        })
+        .collect())
 }
 
 /// Cell area in m² at `precision` (the a5 crate's authalic `cell_area`). The

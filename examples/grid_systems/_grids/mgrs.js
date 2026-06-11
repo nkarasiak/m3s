@@ -63,7 +63,7 @@ window.__GRID__ = (function () {
     cells: function (p, b) {
       if (p < 0) return gzdCells(b);
       var sub = Math.pow(SIZES[p] / 1000, 2) + ' km²';
-      return window.__M3S__.mgrs_cells_in_bbox(b.s, b.w, b.n, b.e, p).map(function (c) {
+      return window.__M3S_CELLS__(window.__M3S__.mgrs_cells_in_bbox(b.s, b.w, b.n, b.e, p)).map(function (c) {
         return { id: c.id, sub: sub, poly: c.ring.slice(0, -1) };
       });
     }
