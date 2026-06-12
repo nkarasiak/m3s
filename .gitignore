@@ -68,10 +68,9 @@ instance/
 # Scrapy stuff:
 .scrapy
 
-# Sphinx documentation
+# Sphinx documentation (docs/_static is source assets — tracked)
 docs/_build/
 docs/auto_examples/
-docs/_static/
 
 # PNGs written to disk by gallery example scripts on build (regenerable)
 examples/guides/*.png
