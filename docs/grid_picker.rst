@@ -175,7 +175,7 @@ fit best. Everything runs in your browser — nothing is sent anywhere.
      var GRIDS = [
        {key:"eaquad", name:"EA-Quad", shape:"square", equal:"yes", nest:true, global:true, km:true,
         prec:["coarse","medium"], uses:["equalarea","global"],
-        tag:"Square, km-sized cells with identical ground area worldwide. The only grid that ticks every column."},
+        tag:"Square, km-sized cells with identical ground area worldwide — fair counts and densities at any latitude."},
        {key:"a5", name:"A5", shape:"pentagon", equal:"yes", nest:true, global:true, km:false,
         prec:["coarse","medium","fine"], uses:["equalarea","global"],
         tag:"Pentagonal equal-area DGGS on a dodecahedron, exact nesting, whole-world down to <30 mm²."},
@@ -193,7 +193,7 @@ fit best. Everything runs in your browser — nothing is sent anywhere.
         tag:"UTM-based NATO standard, 100 km down to 1 m."},
        {key:"quadkey", name:"Quadkey", shape:"square", equal:"no", nest:true, global:false, km:false,
         prec:["coarse","medium"], uses:["webmap"],
-        tag:"Bing Maps Web Mercator z/x/y tiles, simple quad-tree addressing."},
+        tag:"Bing Maps tiles addressed by prefix string — aligned with web-map pipelines; cell area shrinks toward the poles."},
        {key:"slippy", name:"Slippy", shape:"square", equal:"no", nest:true, global:false, km:false,
         prec:["coarse","medium"], uses:["webmap"],
         tag:"OpenStreetMap tiles, universal z/x/y Web Mercator format."},

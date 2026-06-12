@@ -16,6 +16,19 @@ visible. It is powered by the shared ``m3s_core`` Rust/WASM build so the cell
 ids and edges match M3S exactly. GIS-native ``(lon, lat)`` order is used
 throughout.
 
+Why S2?
+-------
+
+S2 is the global-scale workhorse: 30 exact-nesting levels from continents down
+to about a centimetre, no polar singularities (the sphere is projected onto a
+cube, not a cylinder), and Hilbert-curve ids that keep nearby cells numerically
+close — which is why it backs Google's geo systems and BigQuery's GEOGRAPHY
+type. Cells are spherical quadrilaterals: mostly near-square, more distorted
+near cube edges, and only approximately equal in area. Choose
+:doc:`plot_geohash` when you just need human-readable string prefixes,
+:doc:`plot_h3` for hexagonal analytics, or :doc:`plot_a5` when exact equal
+area is the requirement.
+
 Usage
 -----
 

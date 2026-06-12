@@ -17,6 +17,18 @@ references and edges match :mod:`m3s.mgrs`. MGRS only refines down to 100 km, so
 it has no whole-globe level — zoom out and the explorer asks you to zoom back in.
 GIS-native ``(lon, lat)`` order is used throughout.
 
+Why MGRS?
+---------
+
+MGRS is for coordinates that humans read in the field: it is the NATO standard
+on printed maps, GPS units and surveying gear, and because cells are true
+metres in UTM, ``31UDQ48`` narrows down to a square you can pace out on the
+ground. Use it when interoperating with defence, search-and-rescue or
+surveying workflows. It is a poor analysis grid, though: cells do not tile
+seamlessly across UTM zone boundaries and there is no single global
+hierarchy. For coarse spoken area reference use :doc:`plot_gars`; for
+worldwide analysis grids see :doc:`plot_eaquad` or :doc:`plot_s2`.
+
 Usage
 -----
 

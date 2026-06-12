@@ -17,6 +17,18 @@ exact one M3S uses (the shared ``m3s_core`` C-squares encoder), reproduced in
 JavaScript so the cell codes and edges match M3S. GIS-native ``(lon, lat)`` order
 is used throughout.
 
+Why C-squares?
+--------------
+
+C-squares is an exchange format more than an analysis grid: fisheries,
+oceanographic and biodiversity datasets (OBIS, FishBase, many national marine
+agencies) publish records tagged with c-squares codes, and the code itself
+decodes to a latitude/longitude box by eye. Choose it to interoperate with
+that world, or to keep legacy marine datasets joinable. As an analysis grid
+it is weak — rectangular cells that shrink toward the poles and a coarse step
+sequence (10°, 5°, 1°, 0.5°, 0.1°). Aggregate fresh data on
+:doc:`plot_eaquad` or :doc:`plot_h3` instead and convert at the boundary.
+
 Usage
 -----
 

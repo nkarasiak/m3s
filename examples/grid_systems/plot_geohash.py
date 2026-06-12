@@ -17,6 +17,18 @@ lattice and base-32 encoder are the exact ones M3S uses (the shared
 reproduced in JavaScript so the cell ids and edges match M3S. GIS-native
 ``(lon, lat)`` order is used throughout.
 
+Why Geohash?
+------------
+
+The default for database indexing: each cell is one short base-32 string, and
+a shared prefix means "same area", so range scans and prefix queries work in
+any plain string index — Redis, MongoDB, Elasticsearch and PostGIS all support
+it natively. Two caveats: cells are rectangles whose aspect ratio flips with
+each precision step, and prefix similarity breaks at cell boundaries (two
+points metres apart can share no prefix at all). For analysis with uniform
+neighbours use :doc:`plot_h3`; for codes meant to be read aloud or printed,
+:doc:`plot_pluscode` was designed for exactly that.
+
 Usage
 -----
 

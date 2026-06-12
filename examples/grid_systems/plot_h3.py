@@ -15,6 +15,18 @@ and the next finer level a lighter, thinner one, so the hexagonal nesting stays
 visible. Cell geometry comes from the shared Rust/WASM core, identical to the
 Python package. GIS-native ``(lon, lat)`` order is used throughout.
 
+Why H3?
+-------
+
+Hexagons make neighbourhoods honest: every cell touches exactly six others at
+the same centre distance, with no corner-only contacts, so k-rings, flows and
+smoothing behave the same in every direction. The ecosystem is the other big
+draw — H3 ships in DuckDB, BigQuery, Snowflake and kepler.gl, so cells flow
+through analytics stacks unchanged. The price of hexagons: children only
+approximately nest into parents, twelve cells per resolution are pentagons,
+and areas are only roughly equal. When exact containment or exact equal area
+matters, see :doc:`plot_s2`, :doc:`plot_eaquad` or :doc:`plot_a5`.
+
 Usage
 -----
 

@@ -17,6 +17,18 @@ encoder is the exact one in :mod:`m3s.maidenhead`, reproduced in JavaScript so
 the locators and edges match M3S. GIS-native ``(lon, lat)`` order is used
 throughout.
 
+Why Maidenhead?
+---------------
+
+Maidenhead is the amateur-radio convention: "JN58td" is short enough to say
+in a voice contact, every logging program and contest sponsor understands it,
+and distances between locators are standardised for award scoring. If you are
+logging QSOs or plotting station coverage, it is the only grid the rest of
+the hobby speaks. Beyond radio there is little reason to pick it: cells are
+latitude-stretched rectangles with an alternating 10/24 subdivision. For
+general-purpose short location codes use :doc:`plot_pluscode`; for database
+indexing, :doc:`plot_geohash`.
+
 Usage
 -----
 

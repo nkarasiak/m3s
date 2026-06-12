@@ -18,6 +18,18 @@ zoomed in. The base-20 encoder is the exact one in :mod:`m3s.pluscode`,
 reproduced in JavaScript so the codes and edges match M3S. GIS-native
 ``(lon, lat)`` order is used throughout.
 
+Why Plus Codes?
+---------------
+
+Plus Codes are street addresses for places that have none: ``8FW4V75V+8Q``
+identifies a building entrance anywhere on Earth, works offline, carries no
+licensing, and Google Maps resolves it directly — which is why it is used for
+deliveries and services in informally addressed areas. That is the use case;
+as an indexing or analysis grid it is unremarkable (latitude/longitude
+rectangles, a steep ×400 jump between precision levels). For database range
+queries prefer :doc:`plot_geohash`; for aggregation and statistics,
+:doc:`plot_h3` or :doc:`plot_eaquad`.
+
 Usage
 -----
 

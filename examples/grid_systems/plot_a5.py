@@ -21,6 +21,19 @@ aperture-4 nesting stays visible. It is powered by
 hexadecimal cell ids and pentagon edges match M3S exactly. GIS-native
 ``(lon, lat)`` order is used throughout.
 
+Why A5?
+-------
+
+A5 delivers the two properties most grids only approximate, at the same time:
+every cell at a resolution covers exactly the same ground area, and every cell
+nests exactly into its parent — from continent-sized cells down to under
+30 mm². If you are building statistics where both fair comparison and strict
+hierarchy matter, this is the strongest choice in M3S. The tradeoffs are
+youth and shape: the ecosystem is far smaller than H3's, and pentagon
+adjacency is less regular than hexagons. Reach for :doc:`plot_h3` when
+tooling support matters more than exactness, or :doc:`plot_eaquad` when you
+want equal-area squares labelled in kilometres.
+
 Usage
 -----
 

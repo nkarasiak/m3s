@@ -15,6 +15,17 @@ visible. The z/x/y tile maths is the exact one in :mod:`m3s.slippy`, reproduced
 in JavaScript so the tile ids and edges match M3S. GIS-native ``(lon, lat)``
 order is used throughout.
 
+Why Slippy?
+-----------
+
+Because everything else already speaks it: OpenStreetMap, tile servers, map
+caches and CDNs all address the world as z/x/y Web-Mercator tiles. If your
+cells end up feeding a tile pipeline, this is the zero-friction choice. The
+geometry is identical to :doc:`plot_quadkey`; only the id differs (a z/x/y
+triplet here, a prefix string there). The caveats are shared too: tile area
+shrinks toward the poles and coverage stops at ±85.05°. When cells must have
+comparable ground areas, use :doc:`plot_eaquad` instead.
+
 Usage
 -----
 

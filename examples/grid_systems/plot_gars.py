@@ -18,6 +18,17 @@ full-globe vector grid (259k cells) is impractical; the demo opens over France
 and the zoom is floored so the grid stays visible however far you zoom out.
 GIS-native ``(lon, lat)`` order is used throughout.
 
+Why GARS?
+---------
+
+GARS exists to be said over a radio: a fixed worldwide 30-minute grid with
+two refinements (15′ quadrants, 5′ keypads), adopted so that air and ground
+units from different services reference the same area with the same short
+code. If that is your context, nothing else fits. Outside it, GARS has little
+to offer — three coarse levels, latitude-stretched rectangles, no fine
+precision. Use :doc:`plot_mgrs` when you need metre-level field coordinates,
+or :doc:`plot_eaquad` for actual area analysis.
+
 Usage
 -----
 

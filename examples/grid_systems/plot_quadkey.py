@@ -16,6 +16,21 @@ visible. The Web-Mercator tile maths is the exact one in :mod:`m3s.quadkey`,
 reproduced in JavaScript so the quadkey ids and edges match M3S. GIS-native
 ``(lon, lat)`` order is used throughout.
 
+Why Quadkey?
+------------
+
+Quadkey is a web-map grid: the exact same Web-Mercator tiling as
+:doc:`plot_slippy`, but the id is a single string whose prefix is the parent
+tile, so "all children of this tile" is a prefix match — convenient in
+key-value stores and the Bing Maps ecosystem. Tiles are square *on screen*,
+not on the ground: a level-12 tile near the poles covers far less area than
+one at the equator, and coverage stops at ±85.05° latitude. That is the
+opposite design choice from :doc:`plot_eaquad`, which keeps ground area
+constant and lets the on-screen shape distort. Choose Quadkey to align with
+tile pipelines, EA-Quad to compare counts and densities across latitudes; if
+your stack speaks z/x/y triplets rather than quadkey strings, use
+:doc:`plot_slippy`.
+
 Usage
 -----
 

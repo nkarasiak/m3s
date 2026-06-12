@@ -18,6 +18,20 @@ aperture-4 nesting stays visible. Cell geometry is produced by the shared
 quadtree ids), so the browser and the Python package produce identical cells.
 GIS-native ``(lon, lat)`` order is used throughout.
 
+Why EA-Quad?
+------------
+
+Pick EA-Quad when cells must compare fairly across the globe: an 8 km cell
+covers the same ground area in Norway as in Kenya, so counts and densities
+aggregate without latitude bias. Sizes are plain kilometres (1, 2, 4, …
+1024 km), not abstract levels, which makes resolutions easy to reason about.
+The tradeoff: the squares are square in the EASE-Grid projection, so they look
+slightly stretched on a Web-Mercator basemap, and the ids mean nothing to tile
+servers. If you are feeding a web-map stack and equal area does not matter,
+use :doc:`plot_quadkey` or :doc:`plot_slippy` instead; if you want equal area
+with hexagonal adjacency, see :doc:`plot_h3` (approximate) or :doc:`plot_a5`
+(exact).
+
 Usage
 -----
 
