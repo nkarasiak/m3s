@@ -4,13 +4,12 @@ A unified Python package for working with hierarchical spatial grid systems. M3S
 
 ## Features
 
-### ✨ New Simplified API (v0.5.1+)
+### ✨ Simplified API
 - **🎯 Direct Grid Access**: No instantiation needed—just `m3s.H3`, `m3s.Geohash`, etc.
 - **🌐 Universal Geometry**: Single `from_geometry()` handles points, polygons, bboxes, GeoDataFrames
 - **🔍 Smart Precision**: Auto-select optimal precision or choose by use case, area, or cell count
 - **🔄 Easy Conversion**: Convert between grids with `.to_h3()`, `.to_geohash()`, etc.
 - **📦 Powerful Collections**: Filter, map, export with `GridCellCollection`
-- **🔙 Fully Compatible**: Existing code works unchanged
 
 ### Core Capabilities
 - **10 Grid Systems**: Geohash, MGRS, H3, Quadkey, S2, Slippy, C-squares, GARS, Maidenhead, Plus Codes
@@ -39,9 +38,9 @@ uv sync          # create the dev environment (.venv) from uv.lock
 
 ## Quick Start
 
-### ✨ New Simplified API (v0.5.1+)
+### ✨ Simplified API
 
-The new simplified API makes M3S easier to use with direct access to grid systems, auto-precision selection, and universal geometry handling:
+The simplified API gives direct access to grid systems, auto-precision selection, and universal geometry handling:
 
 ```python
 import m3s
@@ -119,8 +118,8 @@ same = m3s.H3.from_ids(cells.to_ids())   # ids -> wrapper-aware collection
 
 ### 🆚 API Comparison
 
-| Task | New Simplified API | Classic API |
-|------|-------------------|-------------|
+| Task | Simplified API | Classic API |
+|------|----------------|-------------|
 | **Get cell at point** | `m3s.Geohash.from_geometry((-74.0, 40.7))` | `GeohashGrid(precision=5).get_cell_from_point(40.7, -74.0)` |
 | **Get cells in area** | `m3s.H3.from_geometry(polygon)` | `H3Grid(precision=7).intersects(gdf)` |
 | **Get neighbors** | `m3s.Geohash.neighbors(cell)` | `grid.get_neighbors(cell)` |

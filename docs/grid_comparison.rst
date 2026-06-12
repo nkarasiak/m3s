@@ -323,7 +323,7 @@ Choose By…
 See It in Action
 ----------------
 
-The Example Gallery has one example per grid, each with a static image and an
+The examples have one page per grid, each with a static image and an
 interactive map:
 
 * :doc:`auto_examples/grid_systems/index` — one example per grid, each

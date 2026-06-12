@@ -33,7 +33,7 @@ M3S: Multi Spatial Subdivision System
          :color: secondary
          :expand:
 
-         🗺️ Example gallery
+         🗺️ Examples
 
    .. grid-item::
 
@@ -45,7 +45,7 @@ M3S: Multi Spatial Subdivision System
 
 M3S (Multi Spatial Subdivision System) provides an intuitive interface for working with **12 spatial grid systems** including **H3**, **Geohash**, **S2**, **MGRS**, **A5**, and more — in **Python** and in **JavaScript** (via WASM). Both bindings call the same Rust core, so a cell encoded in one language decodes identically in the other.
 
-**New in v0.5.1**: Simplified API with direct grid access, universal geometry handling, and intelligent auto-precision selection. No instantiation required—just ``import m3s`` and start working!
+The simplified API gives direct grid access, universal geometry handling, and intelligent auto-precision selection. No instantiation required: just ``import m3s`` and start working.
 
 **Also Available**: Advanced GridBuilder API with fluent interface and 5 intelligent precision selection strategies.
 
@@ -84,8 +84,8 @@ Or using pip:
 
    pip install m3s
 
-Quick Example - Simplified API (v0.5.1+)
------------------------------------------
+Quick example - simplified API
+------------------------------
 
 The easiest way to get started:
 
@@ -253,8 +253,8 @@ M3S supports **12 spatial grid systems** with unified precision parameters:
 Key Features
 ============
 
-✨ **Simplified API (New!)**
-   Direct grid access with ``m3s.H3``, ``m3s.Geohash``, etc. No instantiation needed—just import and use!
+✨ **Simplified API**
+   Direct grid access with ``m3s.H3``, ``m3s.Geohash``, etc. No instantiation needed, just import and use.
 
 🌐 **Universal Geometry Handling**
    Single ``from_geometry()`` method accepts points, polygons, bounding boxes, and GeoDataFrames.
@@ -282,9 +282,6 @@ Key Features
 
 🛠️ **GeoPandas Integration**
    Native support for GeoDataFrames with automatic CRS transformation and UTM zone detection.
-
-🔙 **Full Backward Compatibility**
-   Existing code continues to work—new API is additive, not breaking.
 
 Documentation
 =============

@@ -174,15 +174,14 @@ class ParameterNormalizer:
         Examples
         --------
         >>> ParameterNormalizer.normalize_for_grid_class('h3', 7)
-        {'precision': 7}  # All classes now use 'precision'
+        {'precision': 7}  # All classes use 'precision'
 
         >>> ParameterNormalizer.normalize_for_grid_class('geohash', 5)
         {'precision': 5}
         """
         cls.validate_precision(grid_system, precision)
 
-        # All grid classes now use unified 'precision' parameter
-        # This is the v0.6.0 breaking change - standardized interface
+        # All grid classes use the unified 'precision' parameter
         return {"precision": precision}
 
     @classmethod

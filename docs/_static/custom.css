@@ -45,6 +45,11 @@ html[data-theme="light"] {
   max-width: 60rem;
 }
 
+/* Hide the "Ctrl+K" keyboard hint inside the search field. */
+.search-button__kbd-shortcut {
+  display: none;
+}
+
 /* Inline code: gentle tint so identifiers stand out from prose. */
 code.literal {
   border-radius: 0.3rem;

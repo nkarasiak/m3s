@@ -114,8 +114,8 @@ html_theme_options = {
     "footer_start": ["copyright"],
     "footer_end": ["sphinx-version", "theme-version"],
 
-    # GitHub integration
-    "github_url": "https://github.com/nkarasiak/m3s",
+    # GitHub integration ("github_url" omitted on purpose: it auto-adds a
+    # second, square GitHub icon on top of the icon_links entry below).
     "use_edit_page_button": True,
 
     # Navigation bar
@@ -171,6 +171,9 @@ html_theme_options = {
 
 # Context for edit buttons
 html_context = {
+    # Light theme by default instead of following the OS (auto); the
+    # navbar switcher still lets readers opt into dark mode.
+    "default_mode": "light",
     "github_user": "nkarasiak",
     "github_repo": "m3s",
     "github_version": "main",

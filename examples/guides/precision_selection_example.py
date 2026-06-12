@@ -3,7 +3,7 @@ Precision Selection Strategies - Complete Guide
 ===============================================
 
 This example demonstrates all 5 intelligent precision selection strategies
-in M3S v0.6.0+, helping you choose the optimal precision level for any use case.
+in M3S, helping you choose the optimal precision level for any use case.
 """
 
 # sphinx_gallery_thumbnail_path = '_static/thumb_precision_selection.png'
