@@ -22,6 +22,7 @@ from .maidenhead import MaidenheadGrid
 from .mgrs import MGRSGrid
 from .pluscode import PlusCodeGrid
 from .quadkey import QuadkeyGrid
+from .rhealpix import RHEALPixGrid
 from .s2 import S2Grid
 from .slippy import SlippyGrid
 
@@ -35,7 +36,7 @@ class GridConverter:
     """
 
     # Mapping of grid system names to classes
-    GRID_SYSTEMS = {
+    GRID_SYSTEMS: dict[str, type[BaseGrid]] = {
         "a5": A5Grid,
         "geohash": GeohashGrid,
         "mgrs": MGRSGrid,
@@ -48,6 +49,7 @@ class GridConverter:
         "maidenhead": MaidenheadGrid,
         "pluscode": PlusCodeGrid,
         "eaquad": EAQuadGrid,
+        "rhealpix": RHEALPixGrid,
     }
 
     # Default precision/resolution mappings chosen for roughly *equivalent area
@@ -67,6 +69,7 @@ class GridConverter:
         "maidenhead": 4,  # ~232 km²
         "pluscode": 4,  # ~12.5m resolution in this implementation
         "eaquad": 4,  # 64 km cells -> 4096 km²
+        "rhealpix": 5,  # ~1,440 km²
     }
 
     def __init__(self) -> None:
@@ -103,7 +106,7 @@ class GridConverter:
             # All grid systems now use the standardized 'precision' parameter
             self._grid_cache[cache_key] = grid_class(precision=precision)
 
-        return self._grid_cache[cache_key]  # type: ignore[no-any-return]
+        return self._grid_cache[cache_key]
 
     def convert_cell(
         self,
@@ -205,7 +208,7 @@ class GridConverter:
         self,
         source_system: str,
         target_system: str,
-        bounds: tuple,
+        bounds: tuple[float, float, float, float],
         source_precision: int | None = None,
         target_precision: int | None = None,
         method: str = "centroid",
@@ -295,7 +298,7 @@ class GridConverter:
             Equivalent precision in target system
         """
         source_grid = self._get_grid(source_system, source_precision)
-        source_area = source_grid.area_km2  # type: ignore[attr-defined]
+        source_area = source_grid.area_km2
 
         # Try different precisions in target system to find closest match
         best_precision = self.DEFAULT_PRECISIONS[target_system]
@@ -307,7 +310,7 @@ class GridConverter:
         for test_precision in test_range:
             try:
                 target_grid = self._get_grid(target_system, test_precision)
-                target_area = target_grid.area_km2  # type: ignore[attr-defined]
+                target_area = target_grid.area_km2
                 diff = abs(source_area - target_area)
 
                 if diff < best_diff:
@@ -341,7 +344,7 @@ class GridConverter:
                         "system": system_name,
                         "class": grid_class.__name__,
                         "default_precision": default_precision,
-                        "default_area_km2": grid.area_km2,  # type: ignore[attr-defined]
+                        "default_area_km2": grid.area_km2,
                         "description": (
                             grid_class.__doc__.split("\n")[1].strip()
                             if grid_class.__doc__
@@ -388,7 +391,10 @@ def get_equivalent_precision(
 
 
 def create_conversion_table(
-    source_system: str, target_system: str, bounds: tuple, **kwargs: Any
+    source_system: str,
+    target_system: str,
+    bounds: tuple[float, float, float, float],
+    **kwargs: Any,
 ) -> pd.DataFrame:
     """Create a conversion table between two grid systems."""
     return converter.create_conversion_table(

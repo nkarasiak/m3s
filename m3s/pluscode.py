@@ -93,7 +93,7 @@ class PlusCodeGrid(CoreBackedGrid):
         """
         return self.get_cell_from_point(lat, lon).identifier
 
-    def decode(self, code: str) -> tuple:
+    def decode(self, code: str) -> tuple[float, float, float, float]:
         """
         Decode a plus code into latitude/longitude bounds.
 

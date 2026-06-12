@@ -8,7 +8,9 @@ including area calculations, coordinate transformations, and grid operations.
 import functools
 import hashlib
 import weakref
-from typing import Any, Callable
+from typing import Any, Callable, TypeVar, cast
+
+F = TypeVar("F", bound=Callable[..., Any])
 
 
 class LRUCache:
@@ -32,7 +34,7 @@ class LRUCache:
         """
         self.maxsize = maxsize
         self.cache: dict[str, Any] = {}
-        self.access_order: list = []
+        self.access_order: list[str] = []
 
     def get(self, key: str) -> Any | None:
         """Get item from cache and update access order."""
@@ -126,12 +128,12 @@ class SpatialCache:
         key = f"area_{cell_id}"
         self._cache.put(key, area)
 
-    def get_neighbors(self, cell_id: str) -> list | None:
+    def get_neighbors(self, cell_id: str) -> list[Any] | None:
         """Get cached neighbors for cell."""
         key = f"neighbors_{cell_id}"
         return self._cache.get(key)
 
-    def put_neighbors(self, cell_id: str, neighbors: list) -> None:
+    def put_neighbors(self, cell_id: str, neighbors: list[Any]) -> None:
         """Cache neighbors for cell."""
         key = f"neighbors_{cell_id}"
         self._cache.put(key, neighbors)
@@ -162,7 +164,9 @@ class SpatialCache:
 
 # Global cache instances
 _global_spatial_cache = SpatialCache(maxsize=1024)
-_grid_instance_caches: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
+_grid_instance_caches: weakref.WeakKeyDictionary[Any, SpatialCache] = (
+    weakref.WeakKeyDictionary()
+)
 
 
 def get_spatial_cache() -> SpatialCache:
@@ -182,8 +186,8 @@ def get_grid_cache(grid_instance: Any) -> SpatialCache:
 
 
 def cached_method(
-    cache_key_func: Callable | None = None, use_global_cache: bool = True
-):
+    cache_key_func: Callable[..., str] | None = None, use_global_cache: bool = True
+) -> Callable[[F], F]:
     """
     Cache method results.
 
@@ -195,9 +199,9 @@ def cached_method(
         Whether to use global cache (True) or instance-specific cache (False)
     """
 
-    def decorator(func: Callable) -> Callable:
+    def decorator(func: F) -> F:
         @functools.wraps(func)
-        def wrapper(self, *args, **kwargs):
+        def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
             # Choose cache instance
             if use_global_cache:
                 cache = get_spatial_cache()
@@ -224,23 +228,24 @@ def cached_method(
             return result
 
         # Add cache management methods
-        wrapper.clear_cache = lambda: (
+        w: Any = wrapper
+        w.clear_cache = lambda: (
             get_spatial_cache().clear()
             if use_global_cache
-            else get_grid_cache(wrapper.__self__).clear()
+            else get_grid_cache(w.__self__).clear()
         )
-        wrapper.cache_size = lambda: (
+        w.cache_size = lambda: (
             get_spatial_cache().size()
             if use_global_cache
-            else get_grid_cache(wrapper.__self__).size()
+            else get_grid_cache(w.__self__).size()
         )
 
-        return wrapper
+        return cast(F, wrapper)
 
     return decorator
 
 
-def cached_property(func: Callable) -> property:
+def cached_property(func: Callable[[Any], Any]) -> property:
     """
     Cache property results on the instance.
 
@@ -249,27 +254,28 @@ def cached_property(func: Callable) -> property:
     attr_name = f"_cached_{func.__name__}"
 
     @functools.wraps(func)
-    def wrapper(self):
+    def wrapper(self: Any) -> Any:
         if not hasattr(self, attr_name):
             setattr(self, attr_name, func(self))
         return getattr(self, attr_name)
 
-    def clear_cache(self):
+    def clear_cache(self: Any) -> None:
         if hasattr(self, attr_name):
             delattr(self, attr_name)
 
-    def has_cache(self):
+    def has_cache(self: Any) -> bool:
         return hasattr(self, attr_name)
 
     # Add cache management methods to the property
-    wrapper.clear_cache = clear_cache
-    wrapper.has_cache = has_cache
+    w: Any = wrapper
+    w.clear_cache = clear_cache
+    w.has_cache = has_cache
 
     return property(wrapper)
 
 
 # Utility functions for common cache key patterns
-def geo_cache_key(grid_instance, lat: float, lon: float, **kwargs) -> str:
+def geo_cache_key(grid_instance: Any, lat: float, lon: float, **kwargs: Any) -> str:
     """Generate cache key for geographic coordinate operations."""
     grid_name = grid_instance.__class__.__name__
     precision = getattr(grid_instance, "precision", 0)
@@ -279,7 +285,7 @@ def geo_cache_key(grid_instance, lat: float, lon: float, **kwargs) -> str:
     return f"geo_{grid_name}_{lat_rounded}_{lon_rounded}_{precision}_{extra}"
 
 
-def cell_cache_key(grid_instance, cell_id: str, **kwargs) -> str:
+def cell_cache_key(grid_instance: Any, cell_id: str, **kwargs: Any) -> str:
     """Generate cache key for cell-based operations."""
     grid_name = grid_instance.__class__.__name__
     extra = "_".join(f"{k}={v}" for k, v in sorted(kwargs.items()))
@@ -287,12 +293,12 @@ def cell_cache_key(grid_instance, cell_id: str, **kwargs) -> str:
 
 
 def bbox_cache_key(
-    grid_instance,
+    grid_instance: Any,
     min_lat: float,
     min_lon: float,
     max_lat: float,
     max_lon: float,
-    **kwargs,
+    **kwargs: Any,
 ) -> str:
     """Generate cache key for bounding box operations."""
     grid_name = grid_instance.__class__.__name__

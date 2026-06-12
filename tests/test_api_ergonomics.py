@@ -14,12 +14,12 @@ POLY = Polygon([(2.30, 48.84), (2.40, 48.84), (2.40, 48.94), (2.30, 48.94)])
 
 
 def test_grids_lists_all_systems():
-    """grids() returns all 12 system names, sorted."""
+    """grids() returns all 13 system names, sorted."""
     names = m3s.grids()
     assert names == sorted(names)
-    for expected in ("h3", "geohash", "s2", "eaquad", "mgrs", "a5"):
+    for expected in ("h3", "geohash", "s2", "eaquad", "rhealpix", "mgrs", "a5"):
         assert expected in names
-    assert len(names) == 12
+    assert len(names) == 13
 
 
 def test_grid_returns_wrapper_and_is_case_insensitive():

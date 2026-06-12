@@ -4,7 +4,7 @@ Base classes and interfaces for spatial grids.
 
 from abc import ABC, abstractmethod
 from functools import cached_property
-from typing import Any, ClassVar
+from typing import Any, ClassVar, cast
 
 import geopandas as gpd
 import m3s_core
@@ -61,17 +61,17 @@ class GridCell:
             return 0.0
 
         ring = list(self.polygon.exterior.coords)  # [(lon, lat), ...]
-        area_km2 = m3s_core.geodesic_area_km2(ring)
+        area_km2: float = m3s_core.geodesic_area_km2(ring)
         cache.put_area(self.identifier, area_km2)
         return area_km2
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"GridCell(id={self.identifier}, precision={self.precision}, "
             f"area={self.area_km2:.2f}km²)"
         )
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, GridCell):
             return False
         return self.identifier == other.identifier
@@ -103,7 +103,7 @@ class GridCell:
         tuple[float, float, float, float]
             (min_lon, min_lat, max_lon, max_lat)
         """
-        return self.polygon.bounds
+        return cast(tuple[float, float, float, float], self.polygon.bounds)
 
     @property
     def centroid(self) -> tuple[float, float]:
@@ -453,7 +453,7 @@ class BaseGrid(ABC):
             True if the point is contained within the polygon
         """
         point = Point(lon, lat)
-        return polygon.contains(point)
+        return bool(polygon.contains(point))
 
     def _get_additional_columns(self, cell: GridCell) -> dict[str, Any]:
         """

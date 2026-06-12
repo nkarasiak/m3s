@@ -564,7 +564,9 @@ class GridBuilder:
                 identifier=row.cell_id, polygon=row.geometry, precision=row.precision
             )
             if hasattr(row, "utm"):
-                cell.utm_zone = row.utm
+                # Dynamic attribute (lives in GridCell.__dict__); results.py
+                # detects its presence via hasattr.
+                cell.utm_zone = row.utm  # type: ignore[attr-defined]
             cells.append(cell)
         return cells
 
@@ -577,7 +579,7 @@ class GridBuilder:
         if target_precision <= cell.precision:
             return [cell]
         if target_precision == cell.precision + 1:
-            return grid.get_children(cell)  # type: ignore[attr-defined]
+            return grid.get_children(cell)  # type: ignore[attr-defined,no-any-return]
 
         current_cells = [cell]
         current_precision = cell.precision
@@ -604,7 +606,7 @@ class GridBuilder:
         if target_precision >= cell.precision:
             return cell
         if target_precision == cell.precision - 1:
-            return grid.get_parent(cell)  # type: ignore[attr-defined]
+            return grid.get_parent(cell)  # type: ignore[attr-defined,no-any-return]
 
         current_cell: Optional[GridCell] = cell
         current_precision = cell.precision

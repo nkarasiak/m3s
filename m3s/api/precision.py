@@ -7,8 +7,9 @@ choose the optimal precision level for their use case without manual trial-and-e
 
 import math
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
+from ..base import BaseGrid
 from ..conversion import GridConverter
 from ..geohash import GeohashGrid
 
@@ -16,7 +17,10 @@ from ..geohash import GeohashGrid
 # map, plus the ``geohash_int`` alias used by the builder/parameters layer.
 # Precision ranges come from each class's MIN_PRECISION/MAX_PRECISION (the
 # single source of truth), so AreaCalculator never keeps its own range copy.
-_GRID_CLASSES = {**GridConverter.GRID_SYSTEMS, "geohash_int": GeohashGrid}
+_GRID_CLASSES: dict[str, type[BaseGrid]] = {
+    **GridConverter.GRID_SYSTEMS,
+    "geohash_int": GeohashGrid,
+}
 
 
 @dataclass
@@ -48,9 +52,9 @@ class PrecisionRecommendation:
     actual_area_km2: Optional[float] = None
     actual_cell_count: Optional[int] = None
     edge_length_m: Optional[float] = None
-    metadata: Optional[Dict] = None
+    metadata: Optional[Dict[str, Any]] = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate confidence is in valid range."""
         if not 0.0 <= self.confidence <= 1.0:
             raise ValueError(
@@ -269,7 +273,7 @@ class AreaCalculator:
             0.76,  # 14 digits
             0.095,  # 15 digits
         ],
-        "eaquad": [  # precision 0-10, analytic: (2 ** (10 - p)) ** 2 km²
+        "eaquad": [  # precision 0-20, analytic: (2 ** (10 - p)) ** 2 km²
             1048576.0,  # 0: 1024 km cells
             262144.0,  # 1: 512 km
             65536.0,  # 2: 256 km
@@ -281,6 +285,34 @@ class AreaCalculator:
             16.0,  # 8: 4 km
             4.0,  # 9: 2 km
             1.0,  # 10: 1 km
+            0.25,  # 11: 500 m
+            0.0625,  # 12: 250 m
+            0.015625,  # 13: 125 m
+            0.00390625,  # 14: 62.5 m
+            0.0009765625,  # 15: 31.25 m
+            0.000244140625,  # 16: 15.625 m
+            6.103515625e-05,  # 17: ~7.81 m
+            1.52587890625e-05,  # 18: ~3.91 m
+            3.814697265625e-06,  # 19: ~1.95 m
+            9.5367431640625e-07,  # 20: ~0.98 m
+        ],
+        "rhealpix": [  # resolution 0-15, analytic: (2*pi/3) * R_A² / 9**r km²
+            85010936.9540148,  # 0
+            9445659.6615572,  # 1
+            1049517.740173022,  # 2
+            116613.0822414469,  # 3
+            12957.009137938545,  # 4
+            1439.6676819931718,  # 5
+            159.96307577701907,  # 6
+            17.77367508633545,  # 7
+            1.9748527873706059,  # 8
+            0.21942808748562287,  # 9
+            0.024380898609513653,  # 10
+            0.002708988734390406,  # 11
+            0.00030099874826560065,  # 12
+            3.3444305362844515e-05,  # 13
+            3.716033929204946e-06,  # 14
+            4.1289265880054957e-07,  # 15
         ],
     }
 
@@ -348,9 +380,9 @@ class AreaCalculator:
             # Simple cosine correction (approximate)
             lat_rad = math.radians(latitude)
             correction = math.cos(lat_rad)
-            return base_area * correction
+            return float(base_area * correction)
 
-        return base_area
+        return float(base_area)
 
     def find_precision_for_area(
         self, target_area_km2: float, latitude: Optional[float] = None
@@ -566,16 +598,27 @@ USE_CASE_PRESETS = {
         "building": 13,
         "room": 14,
     },
-    "eaquad": {  # precision 0-10 -> 1024..1 km cells
+    "eaquad": {  # precision 0-20 -> 1024 km .. ~0.98 m cells
         "global": 0,  # 1024 km
         "continental": 2,  # 256 km
         "country": 3,  # 128 km
         "region": 5,  # 32 km
         "city": 7,  # 8 km
-        "neighborhood": 8,  # 4 km
-        "street": 9,  # 2 km
-        "building": 10,  # 1 km (finest)
-        "room": 10,  # 1 km (finest)
+        "neighborhood": 9,  # 2 km
+        "street": 12,  # 250 m
+        "building": 15,  # ~31 m
+        "room": 18,  # ~3.9 m
+    },
+    "rhealpix": {  # resolution 0-15, aperture 9 (areas /9 per step)
+        "global": 0,  # ~9,200 km
+        "continental": 2,  # ~1,000 km
+        "country": 3,  # ~340 km
+        "region": 5,  # ~38 km
+        "city": 6,  # ~13 km
+        "neighborhood": 8,  # ~1.4 km
+        "street": 10,  # ~160 m
+        "building": 12,  # ~17 m
+        "room": 14,  # ~1.9 m
     },
 }
 
@@ -719,7 +762,7 @@ class PrecisionSelector:
         )
 
     def for_use_case(
-        self, use_case: str, context: Optional[Dict] = None
+        self, use_case: str, context: Optional[Dict[str, Any]] = None
     ) -> PrecisionRecommendation:
         """
         Select precision based on curated use case preset.

@@ -43,7 +43,7 @@ M3S: Multi Spatial Subdivision System
 
          ⭐ GitHub
 
-M3S (Multi Spatial Subdivision System) provides an intuitive interface for working with **12 spatial grid systems** including **H3**, **Geohash**, **S2**, **MGRS**, **A5**, and more — in **Python** and in **JavaScript** (via WASM). Both bindings call the same Rust core, so a cell encoded in one language decodes identically in the other.
+M3S (Multi Spatial Subdivision System) provides an intuitive interface for working with **13 spatial grid systems** including **H3**, **Geohash**, **S2**, **MGRS**, **A5**, and more — in **Python** and in **JavaScript** (via WASM). Both bindings call the same Rust core, so a cell encoded in one language decodes identically in the other.
 
 The simplified API gives direct grid access, universal geometry handling, and intelligent auto-precision selection. No instantiation required: just ``import m3s`` and start working.
 
@@ -54,7 +54,7 @@ The simplified API gives direct grid access, universal geometry handling, and in
    .. grid-item-card:: 🌍 Multi-Grid Support
       :class-header: bg-light
 
-      Support for 12 spatial grid systems including Geohash, MGRS, H3, S2, QuadKey, and more with a consistent API.
+      Support for 13 spatial grid systems including Geohash, MGRS, H3, S2, QuadKey, and more with a consistent API.
 
    .. grid-item-card:: ⚡ Performance Optimized
       :class-header: bg-light
@@ -191,7 +191,7 @@ Compare same location across multiple grid systems:
 Supported Grid Systems
 ======================
 
-M3S supports **12 spatial grid systems** with unified precision parameters:
+M3S supports **13 spatial grid systems** with unified precision parameters:
 
 .. list-table::
    :header-rows: 1
@@ -244,7 +244,11 @@ M3S supports **12 spatial grid systems** with unified precision parameters:
    * - **EA-Quad**
      - Equal-area quadtree (power-of-two km cells)
      - Equal-area analysis, sampling
-     - 0-10
+     - 0-20
+   * - **rHEALPix**
+     - Equal-area aperture-9 DGGS (OGC standard)
+     - Equal-area analysis, scientific data cubes
+     - 0-15
    * - **A5**
      - Pentagonal equal-area DGGS (dodecahedron)
      - Equal-area global tiling

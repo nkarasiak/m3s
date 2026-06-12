@@ -77,6 +77,13 @@ FNS = {
         "children": mc.eaq_children,
         "parent": mc.eaq_parent,
     },
+    "rhealpix": {
+        "point": mc.rhp_cell_from_point,
+        "from_id": mc.rhp_cell_from_id,
+        "neighbors": mc.rhp_neighbors,
+        "children": mc.rhp_children,
+        "parent": mc.rhp_parent,
+    },
     "mgrs": {
         "point": mc.mgrs_cell_from_point,
         "from_id": mc.mgrs_cell_from_id,
@@ -113,6 +120,7 @@ CASES = (
     + _load("csquares")
     + _load("pluscode")
     + _load("eaquad")
+    + _load("rhealpix")
     + _load("mgrs")
     + _load("a5")
     + _load("s2")
@@ -184,6 +192,7 @@ BBOX_FNS = {
     "geohash": mc.gh_cells_in_bbox,
     "pluscode": mc.pc_cells_in_bbox,
     "eaquad": mc.eaq_cells_in_bbox,
+    "rhealpix": mc.rhp_cells_in_bbox,
     "a5": mc.a5_cells_in_bbox,
     "h3": mc.h3_cells_in_bbox,
     "s2": mc.s2_cells_in_bbox,
@@ -206,6 +215,7 @@ BBOX_CASES = (
     + _load_bbox("geohash")
     + _load_bbox("pluscode")
     + _load_bbox("eaquad")
+    + _load_bbox("rhealpix")
     + _load_bbox("a5")
     + _load_bbox("h3")
     + _load_bbox("s2")

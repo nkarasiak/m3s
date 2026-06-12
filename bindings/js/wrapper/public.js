@@ -20,6 +20,7 @@ export {
   Maidenhead,
   PlusCode,
   EAQuad,
+  RHEALPix,
   GRIDS,
 } from "./grids.js";
 

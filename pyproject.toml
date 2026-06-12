@@ -138,11 +138,13 @@ strict_equality = true
 [[tool.mypy.overrides]]
 module = [
     "geopandas",
-    "geopandas.*",
     "shapely",
     "shapely.*",
     "pandas",
     "h3",
+    "m3s_core",
+    "psutil",
+    "fiona",
 ]
 ignore_missing_imports = true
 

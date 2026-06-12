@@ -1,7 +1,7 @@
 Choosing a Grid
 ===============
 
-M3S ships **12 spatial grid systems**. They differ along a few axes that
+M3S ships **13 spatial grid systems**. They differ along a few axes that
 actually matter in practice: cell *shape*, whether cells are *equal-area*,
 whether they *nest exactly* (a child grid tiles its parent perfectly), how far
 toward the *poles* they reach, and whether sizes are labelled in *kilometres*.
@@ -19,7 +19,9 @@ This guide gets you to the right one fast.
    **New: EA-Quad.** The :class:`~m3s.EAQuadGrid` is the only grid in M3S that is
    simultaneously **square**, **equal-area**, **exactly nesting** (aperture-4
    quadtree), **global to ±90°**, *and* **labelled in kilometres** (powers of two,
-   1–1024 km). See :doc:`auto_examples/grid_systems/plot_eaquad`.
+   ~1 m–1024 km). See :doc:`auto_examples/grid_systems/plot_eaquad`. For the
+   standards-track equal-area DGGS, see **rHEALPix**
+   (:doc:`auto_examples/grid_systems/plot_rhealpix`).
 
 30-Second Picker
 ----------------
@@ -31,6 +33,11 @@ This guide gets you to the right one fast.
 
       **EA-Quad** — square, km-sized cells with identical ground area worldwide.
       Ideal for zonal statistics, rasterisation and density maps.
+
+   .. grid-item-card:: 🧊 Equal-area DGGS standard
+
+      **rHEALPix** — OGC-specified equal-area aperture-9 quadtree; exact
+      nesting, square polar cells, used by scientific data cubes.
 
    .. grid-item-card:: ⬠ Equal-area pentagons
 
@@ -100,7 +107,14 @@ ticks every column.**
      - ✅
      - ✅
      - ✅
-     - 0–10
+     - 0–20
+   * - **rHEALPix**
+     - Square (projected)
+     - ✅
+     - ✅
+     - ✅
+     - ❌
+     - 0–15
    * - **A5**
      - Pentagon
      - ✅
@@ -198,9 +212,13 @@ Sizes & Primary Use
      - Typical Sizes
      - Primary Use Case
    * - **EA-Quad**
-     - 0–10
-     - P0: 1024 km (~1.05M km²), P4: 64 km (4096 km²), P10: 1 km (1 km²)
+     - 0–20
+     - P0: 1024 km (~1.05M km²), P4: 64 km (4096 km²), P10: 1 km (1 km²), P20: ~1 m (~0.95 m²)
      - Equal-area analytics, seamless global tiling, zonal/raster statistics
+   * - **rHEALPix**
+     - 0–15
+     - P0: ~85M km² (6 cells), P5: ~1440 km², P10: ~0.024 km², P15: ~0.4 m²
+     - Equal-area DGGS standard, scientific data cubes, polar-friendly statistics
    * - **A5**
      - 0–30
      - P0: ~42.5M km² (12 cells), P8: ~520 km², P12: ~2 km², P20: ~31 m²
@@ -256,6 +274,9 @@ Choose By…
       **EA-Quad** — square km cells with identical ground area everywhere;
       values are directly comparable across latitudes without reweighting.
 
+      **rHEALPix** — OGC-standardised equal-area DGGS; exact aperture-9
+      nesting and ordinary square cells at the poles.
+
    **Global analysis**
       **S2** — hierarchical quad-tree, works at every scale from global to
       centimetre.
@@ -290,6 +311,9 @@ Choose By…
    **Squares (equal-area)**
       **EA-Quad** — equal ground area worldwide, exact quadtree nesting.
 
+      **rHEALPix** — equal-area squares in the rHEALPix projection, exact
+      aperture-9 nesting.
+
    **Squares (UTM)**
       **MGRS** — accurate distance/area within a zone.
 
@@ -315,7 +339,7 @@ Choose By…
       **MGRS** (1 m), **S2** (high levels), **H3** (res 12+), **Plus Codes**.
 
    **Medium precision (kilometres)**
-      **EA-Quad**, **H3**, **Geohash**, **Quadkey**, **S2**.
+      **EA-Quad**, **rHEALPix**, **H3**, **Geohash**, **Quadkey**, **S2**.
 
    **Coarse precision (100+ km)**
       **EA-Quad** (P0–P3), **MGRS** (P1), **C-squares** (P1), **GARS**.
@@ -329,6 +353,7 @@ interactive map:
 * :doc:`auto_examples/grid_systems/index` — one example per grid, each
   tessellating the same area with a static and an interactive map
 * :doc:`auto_examples/grid_systems/plot_eaquad` — the EA-Quad equal-area grid
+* :doc:`auto_examples/grid_systems/plot_rhealpix` — the rHEALPix equal-area DGGS
 * :doc:`auto_examples/grid_systems/plot_a5` — the A5 equal-area pentagonal grid
 * :doc:`auto_examples/guides/quickstart` — the simplified, GIS-native API
 * :doc:`auto_examples/guides/precision_selection_example` — intelligent precision
@@ -359,6 +384,7 @@ Cheat Sheet
 -----------
 
 * Equal-area square cells in kilometres → **EA-Quad**
+* Standards-track equal-area DGGS → **rHEALPix**
 * Most analytics tasks → **H3**
 * Database indexing → **Geohash**
 * Web mapping → **Slippy** or **Quadkey**
@@ -375,6 +401,8 @@ Official references:
 * EA-Quad — uses the EASE-Grid 2.0 *projection* only (EPSG:6933); its cells are
   **not** NSIDC EASE-Grid pixels. EASE-Grid 2.0:
   https://nsidc.org/data/user-resources/help-center/guide-ease-grids
+* rHEALPix — equal-area DGGS (OGC):
+  https://github.com/manaakiwhenua/rhealpixdggs-py
 * A5 — pentagonal DGGS: https://a5geo.org/
 * H3: https://h3geo.org/
 * S2: https://s2geometry.io/

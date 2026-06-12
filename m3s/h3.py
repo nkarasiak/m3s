@@ -78,7 +78,7 @@ class H3Grid(CoreBackedGrid):
         try:
             # h3.cell_area returns area in square meters for the given resolution
             area_m2 = h3.cell_area(self.precision, unit="m^2")
-            return area_m2 / 1_000_000  # Convert to km²
+            return float(area_m2) / 1_000_000  # Convert to km²
         except Exception:
             # Fallback with approximate values if h3.cell_area is not available
             # These are approximate areas for each H3 resolution level in km²
@@ -157,7 +157,7 @@ class H3Grid(CoreBackedGrid):
             Edge length in kilometers for the current H3 resolution
         """
         try:
-            return h3.average_hexagon_edge_length(self.precision, unit="km")
+            return float(h3.average_hexagon_edge_length(self.precision, unit="km"))
         except (AttributeError, TypeError):
             # Fallback to hardcoded values if function not available
             edge_lengths_km = {
@@ -190,7 +190,7 @@ class H3Grid(CoreBackedGrid):
             Hexagon area in square kilometers for the current H3 resolution
         """
         try:
-            return h3.average_hexagon_area(self.precision, unit="km^2")
+            return float(h3.average_hexagon_area(self.precision, unit="km^2"))
         except (AttributeError, TypeError):
             # Fallback to hardcoded values if function not available
             areas_km2 = {
@@ -257,7 +257,7 @@ class H3Grid(CoreBackedGrid):
         except ValueError:
             return cell
 
-    def get_resolution_info(self) -> dict:
+    def get_resolution_info(self) -> dict[str, Any]:
         """
         Get detailed information about the current resolution level.
 

@@ -96,7 +96,7 @@ def calculate_polygon_area_spherical(polygon: Polygon) -> float:
         * abs(lat_diff_rad * lon_diff_rad * abs(lat_rad))
     )
 
-    return area_km2
+    return float(area_km2)
 
 
 def get_utm_zone_number(lon: float) -> int:

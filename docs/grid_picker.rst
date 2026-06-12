@@ -167,15 +167,18 @@ fit best. Everything runs in your browser — nothing is sent anywhere.
    (function () {
      var BASE = "auto_examples/grid_systems/plot_";
      var DOC = {
-       eaquad: "eaquad", a5: "a5", geohash: "geohash", h3: "h3", s2: "s2",
+       eaquad: "eaquad", rhealpix: "rhealpix", a5: "a5", geohash: "geohash", h3: "h3", s2: "s2",
        mgrs: "mgrs", quadkey: "quadkey", slippy: "slippy", csquares: "csquares",
        gars: "gars", maidenhead: "maidenhead", pluscode: "pluscode"
      };
      // equal: "yes" | "approx" | "no"; precision tags: coarse/medium/fine
      var GRIDS = [
        {key:"eaquad", name:"EA-Quad", shape:"square", equal:"yes", nest:true, global:true, km:true,
-        prec:["coarse","medium"], uses:["equalarea","global"],
+        prec:["coarse","medium","fine"], uses:["equalarea","global"],
         tag:"Square, km-sized cells with identical ground area worldwide — fair counts and densities at any latitude."},
+       {key:"rhealpix", name:"rHEALPix", shape:"square", equal:"yes", nest:true, global:true, km:false,
+        prec:["coarse","medium","fine"], uses:["equalarea","global"],
+        tag:"OGC-standardised equal-area DGGS (aperture 9) — exact nesting, square polar cells, scientific data cubes."},
        {key:"a5", name:"A5", shape:"pentagon", equal:"yes", nest:true, global:true, km:false,
         prec:["coarse","medium","fine"], uses:["equalarea","global"],
         tag:"Pentagonal equal-area DGGS on a dodecahedron, exact nesting, whole-world down to <30 mm²."},

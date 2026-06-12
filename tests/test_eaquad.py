@@ -8,7 +8,7 @@ from shapely.ops import unary_union
 
 from m3s import EAQuadGrid, list_grid_systems
 from m3s.base import GridCell
-from m3s.eaquad import _format_id, _ncols, _parse_id
+from m3s.eaquad import _d2xy, _format_id, _ncols, _parse_id, _xy2d
 
 
 class TestEAQuadInit:
@@ -21,13 +21,14 @@ class TestEAQuadInit:
         assert grid.size_km == 64
 
     def test_init_custom_precision(self):
-        """Finest/coarsest precisions map to 1 km / 1024 km."""
+        """Finest/coarsest precisions map to ~0.98 m / 1024 km."""
         assert EAQuadGrid(precision=10).size_km == 1
         assert EAQuadGrid(precision=0).size_km == 1024
+        assert EAQuadGrid(precision=20).size_km == pytest.approx(2.0**-10)
 
     @pytest.mark.parametrize(
         "precision,size_km",
-        [(0, 1024), (1, 512), (4, 64), (7, 8), (9, 2), (10, 1)],
+        [(0, 1024), (1, 512), (4, 64), (7, 8), (10, 1), (11, 0.5), (14, 0.0625)],
     )
     def test_precision_size_mapping(self, precision, size_km):
         """Precision maps to size_km = 2 ** (10 - precision)."""
@@ -35,20 +36,93 @@ class TestEAQuadInit:
 
     def test_init_invalid_precision(self):
         """Out-of-range precision raises ValueError."""
-        with pytest.raises(ValueError, match="precision must be between 0 and 10"):
+        with pytest.raises(ValueError, match="precision must be between 0 and 20"):
             EAQuadGrid(precision=-1)
-        with pytest.raises(ValueError, match="precision must be between 0 and 10"):
-            EAQuadGrid(precision=11)
+        with pytest.raises(ValueError, match="precision must be between 0 and 20"):
+            EAQuadGrid(precision=21)
 
     def test_area_km2_analytic(self):
         """Equal-area: cell area is exactly size_km ** 2."""
         assert EAQuadGrid(precision=7).area_km2 == 64.0
         assert EAQuadGrid(precision=10).area_km2 == 1.0
         assert EAQuadGrid(precision=0).area_km2 == 1024.0**2
+        assert EAQuadGrid(precision=20).area_km2 == pytest.approx(2.0**-20)
+
+
+class TestEAQuadIdentifiers:
+    """Hex-token codec: Hilbert path + sentinel bit, S2-style."""
+
+    def test_identifier_is_short_hex_token(self):
+        """Identifiers are short lowercase hex tokens without trailing zeros."""
+        for precision in (0, 4, 10, 20):
+            cell = EAQuadGrid(precision).get_cell_from_point(40.7, -74.0)
+            ident = cell.identifier
+            assert 1 <= len(ident) <= 16
+            assert set(ident) <= set("0123456789abcdef")
+            assert not ident.endswith("0")
+
+    def test_coarser_cells_have_shorter_tokens(self):
+        """Token length grows with precision (~1 hex char per 2 levels)."""
+        lengths = [
+            len(EAQuadGrid(p).get_cell_from_point(40.7, -74.0).identifier)
+            for p in (0, 4, 10, 20)
+        ]
+        assert lengths == sorted(lengths)
+        assert lengths[0] < lengths[-1]
+
+    def test_identifier_roundtrip(self):
+        """Round-trip point -> identifier -> cell reproduces the cell."""
+        grid = EAQuadGrid(precision=6)
+        cell = grid.get_cell_from_point(48.85, 2.35)  # Paris
+        again = grid.get_cell_from_identifier(cell.identifier)
+        assert again.identifier == cell.identifier
+        assert again.precision == cell.precision
+        assert again.polygon.equals(cell.polygon)
+
+    def test_codec_roundtrip(self):
+        """_format_id and _parse_id are exact inverses."""
+        for level, col, row in [(6, 0, 0), (10, 17, 5), (16, 12345, 4321)]:
+            token = _format_id(level, col, row)
+            assert _parse_id(token) == (level, col, row)
+
+    def test_hilbert_is_hierarchical(self):
+        """Parent Hilbert index is the child index shifted right by 2 bits."""
+        for level in (7, 13, 26):
+            for k in range(0, 50, 7):
+                n = 1 << level
+                x, y = k % n, (k * 977) % n
+                assert _xy2d(level - 1, x // 2, y // 2) == _xy2d(level, x, y) >> 2
+                assert _d2xy(level, _xy2d(level, x, y)) == (x, y)
+
+    def test_parent_id_is_bit_prefix(self):
+        """A parent's 64-bit path is a bit-prefix of its child's (S2 property)."""
+        grid = EAQuadGrid(precision=6)
+        cell = grid.get_cell_from_point(48.85, 2.35)
+        parent = grid.get_parent(cell)
+        level = 6 + 6
+        child_bits = int(cell.identifier, 16) << (4 * (16 - len(cell.identifier)))
+        parent_bits = int(parent.identifier, 16) << (4 * (16 - len(parent.identifier)))
+        shift = 64 - 2 * (level - 1)
+        assert parent_bits >> shift == child_bits >> shift
+
+    def test_invalid_identifiers(self):
+        """Non-hex strings, zero ids and bad levels raise."""
+        grid = EAQuadGrid(precision=4)
+        for bad in ["garbage", "XYZ", "", "0", "00", "f" * 17]:
+            with pytest.raises(ValueError):
+                grid.get_cell_from_identifier(bad)
+
+    def test_identifier_to_precision(self):
+        """Precision is recovered from the token's sentinel bit."""
+        for precision in (0, 7, 10, 20):
+            grid = EAQuadGrid(precision=precision)
+            ident = grid.get_cell_from_point(10.0, 10.0).identifier
+            assert grid.identifier_to_precision(ident) == precision
+        assert EAQuadGrid().identifier_to_precision("garbage") is None
 
 
 class TestEAQuadCells:
-    """Point lookup, identifiers and round-tripping."""
+    """Point lookup."""
 
     def test_get_cell_from_point_inside(self):
         """The returned cell polygon contains the query point."""
@@ -67,46 +141,13 @@ class TestEAQuadCells:
         with pytest.raises(ValueError, match="Longitude"):
             grid.get_cell_from_point(0.0, 200.0)
 
-    def test_identifier_roundtrip(self):
-        """Round-trip point -> identifier -> cell reproduces the cell."""
-        grid = EAQuadGrid(precision=6)
-        cell = grid.get_cell_from_point(48.85, 2.35)  # Paris
-        again = grid.get_cell_from_identifier(cell.identifier)
-        assert again.identifier == cell.identifier
-        assert again.precision == cell.precision
-        assert again.polygon.equals(cell.polygon)
-
-    def test_identifier_format(self):
-        """Identifiers are fixed-length base-4 paths (len == 6 + precision)."""
-        cell = EAQuadGrid(precision=10).get_cell_from_point(0.0, 0.0)
-        assert len(cell.identifier) == 16
-        assert set(cell.identifier) <= set("0123")
-        cell64 = EAQuadGrid(precision=4).get_cell_from_point(0.0, 0.0)
-        assert len(cell64.identifier) == 10
-        assert set(cell64.identifier) <= set("0123")
-
-    def test_identifier_prefix_is_parent(self):
-        """Dropping the last character yields the parent's identifier."""
-        grid = EAQuadGrid(precision=6)
-        cell = grid.get_cell_from_point(48.85, 2.35)  # Paris
-        parent = grid.get_parent(cell)
-        assert cell.identifier[:-1] == parent.identifier
-
-    def test_invalid_identifiers(self):
-        """Non-base-4 strings and out-of-range lengths raise."""
-        grid = EAQuadGrid(precision=4)
-        for bad in ["garbage", "0124", "01", ""]:
-            with pytest.raises(ValueError):
-                grid.get_cell_from_identifier(bad)
-
-    def test_identifier_to_precision(self):
-        """Precision is derivable from the identifier length (6 + precision)."""
-        grid = EAQuadGrid(precision=7)
-        ident = grid.get_cell_from_point(0.0, 0.0).identifier
-        assert len(ident) == 13
-        assert grid.identifier_to_precision(ident) == 7
-        assert grid.identifier_to_precision("012201") == 0  # len 6 -> precision 0
-        assert grid.identifier_to_precision("garbage") is None
+    def test_subkilometre_cells(self):
+        """Sub-km precisions return small cells that still contain the point."""
+        grid = EAQuadGrid(precision=16)  # ~15.6 m
+        cell = grid.get_cell_from_point(48.8584, 2.2945)  # Eiffel Tower
+        assert cell.precision == 16
+        assert cell.polygon.buffer(1e-12).contains(Point(2.2945, 48.8584))
+        assert cell.area_km2 == pytest.approx(0.000244140625, rel=0.05)
 
 
 class TestEAQuadHierarchy:
@@ -138,8 +179,8 @@ class TestEAQuadHierarchy:
         assert cell.identifier in child_ids
 
     def test_children_finest_empty(self):
-        """The finest level (1 km) has no children."""
-        grid = EAQuadGrid(precision=10)
+        """The finest level (~0.98 m) has no children."""
+        grid = EAQuadGrid(precision=20)
         cell = grid.get_cell_from_point(0.0, 0.0)
         assert grid.get_children(cell) == []
 
@@ -188,13 +229,13 @@ class TestEAQuadNeighbors:
         """Longitude wraps: east neighbour of the last column is a column-0 cell."""
         grid = EAQuadGrid(precision=2)  # 256 km
         east_cell = grid.get_cell_from_point(0.0, 180.0)
-        size_km, col, row = _parse_id(east_cell.identifier)
-        assert col == _ncols(size_km) - 1  # easternmost column
+        level, col, row = _parse_id(east_cell.identifier)
+        assert col == _ncols(level) - 1  # easternmost column
 
         neighbors = grid.get_neighbors(east_cell)
         ids = {n.identifier for n in neighbors}
         # east neighbour wraps to column 0 at the same row
-        assert _format_id(size_km, 0, row) in ids
+        assert _format_id(level, 0, row) in ids
         # still <= 8, unique, excludes self
         assert len(neighbors) == len(ids) <= 8
         assert east_cell.identifier not in ids
@@ -248,22 +289,36 @@ class TestEAQuadEdges:
             assert cell.polygon.is_valid
             assert cell.polygon.area > 0
 
-    def test_boundary_cell_clipped_but_nominal_area(self):
-        """Boundary cells are clipped to the domain yet report nominal area."""
+    def test_boundary_cell_clipped_with_exact_area(self):
+        """Boundary cells are clipped; native_cell_area reports the true area."""
         grid = EAQuadGrid(precision=2)  # 256 km
         east_cell = grid.get_cell_from_point(0.0, 180.0)
-        size_km, col, _ = _parse_id(east_cell.identifier)
-        assert col == _ncols(size_km) - 1  # easternmost (partial) column
+        level, col, _ = _parse_id(east_cell.identifier)
+        assert col == _ncols(level) - 1  # easternmost (partial) column
 
         # The clipped boundary cell is physically narrower than a full nominal
         # cell. EPSG:6933 x is linear in longitude, so the clipped cell's lon
         # span is smaller than an interior (full) cell's at the same row.
         e0, _, e1, _ = east_cell.polygon.bounds
-        f0, _, f1, _ = grid.get_cell_from_point(0.0, 170.0).polygon.bounds
+        interior = grid.get_cell_from_point(0.0, 170.0)
+        f0, _, f1, _ = interior.polygon.bounds
         assert (e1 - e0) < (f1 - f0)
 
-        # area_km2 still reports the nominal size_km ** 2 (no boundary special-casing).
-        assert grid.area_km2 == float(size_km**2)
+        # The grid-level area_km2 stays nominal; native_cell_area is exact.
+        assert grid.area_km2 == 256.0**2
+        clipped = grid.native_cell_area(east_cell.identifier, "km^2")
+        assert clipped < grid.area_km2
+        # ... and matches the geodesic polygon area closely.
+        assert clipped == pytest.approx(east_cell.area_km2, rel=0.03)
+        # Interior cells report the nominal area exactly.
+        assert grid.native_cell_area(interior.identifier, "km^2") == pytest.approx(
+            grid.area_km2
+        )
+        # Unit conversions.
+        assert grid.native_cell_area(east_cell.identifier, "m^2") == pytest.approx(
+            clipped * 1e6
+        )
+        assert grid.native_cell_area(east_cell.identifier, "bogus") is None
 
     def test_registered(self):
         """The grid is discoverable via list_grid_systems."""

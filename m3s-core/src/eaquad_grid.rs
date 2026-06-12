@@ -1,15 +1,22 @@
 //! EA-Quad (Equal-Area Quadtree) grid, mirroring `m3s/eaquad.py`.
 //!
-//! Global base-4 quadtree on EPSG:6933 (Lambert cylindrical equal-area, WGS84
+//! Global quadtree on EPSG:6933 (Lambert cylindrical equal-area, WGS84
 //! ellipsoid, lat_ts=30). `eaquad.py` uses pyproj for the projection; PROJ can't
 //! link into WASM, so the ellipsoidal CEA forward/inverse are implemented here
-//! in closed form (inverse via the authalic-latitude series). Id is a base-4
-//! path, precision = level - 6, cell edge = 2^(10-precision) km.
+//! in closed form (inverse via the authalic-latitude series).
+//!
+//! Identifiers are S2-style hex tokens of a 64-bit cell id: the cell's
+//! Hilbert-curve index on the `2^level x 2^level` lattice over the super-root
+//! (2 bits per level, MSB first), followed by a sentinel `1` bit, zero-padded
+//! to 64 bits, hex-encoded with trailing `'0'` characters stripped. The level
+//! is recovered from the sentinel (the lowest set bit), so tokens of any
+//! precision round-trip without extra state. Precision = level - 6; cell edge
+//! = 2^(10-precision) km (sub-kilometre below precision 10).
 
 use crate::Cell;
 
 pub const MIN_PRECISION: u8 = 0;
-pub const MAX_PRECISION: u8 = 10;
+pub const MAX_PRECISION: u8 = 20;
 pub const DEFAULT_PRECISION: u8 = 4;
 
 // EPSG:6933 projected domain (metres), matching eaquad.py.
@@ -20,8 +27,13 @@ const Y_MIN: f64 = -Y_MAX;
 const WIDTH: f64 = X_MAX - X_MIN;
 const HEIGHT: f64 = Y_MAX - Y_MIN;
 
-const SUPER_ROOT_KM: i64 = 65536; // 2^16
-const SUPER_ROOT_LEVEL: u32 = 16;
+// Quadtree super-root: 65536 km (2^16), SW-aligned at (X_MIN, Y_MIN). A cell's
+// level is its depth below the super-root; precision = level - 6, so the
+// coarsest exposed cell (precision 0) is 1024 km and the finest (precision 20)
+// is ~0.98 m. Edge length is exact in f64 (125 * 2^k metres).
+const SUPER_ROOT_M: f64 = 65536.0e3;
+const MIN_LEVEL: u32 = MIN_PRECISION as u32 + 6; // 6  (1024 km)
+const MAX_LEVEL: u32 = MAX_PRECISION as u32 + 6; // 26 (~0.98 m)
 
 // WGS84 ellipsoid + cea standard parallel (lat_ts = 30deg).
 const A: f64 = 6378137.0;
@@ -74,53 +86,121 @@ fn inverse(x: f64, y: f64) -> (f64, f64) {
     (lon, phi.to_degrees())
 }
 
-fn size_km_for(precision: u8) -> i64 {
-    1i64 << (MAX_PRECISION - precision)
+fn level_for(precision: u8) -> u32 {
+    precision as u32 + 6
 }
 
-fn precision_for(size_km: i64) -> u8 {
-    MAX_PRECISION - (size_km as u64).trailing_zeros() as u8
+/// Cell edge in metres at `level`; exact in f64 (125 * 2^k for every level).
+fn size_m_for(level: u32) -> f64 {
+    SUPER_ROOT_M / (1u64 << level) as f64
 }
 
-fn ncols(size_km: i64) -> i64 {
-    (WIDTH / (size_km as f64 * 1000.0)).ceil() as i64
+fn ncols(level: u32) -> i64 {
+    (WIDTH / size_m_for(level)).ceil() as i64
 }
 
-fn nrows(size_km: i64) -> i64 {
-    (HEIGHT / (size_km as f64 * 1000.0)).ceil() as i64
+fn nrows(level: u32) -> i64 {
+    (HEIGHT / size_m_for(level)).ceil() as i64
 }
 
-fn format_id(size_km: i64, col: i64, row: i64) -> String {
-    let level = SUPER_ROOT_LEVEL - (size_km as u64).trailing_zeros();
-    (0..level)
-        .rev()
-        .map(|i| {
-            let d = 2 * ((row >> i) & 1) + ((col >> i) & 1);
-            (b'0' + d as u8) as char
-        })
-        .collect()
-}
-
-fn parse_id(id: &str) -> Result<(i64, i64, i64), String> {
-    if id.is_empty() || !id.bytes().all(|c| (b'0'..=b'3').contains(&c)) {
-        return Err(format!("Invalid EA-Quad identifier: {id}"));
+/// Hilbert index of `(col, row)` on the `2^level x 2^level` lattice.
+///
+/// SW origin (col east, row north). The curve is hierarchical: the index of a
+/// cell's parent is its own index shifted right by two bits, which is what
+/// makes a token's bit-prefix its ancestor (the S2 property).
+fn hilbert_d(level: u32, mut x: u64, mut y: u64) -> u64 {
+    let mut d: u64 = 0;
+    let mut s: u64 = 1u64 << (level - 1);
+    while s > 0 {
+        let rx = u64::from(x & s != 0);
+        let ry = u64::from(y & s != 0);
+        d += s * s * ((3 * rx) ^ ry);
+        x &= s - 1;
+        y &= s - 1;
+        if ry == 0 {
+            if rx == 1 {
+                x = s - 1 - x;
+                y = s - 1 - y;
+            }
+            std::mem::swap(&mut x, &mut y);
+        }
+        s >>= 1;
     }
-    let level = id.len() as u32;
-    if !(6..=16).contains(&level) {
-        return Err(format!("Invalid EA-Quad identifier length: {id}"));
-    }
-    let size_km = SUPER_ROOT_KM >> level;
-    let (mut col, mut row) = (0i64, 0i64);
-    for ch in id.bytes() {
-        let d = (ch - b'0') as i64;
-        col = (col << 1) | (d & 1);
-        row = (row << 1) | ((d >> 1) & 1);
-    }
-    Ok((size_km, col, row))
+    d
 }
 
-fn make_cell(size_km: i64, col: i64, row: i64) -> Result<Cell, String> {
-    let size_m = size_km as f64 * 1000.0;
+/// Inverse of [`hilbert_d`]: Hilbert index -> `(col, row)`.
+fn hilbert_xy(level: u32, d: u64) -> (u64, u64) {
+    let (mut x, mut y) = (0u64, 0u64);
+    let mut t = d;
+    let mut s = 1u64;
+    while s < (1u64 << level) {
+        let rx = 1 & (t / 2);
+        let ry = 1 & (t ^ rx);
+        if ry == 0 {
+            if rx == 1 {
+                x = s - 1 - x;
+                y = s - 1 - y;
+            }
+            std::mem::swap(&mut x, &mut y);
+        }
+        x += s * rx;
+        y += s * ry;
+        t /= 4;
+        s <<= 1;
+    }
+    (x, y)
+}
+
+/// Pack `(level, col, row)` into the 64-bit cell id (path + sentinel bit).
+fn cell_id_u64(level: u32, col: i64, row: i64) -> u64 {
+    let d = hilbert_d(level, col as u64, row as u64);
+    (d << (64 - 2 * level)) | (1u64 << (63 - 2 * level))
+}
+
+/// Encode a cell as an S2-style hex token (trailing zeros stripped).
+fn format_id(level: u32, col: i64, row: i64) -> String {
+    let hex = format!("{:016x}", cell_id_u64(level, col, row));
+    hex.trim_end_matches('0').to_string()
+}
+
+/// Decode a hex token into `(level, col, row)`.
+///
+/// Accepts 1-16 lowercase hex chars; the sentinel bit (lowest set bit of the
+/// left-justified 64-bit id) encodes the level. Errors on malformed tokens,
+/// levels outside the precision range, and cells fully outside the projection
+/// domain.
+fn parse_id(token: &str) -> Result<(u32, i64, i64), String> {
+    let invalid = || format!("Invalid EA-Quad identifier: {token}");
+    if token.is_empty()
+        || token.len() > 16
+        || !token.bytes().all(|c| c.is_ascii_digit() || (b'a'..=b'f').contains(&c))
+    {
+        return Err(invalid());
+    }
+    let id = u64::from_str_radix(token, 16).map_err(|_| invalid())?
+        << (4 * (16 - token.len() as u32));
+    if id == 0 {
+        return Err(invalid());
+    }
+    let tz = id.trailing_zeros();
+    if (63 - tz) % 2 != 0 {
+        return Err(invalid());
+    }
+    let level = (63 - tz) / 2;
+    if !(MIN_LEVEL..=MAX_LEVEL).contains(&level) {
+        return Err(invalid());
+    }
+    let (col, row) = hilbert_xy(level, id >> (64 - 2 * level));
+    let (col, row) = (col as i64, row as i64);
+    if col >= ncols(level) || row >= nrows(level) {
+        return Err(format!("EA-Quad cell outside projection domain: {token}"));
+    }
+    Ok((level, col, row))
+}
+
+fn make_cell(level: u32, col: i64, row: i64) -> Result<Cell, String> {
+    let size_m = size_m_for(level);
     let x0 = (X_MIN + col as f64 * size_m).max(X_MIN);
     let x1 = (X_MIN + (col + 1) as f64 * size_m).min(X_MAX);
     let y0 = (Y_MIN + row as f64 * size_m).max(Y_MIN);
@@ -128,13 +208,13 @@ fn make_cell(size_km: i64, col: i64, row: i64) -> Result<Cell, String> {
     if x1 <= x0 || y1 <= y0 {
         return Err(format!(
             "EA-Quad cell outside projection domain: {}",
-            format_id(size_km, col, row)
+            format_id(level, col, row)
         ));
     }
     let (lon_w, lat_s) = inverse(x0, y0);
     let (lon_e, lat_n) = inverse(x1, y1);
     Ok(Cell {
-        id: format_id(size_km, col, row),
+        id: format_id(level, col, row),
         ring: vec![
             [lon_w, lat_s],
             [lon_e, lat_s],
@@ -142,7 +222,7 @@ fn make_cell(size_km: i64, col: i64, row: i64) -> Result<Cell, String> {
             [lon_w, lat_n],
             [lon_w, lat_s],
         ],
-        precision: precision_for(size_km),
+        precision: (level - 6) as u8,
     })
 }
 
@@ -158,23 +238,23 @@ pub fn cell_from_point(lat: f64, lon: f64, precision: u8) -> Result<Cell, String
             "EA-Quad precision must be between {MIN_PRECISION} and {MAX_PRECISION}"
         ));
     }
-    let size_km = size_km_for(precision);
-    let size_m = size_km as f64 * 1000.0;
+    let level = level_for(precision);
+    let size_m = size_m_for(level);
     let (x, y) = forward(lon, lat);
-    let col = (((x - X_MIN) / size_m).floor() as i64).clamp(0, ncols(size_km) - 1);
-    let row = (((y - Y_MIN) / size_m).floor() as i64).clamp(0, nrows(size_km) - 1);
-    make_cell(size_km, col, row)
+    let col = (((x - X_MIN) / size_m).floor() as i64).clamp(0, ncols(level) - 1);
+    let row = (((y - Y_MIN) / size_m).floor() as i64).clamp(0, nrows(level) - 1);
+    make_cell(level, col, row)
 }
 
 pub fn cell_from_id(id: &str) -> Result<Cell, String> {
-    let (size_km, col, row) = parse_id(id)?;
-    make_cell(size_km, col, row)
+    let (level, col, row) = parse_id(id)?;
+    make_cell(level, col, row)
 }
 
 /// Up to 8 neighbours; longitude wraps at the antimeridian, latitude does not.
 pub fn neighbors(id: &str) -> Result<Vec<Cell>, String> {
-    let (size_km, col, row) = parse_id(id)?;
-    let (nc, nr) = (ncols(size_km), nrows(size_km));
+    let (level, col, row) = parse_id(id)?;
+    let (nc, nr) = (ncols(level), nrows(level));
     let mut out = Vec::new();
     for dcol in [-1, 0, 1] {
         for drow in [-1, 0, 1] {
@@ -184,7 +264,7 @@ pub fn neighbors(id: &str) -> Result<Vec<Cell>, String> {
             let ncol = (col + dcol).rem_euclid(nc);
             let nrow = row + drow;
             if (0..nr).contains(&nrow) {
-                out.push(make_cell(size_km, ncol, nrow)?);
+                out.push(make_cell(level, ncol, nrow)?);
             }
         }
     }
@@ -193,15 +273,14 @@ pub fn neighbors(id: &str) -> Result<Vec<Cell>, String> {
 
 /// 4 children one level finer (empty at MAX_PRECISION).
 pub fn children(id: &str) -> Result<Vec<Cell>, String> {
-    let (size_km, col, row) = parse_id(id)?;
-    if size_km <= size_km_for(MAX_PRECISION) {
+    let (level, col, row) = parse_id(id)?;
+    if level >= MAX_LEVEL {
         return Ok(vec![]);
     }
-    let child = size_km / 2;
     let mut out = Vec::new();
     for dcol in [0, 1] {
         for drow in [0, 1] {
-            out.push(make_cell(child, 2 * col + dcol, 2 * row + drow)?);
+            out.push(make_cell(level + 1, 2 * col + dcol, 2 * row + drow)?);
         }
     }
     Ok(out)
@@ -209,11 +288,11 @@ pub fn children(id: &str) -> Result<Vec<Cell>, String> {
 
 /// Parent one level coarser; errors at the coarsest (1024 km) level.
 pub fn parent(id: &str) -> Result<Cell, String> {
-    let (size_km, col, row) = parse_id(id)?;
-    if size_km >= size_km_for(MIN_PRECISION) {
+    let (level, col, row) = parse_id(id)?;
+    if level <= MIN_LEVEL {
         return Err("Cell has no parent (already at coarsest 1024 km level)".into());
     }
-    make_cell(size_km * 2, col / 2, row / 2)
+    make_cell(level - 1, col / 2, row / 2)
 }
 
 const MAX_BBOX_CELLS: i64 = 1_000_000;
@@ -236,8 +315,8 @@ pub fn cells_in_bbox(
             "EA-Quad precision must be between {MIN_PRECISION} and {MAX_PRECISION}"
         ));
     }
-    let size_km = size_km_for(precision);
-    let size_m = size_km as f64 * 1000.0;
+    let level = level_for(precision);
+    let size_m = size_m_for(level);
     let (x_lo, _) = forward(min_lon, 0.0);
     let (x_hi, _) = forward(max_lon, 0.0);
     let (_, y_lo) = forward(0.0, min_lat);
@@ -245,10 +324,10 @@ pub fn cells_in_bbox(
 
     let col_lo = (((x_lo.min(x_hi)) - X_MIN) / size_m).floor().max(0.0) as i64;
     let col_hi =
-        ((((x_lo.max(x_hi)) - X_MIN) / size_m).floor() as i64).min(ncols(size_km) - 1);
+        ((((x_lo.max(x_hi)) - X_MIN) / size_m).floor() as i64).min(ncols(level) - 1);
     let row_lo = (((y_lo.min(y_hi)) - Y_MIN) / size_m).floor().max(0.0) as i64;
     let row_hi =
-        ((((y_lo.max(y_hi)) - Y_MIN) / size_m).floor() as i64).min(nrows(size_km) - 1);
+        ((((y_lo.max(y_hi)) - Y_MIN) / size_m).floor() as i64).min(nrows(level) - 1);
 
     if col_hi < col_lo || row_hi < row_lo {
         return Ok(vec![]);
@@ -264,7 +343,7 @@ pub fn cells_in_bbox(
     let mut out = Vec::new();
     for col in col_lo..=col_hi {
         for row in row_lo..=row_hi {
-            let Ok(cell) = make_cell(size_km, col, row) else {
+            let Ok(cell) = make_cell(level, col, row) else {
                 continue;
             };
             // Cell ring is axis-aligned: SW = ring[0], NE = ring[2].
@@ -275,4 +354,83 @@ pub fn cells_in_bbox(
         }
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn hilbert_roundtrip() {
+        for level in [1u32, 2, 6, 10, 16, 26] {
+            let n = 1u64 << level;
+            // Sample the lattice corners and a diagonal stripe.
+            for k in 0..64u64 {
+                let (x, y) = (k * (n - 1) / 63, (63 - k) * (n - 1) / 63);
+                let d = hilbert_d(level, x, y);
+                assert!(d < 1u64 << (2 * level));
+                assert_eq!(hilbert_xy(level, d), (x, y));
+            }
+        }
+    }
+
+    #[test]
+    fn hilbert_is_hierarchical() {
+        // Parent index == child index >> 2, the property the token prefix
+        // (ancestor) contract relies on.
+        for level in [2u32, 7, 13, 26] {
+            for k in 0..64u64 {
+                let n = 1u64 << level;
+                let (x, y) = (k * (n - 1) / 63, k * 977 % n);
+                let d = hilbert_d(level, x, y);
+                assert_eq!(hilbert_d(level - 1, x / 2, y / 2), d >> 2);
+            }
+        }
+    }
+
+    #[test]
+    fn token_roundtrip() {
+        for level in [MIN_LEVEL, 10, 16, MAX_LEVEL] {
+            for (col, row) in [(0, 0), (1, 5), (17, 3)] {
+                let token = format_id(level, col, row);
+                assert!(!token.ends_with('0'));
+                assert!(token.len() <= 16);
+                assert_eq!(parse_id(&token).unwrap(), (level, col, row));
+            }
+        }
+    }
+
+    #[test]
+    fn token_of_parent_matches_bit_prefix() {
+        let token = format_id(16, 12345, 4321);
+        let (level, col, row) = parse_id(&token).unwrap();
+        let parent_token = format_id(level - 1, col / 2, row / 2);
+        assert_eq!(
+            cell_id_u64(level - 1, col / 2, row / 2) >> (64 - 2 * level + 2),
+            cell_id_u64(level, col, row) >> (64 - 2 * level + 2),
+            "parent id must share the child's path-bit prefix: {token} vs {parent_token}"
+        );
+    }
+
+    #[test]
+    fn parse_rejects_garbage() {
+        let too_long = "1".repeat(17);
+        for bad in ["", "g", "ZZ", "0", "00", too_long.as_str()] {
+            assert!(parse_id(bad).is_err(), "{bad:?} should not parse");
+        }
+        // Level outside 6..=26 (sentinel too high): level 1 token.
+        let too_coarse = format!("{:016x}", 1u64 << 61).trim_end_matches('0').to_string();
+        assert!(parse_id(&too_coarse).is_err());
+    }
+
+    #[test]
+    fn point_roundtrip_subkm() {
+        for precision in [0u8, 4, 10, 14, 20] {
+            let cell = cell_from_point(48.85, 2.35, precision).unwrap();
+            assert_eq!(cell.precision, precision);
+            let again = cell_from_id(&cell.id).unwrap();
+            assert_eq!(again.id, cell.id);
+            assert_eq!(again.ring, cell.ring);
+        }
+    }
 }

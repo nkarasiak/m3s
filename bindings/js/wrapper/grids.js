@@ -14,6 +14,7 @@ export const GARS = new Grid("gars", "gars", false);
 export const Maidenhead = new Grid("maidenhead", "mh", false);
 export const PlusCode = new Grid("pluscode", "pc", true);
 export const EAQuad = new Grid("eaquad", "eaq", true);
+export const RHEALPix = new Grid("rhealpix", "rhp", true);
 
 /** All grid singletons keyed by their public name. */
 export const GRIDS = {
@@ -29,4 +30,5 @@ export const GRIDS = {
   Maidenhead,
   PlusCode,
   EAQuad,
+  RHEALPix,
 };

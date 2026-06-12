@@ -57,7 +57,7 @@ class GridWrapper(H3VerbsMixin):
             if default_precision is not None
             else grid_class.DEFAULT_PRECISION
         )
-        self._cached_grids = {}
+        self._cached_grids: dict[int, BaseGrid] = {}
         self._precision_finder = PrecisionFinder(self)
 
     # Universal geometry method (handles any geometry type)
@@ -117,7 +117,7 @@ class GridWrapper(H3VerbsMixin):
         if geom_type == "bbox":
             return self.from_bbox(geometry, precision=precision)  # type: ignore
         if geom_type in ("polygon", "multipolygon", "gdf"):
-            return self.from_polygon(geometry, precision=precision)  # type: ignore
+            return self.from_polygon(geometry, precision=precision)
         raise TypeError(f"Unsupported geometry type: {type(geometry)}")
 
     # Specific geometry type methods (for clarity when needed)
@@ -499,7 +499,7 @@ class GridWrapper(H3VerbsMixin):
             for c in current_cells:
                 # Grid must support hierarchical children to refine
                 if hasattr(grid, "get_children"):
-                    children = grid.get_children(c)  # type: ignore
+                    children = grid.get_children(c)
                     next_cells.extend(children)
                 else:
                     raise NotImplementedError(
@@ -526,7 +526,7 @@ class GridWrapper(H3VerbsMixin):
             grid = self._get_grid(current_precision)
             # Grid must support hierarchical parents to coarsen
             if hasattr(grid, "get_parent"):
-                current_cell = grid.get_parent(current_cell)  # type: ignore
+                current_cell = grid.get_parent(current_cell)
                 current_precision -= 1
             else:
                 raise NotImplementedError(

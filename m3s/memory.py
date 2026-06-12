@@ -45,7 +45,7 @@ class MemoryMonitor:
         self.critical_threshold = critical_threshold
         self.process = psutil.Process() if PSUTIL_AVAILABLE else None
 
-    def get_memory_usage(self) -> dict:
+    def get_memory_usage(self) -> dict[str, float]:
         """
         Get current memory usage statistics.
 
@@ -125,7 +125,7 @@ class MemoryMonitor:
 @contextmanager
 def memory_efficient_processing(
     auto_gc: bool = True, gc_threshold: int = 1000, monitor_memory: bool = True
-):
+) -> Iterator[MemoryMonitor | None]:
     """
     Context manager for memory-efficient processing.
 
@@ -190,9 +190,9 @@ class LazyGeodataFrame:
         self.file_path = file_path
         self._gdf = gdf
         self.chunk_size = chunk_size
-        self._length = None
-        self._crs = None
-        self._bounds = None
+        self._length: int | None = None
+        self._crs: Any = None
+        self._bounds: Any = None
 
     def __len__(self) -> int:
         """Get total number of features."""
@@ -204,11 +204,12 @@ class LazyGeodataFrame:
                 with fiona.open(self.file_path) as src:
                     self._length = len(src)
             else:
+                assert self._gdf is not None
                 self._length = len(self._gdf)
         return self._length
 
     @property
-    def crs(self):
+    def crs(self) -> Any:
         """Get CRS without loading full dataset."""
         if self._crs is None:
             if self.file_path:
@@ -217,11 +218,12 @@ class LazyGeodataFrame:
                 with fiona.open(self.file_path) as src:
                     self._crs = src.crs
             else:
+                assert self._gdf is not None
                 self._crs = self._gdf.crs
         return self._crs
 
     @property
-    def bounds(self):
+    def bounds(self) -> Any:
         """Get bounds without loading full dataset."""
         if self._bounds is None:
             if self.file_path:
@@ -230,6 +232,7 @@ class LazyGeodataFrame:
                 with fiona.open(self.file_path) as src:
                     self._bounds = src.bounds
             else:
+                assert self._gdf is not None
                 self._bounds = self._gdf.total_bounds
         return self._bounds
 
@@ -260,6 +263,7 @@ class LazyGeodataFrame:
                 gc.collect()
         else:
             # Chunk existing GeoDataFrame
+            assert self._gdf is not None
             for i in range(0, len(self._gdf), chunk_size):
                 yield self._gdf.iloc[i : i + chunk_size].copy()
 
@@ -282,6 +286,7 @@ class LazyGeodataFrame:
             if self.file_path:
                 return gpd.read_file(self.file_path)
             else:
+                assert self._gdf is not None
                 return self._gdf.copy()
 
         # Generate random indices
@@ -294,6 +299,7 @@ class LazyGeodataFrame:
             # This is a simplified approach; real implementation would be more complex
             return gpd.read_file(self.file_path).iloc[sample_indices]
         else:
+            assert self._gdf is not None
             return self._gdf.iloc[sample_indices].copy()
 
 
@@ -304,7 +310,7 @@ class StreamingGridProcessor:
     Processes large datasets in chunks while maintaining minimal memory footprint.
     """
 
-    def __init__(self, grid, memory_monitor: MemoryMonitor | None = None):
+    def __init__(self, grid: Any, memory_monitor: MemoryMonitor | None = None):
         """
         Initialize streaming processor.
 
@@ -430,7 +436,7 @@ class StreamingGridProcessor:
                     del current_chunk
                 gc.collect()
 
-    def get_processing_stats(self) -> dict:
+    def get_processing_stats(self) -> dict[str, Any]:
         """
         Get processing statistics.
 
@@ -489,7 +495,7 @@ def optimize_geodataframe_memory(
     return gdf_optimized
 
 
-def estimate_memory_usage(gdf: gpd.GeoDataFrame) -> dict:
+def estimate_memory_usage(gdf: gpd.GeoDataFrame) -> dict[str, float]:
     """
     Estimate memory usage of a GeoDataFrame.
 

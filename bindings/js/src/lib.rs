@@ -9,7 +9,7 @@
 use m3s_core::{
     a5_grid as a5, csquares_grid as cs, eaquad_grid as eaq, gars_grid as gars, geohash_grid as gh,
     h3_grid as h3, maidenhead_grid as mh, mgrs_grid as mgrs, pluscode_grid as pc,
-    quadkey_grid as qk, s2_grid as s2, slippy_grid as sl, Cell,
+    quadkey_grid as qk, rhealpix_grid as rhp, s2_grid as s2, slippy_grid as sl, Cell,
 };
 use serde::Serialize;
 use std::collections::HashMap;
@@ -132,6 +132,8 @@ grid_base!(a5);
 grid_hierarchy!(a5);
 grid_base!(eaq);
 grid_hierarchy!(eaq);
+grid_base!(rhp);
+grid_hierarchy!(rhp);
 grid_base!(s2);
 grid_hierarchy!(s2);
 
@@ -145,6 +147,13 @@ grid_base!(mgrs);
 #[wasm_bindgen]
 pub fn a5_cell_area_m2(precision: u8) -> f64 {
     a5::cell_area_m2(precision)
+}
+
+// rhealpix-only extra: equal-area, so a resolution has one exact cell area.
+// Mirrored from the Python binding so both expose the same surface.
+#[wasm_bindgen]
+pub fn rhp_cell_area_km2(precision: u8) -> f64 {
+    rhp::cell_area_km2(precision)
 }
 
 // ---- shared -----------------------------------------------------------------

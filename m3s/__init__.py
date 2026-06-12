@@ -86,6 +86,7 @@ from .relationships import (
     find_overlapping_cells,
     is_adjacent,
 )
+from .rhealpix import RHEALPixGrid
 from .s2 import S2Grid
 from .slippy import SlippyGrid
 
@@ -104,6 +105,7 @@ GARS = GridWrapper(GARSGrid)
 Maidenhead = GridWrapper(MaidenheadGrid)
 PlusCode = GridWrapper(PlusCodeGrid)
 EAQuad = GridWrapper(EAQuadGrid)
+RHEALPix = GridWrapper(RHEALPixGrid)
 
 # Registry mapping canonical names to grid singletons, for dynamic access.
 _GRID_REGISTRY: dict[str, GridWrapper] = {
@@ -119,6 +121,7 @@ _GRID_REGISTRY: dict[str, GridWrapper] = {
     "maidenhead": Maidenhead,
     "pluscode": PlusCode,
     "eaquad": EAQuad,
+    "rhealpix": RHEALPix,
 }
 
 
@@ -178,6 +181,7 @@ __all__ = [
     "Maidenhead",
     "PlusCode",
     "EAQuad",
+    "RHEALPix",
     # Dynamic grid access
     "grid",
     "grids",
@@ -195,6 +199,7 @@ __all__ = [
     "S2Grid",
     "SlippyGrid",
     "EAQuadGrid",
+    "RHEALPixGrid",
     # Modern API
     "GridBuilder",
     "GridWrapper",

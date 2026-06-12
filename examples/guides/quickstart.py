@@ -72,8 +72,13 @@ print(f"S2 cells from GeoDataFrame: {len(cells_s2)} cells")
 
 fig, axes = plt.subplots(2, 2, figsize=(10, 8))
 outline = gpd.GeoSeries([polygon], crs="EPSG:4326").boundary
-grids = [("H3", m3s.H3), ("Geohash", m3s.Geohash), ("S2", m3s.S2), ("Quadkey", m3s.Quadkey)]
-for ax, (name, grid) in zip(axes.flat, grids):
+grids = [
+    ("H3", m3s.H3),
+    ("Geohash", m3s.Geohash),
+    ("S2", m3s.S2),
+    ("Quadkey", m3s.Quadkey),
+]
+for ax, (name, grid) in zip(axes.flat, grids, strict=False):
     grid_cells = grid.from_geometry(polygon)
     grid_cells.plot(ax=ax, edgecolor="white", linewidth=0.6)
     outline.plot(ax=ax, color="red", linewidth=1)
@@ -102,7 +107,7 @@ print(f"Auto precision (minimize variance): {precision_auto}")
 # variance; ``'more'`` favours finer cells.
 
 fig, axes = plt.subplots(1, 3, figsize=(12, 4))
-for ax, method in zip(axes, ("less", "auto", "more")):
+for ax, method in zip(axes, ("less", "auto", "more"), strict=True):
     p = m3s.H3.find_precision(polygon, method=method)
     method_cells = m3s.H3.from_geometry(polygon, precision=p)
     method_cells.plot(ax=ax, edgecolor="white", linewidth=0.6)

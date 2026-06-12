@@ -23,7 +23,7 @@ Top-level exports (``import * as m3s from "m3s"``):
      - ``{name: [min, max, default]}`` for every grid, or one triple by name.
    * - ``geodesicAreaKm2(ring)``
      - Geodesic area of a closed ``[[lon,lat], ...]`` ring, in km².
-   * - ``A5 Geohash H3 MGRS S2 Quadkey Slippy CSquares GARS Maidenhead PlusCode EAQuad``
+   * - ``A5 Geohash H3 MGRS S2 Quadkey Slippy CSquares GARS Maidenhead PlusCode EAQuad RHEALPix``
      - Grid singletons (see :doc:`javascript`).
    * - ``Cell`` / ``CellCollection`` / ``Grid``
      - Classes, for ``instanceof`` checks and typing.
@@ -79,6 +79,10 @@ Grid prefixes
      - ``eaq``
      - yes
      - ``m3s.EAQuad``
+   * - rHEALPix
+     - ``rhp``
+     - yes
+     - ``m3s.RHEALPix``
    * - Plus Codes
      - ``pc``
      - yes

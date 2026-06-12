@@ -60,7 +60,7 @@ Get Cell at a Point
          print(f"Area: {cell.area_km2:.2f} km²")
          print(f"Centroid: {cell.centroid}")
 
-         # Works with all 12 grid systems!
+         # Works with all 13 grid systems!
          h3_cell = m3s.H3.from_geometry((-74.0060, 40.7128))
          mgrs_cell = m3s.MGRS.from_geometry((-74.0060, 40.7128))
          s2_cell = m3s.S2.from_geometry((-74.0060, 40.7128))
@@ -78,7 +78,7 @@ Get Cell at a Point
          console.log(`Area: ${cell.areaKm2.toFixed(2)} km²`);
          console.log(`Centroid: ${cell.centroid}`);
 
-         // Works with all 12 grid systems!
+         // Works with all 13 grid systems!
          const h3Cell = m3s.H3.fromPoint(-74.0060, 40.7128, 7);
          const mgrsCell = m3s.MGRS.fromPoint(-74.0060, 40.7128, 3);
          const s2Cell = m3s.S2.fromPoint(-74.0060, 40.7128, 10);
@@ -320,7 +320,7 @@ Collection Operations
 Available Grid Systems
 ~~~~~~~~~~~~~~~~~~~~~~
 
-All 12 grid systems are directly accessible, with matching names in both
+All 13 grid systems are directly accessible, with matching names in both
 languages:
 
 .. tab-set::
@@ -343,6 +343,7 @@ languages:
          m3s.Maidenhead   # Amateur radio locator
          m3s.PlusCode     # Open Location Codes
          m3s.EAQuad       # Equal-area quadtree
+         m3s.RHEALPix     # rHEALPix equal-area DGGS
 
    .. tab-item:: JavaScript
 
@@ -363,6 +364,7 @@ languages:
          m3s.Maidenhead;  // Amateur radio locator
          m3s.PlusCode;    // Open Location Codes
          m3s.EAQuad;      // Equal-area quadtree
+         m3s.RHEALPix;    // rHEALPix equal-area DGGS
 
 GridBuilder API (Advanced)
 --------------------------

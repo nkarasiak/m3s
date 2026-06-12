@@ -66,12 +66,13 @@ swap for you.)
 Grids
 -----
 
-All 12 grids are exposed as singletons with the same names as Python:
+All 13 grids are exposed as singletons with the same names as Python:
 
 .. code-block:: javascript
 
    m3s.A5  m3s.Geohash  m3s.H3  m3s.MGRS  m3s.S2  m3s.Quadkey
    m3s.Slippy  m3s.CSquares  m3s.GARS  m3s.Maidenhead  m3s.PlusCode  m3s.EAQuad
+   m3s.RHEALPix
 
 Each grid carries its precision metadata from the core:
 

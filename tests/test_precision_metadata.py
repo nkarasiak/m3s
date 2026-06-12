@@ -34,6 +34,7 @@ SINGLETON_NAMES = [
     "Maidenhead",
     "PlusCode",
     "EAQuad",
+    "RHEALPix",
 ]
 
 
@@ -101,25 +102,26 @@ class TestEAQuadPrecisionAPIs:
         """Previously raised ValueError by constructing EAQuadGrid(11)."""
         # 0.3 km² is below the finest (1 km²) cell, so the search runs to the
         # end of the range -- the case that used to crash.
-        assert m3s.EAQuad.find_precision_for_area(0.3) in range(0, 11)
+        assert m3s.EAQuad.find_precision_for_area(0.3) in range(0, 21)
 
     @pytest.mark.parametrize("target", [0.3, 1.0, 4000.0, 5_000_000.0])
     def test_find_precision_for_area_in_range(self, target):
         """Area-based selection stays within the valid precision range."""
-        assert m3s.EAQuad.find_precision_for_area(target) in range(0, 11)
+        assert m3s.EAQuad.find_precision_for_area(target) in range(0, 21)
 
     def test_find_precision_in_range(self):
         """Geometry-based selection stays within the valid precision range."""
         from shapely.geometry import box
 
-        assert m3s.EAQuad.find_precision(box(0, 0, 40, 40)) in range(0, 11)
+        assert m3s.EAQuad.find_precision(box(0, 0, 40, 40)) in range(0, 21)
 
     def test_area_calculator_eaquad(self):
         """AreaCalculator supports EA-Quad with its analytic cell areas."""
         calc = AreaCalculator("eaquad")
-        assert (calc.min_precision, calc.max_precision) == (0, 10)
+        assert (calc.min_precision, calc.max_precision) == (0, 20)
         assert calc.get_area(4) == 4096.0  # 64 km cells
         assert calc.get_area(10) == 1.0  # 1 km cells
+        assert calc.get_area(20) == pytest.approx(9.5367431640625e-07)  # ~1 m
 
     def test_precision_selector_eaquad_for_area(self):
         """PrecisionSelector resolves an EA-Quad precision for a target area."""
@@ -129,7 +131,7 @@ class TestEAQuadPrecisionAPIs:
     def test_precision_selector_eaquad_for_use_case(self):
         """EA-Quad is wired into the use-case presets."""
         rec = PrecisionSelector("eaquad").for_use_case("city")
-        assert 0 <= rec.precision <= 10
+        assert 0 <= rec.precision <= 20
 
 
 USE_CASES = [

@@ -15,6 +15,7 @@ pub mod maidenhead_grid;
 pub mod mgrs_grid;
 pub mod pluscode_grid;
 pub mod quadkey_grid;
+pub mod rhealpix_grid;
 pub mod s2_grid;
 pub mod slippy_grid;
 
@@ -188,6 +189,7 @@ pub fn all_precision_bounds() -> Vec<(&'static str, u8, u8, u8)> {
         pb!("csquares", csquares_grid),
         pb!("pluscode", pluscode_grid),
         pb!("eaquad", eaquad_grid),
+        pb!("rhealpix", rhealpix_grid),
         pb!("mgrs", mgrs_grid),
         pb!("a5", a5_grid),
         pb!("s2", s2_grid),

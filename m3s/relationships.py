@@ -332,7 +332,7 @@ class GridRelationshipAnalyzer:
         area_deg2 = geometry.area
         area_km2 = area_deg2 * (deg_to_km**2) * lat_correction
 
-        return area_km2
+        return float(area_km2)
 
     def find_clusters(
         self, cells: list[GridCell], min_cluster_size: int = 2

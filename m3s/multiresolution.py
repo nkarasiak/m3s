@@ -218,7 +218,7 @@ class MultiResolutionGrid:
     def create_level_of_detail_view(
         self,
         bounds: tuple[float, float, float, float],
-        detail_function: Callable | None = None,
+        detail_function: Callable[..., Any] | None = None,
     ) -> gpd.GeoDataFrame:
         """
         Create a level-of-detail view with adaptive resolution selection.
@@ -561,7 +561,7 @@ def create_adaptive_grid(
     grid_system: BaseGrid,
     bounds: tuple[float, float, float, float],
     levels: list[int],
-    detail_function: Callable | None = None,
+    detail_function: Callable[..., Any] | None = None,
 ) -> gpd.GeoDataFrame:
     """Create an adaptive resolution grid."""
     multi_grid = MultiResolutionGrid(grid_system, levels)

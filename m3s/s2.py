@@ -76,7 +76,7 @@ class S2Grid(CoreBackedGrid):
         total_cells = 6 * (4**self.precision)
 
         # Average area per cell
-        return earth_surface_km2 / total_cells
+        return float(earth_surface_km2 / total_cells)
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -172,5 +172,5 @@ class S2Grid(CoreBackedGrid):
             return cells[:max_cells]
         return cells
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"S2Grid(precision={self.precision})"

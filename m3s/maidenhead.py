@@ -81,7 +81,7 @@ class MaidenheadGrid(CoreBackedGrid):
         validate_lat_lon(lat, lon)
         return self.get_cell_from_point(lat, lon).identifier
 
-    def decode(self, locator: str) -> tuple:
+    def decode(self, locator: str) -> tuple[float, float, float, float]:
         """
         Decode a Maidenhead locator into latitude/longitude bounds.
 

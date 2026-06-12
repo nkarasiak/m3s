@@ -80,7 +80,7 @@ class SlippyGrid(CoreBackedGrid):
         tile_size_km = earth_circumference_km / tiles_per_side
 
         # Area (square)
-        return tile_size_km * tile_size_km
+        return float(tile_size_km * tile_size_km)
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
@@ -198,5 +198,5 @@ class SlippyGrid(CoreBackedGrid):
         # Limit to max_cells
         return intersecting_tiles[:max_cells]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"SlippyGrid(precision={self.precision})"

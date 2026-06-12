@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-M3S (Multi Spatial Subdivision System) is a Python package that provides a unified interface for working with hierarchical spatial grid systems. It supports 12 different grid systems: Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, C-squares, GARS, Maidenhead, Plus Codes, EA-Quad, and A5.
+M3S (Multi Spatial Subdivision System) is a Python package that provides a unified interface for working with hierarchical spatial grid systems. It supports 13 different grid systems: Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, C-squares, GARS, Maidenhead, Plus Codes, EA-Quad, rHEALPix, and A5.
 
 **Grid System Enhancements:**
 - **Grid Conversion Utilities**: Convert between different grid systems with multiple methods (centroid, overlap, containment)

@@ -2,13 +2,15 @@
 EA-Quad (Equal-Area Quadtree) grid implementation for M3S.
 
 A global, square, quadtree (aperture-4) grid with exact hierarchical
-containment and kilometre-sized cells, built on a single global equal-area
-cylindrical projection (EPSG:6933, EASE-Grid 2.0 Global / Lambert cylindrical
-equal-area). Unlike Geohash it uses true squares; unlike H3 every cell nests
-exactly into its parent; unlike MGRS it is seamless worldwide; unlike
-Quadkey/Slippy its cells are equal-area and labelled in kilometres.
+containment and metre- to kilometre-sized cells, built on a single global
+equal-area cylindrical projection (EPSG:6933, EASE-Grid 2.0 Global / Lambert
+cylindrical equal-area). Unlike Geohash it uses true squares; unlike H3 every
+cell nests exactly into its parent; unlike MGRS it is seamless worldwide;
+unlike Quadkey/Slippy its cells are equal-area and sized in round powers of
+two of a kilometre.
 
-Cell sizes are powers of two kilometres (1, 2, 4, ... 1024 km). Each cell
+Cell edges are powers of two kilometres: 1024 km down to 1 km at precision
+0-10, and sub-kilometre below that (precision 20 is ~0.98 m). Each cell
 subdivides into 2x2 = 4 children that perfectly tile it. Because the
 projection is equal-area, a cell of a given size has the same ground area
 everywhere on Earth.
@@ -28,18 +30,19 @@ lon +/-180) while latitude does not wrap (the poles are real edges).
     not as a drop-in for EASE-Grid datasets.
 
 .. note::
-    Cell identifiers are Geohash-style base-4 quadtree paths: a single string of
-    digits ``0-3`` over a square super-root that bounds the projection domain
-    (see :data:`SUPER_ROOT_KM`). Each digit selects a quadrant
-    (``0=SW, 1=SE, 2=NW, 3=NE``); appending a digit descends one level, so any
-    prefix is an ancestor cell and a cell's parent is its identifier with the
-    last character removed. Every cell at a given precision has the same
-    identifier length (``6 + precision`` characters). The format is isolated in
+    Cell identifiers are S2-style hex tokens (e.g. ``"47ef4"``) of a 64-bit
+    cell id: the cell's Hilbert-curve index over a square super-root that
+    bounds the projection domain (2 bits per level, most significant first),
+    followed by a sentinel ``1`` bit, zero-padded to 64 bits, hex-encoded with
+    trailing ``'0'`` characters stripped. The precision is recovered from the
+    sentinel bit, so tokens round-trip without extra state; coarser cells get
+    shorter tokens, and an ancestor's id is a bit-prefix of its descendants'.
+    The Hilbert ordering means tokens that are numerically close are spatially
+    close (good range-query locality). The format is isolated in
     :func:`_format_id` / :func:`_parse_id`.
 """
 
 import math
-import re
 from typing import override
 
 import m3s_core
@@ -62,83 +65,123 @@ WIDTH = X_MAX - X_MIN
 HEIGHT = Y_MAX - Y_MIN
 
 # Precision range: precision p -> cell edge = 2 ** (10 - p) km.
-# p=0 -> 1024 km (coarsest), p=10 -> 1 km (finest).
+# p=0 -> 1024 km (coarsest), p=10 -> 1 km, p=20 -> ~0.98 m (finest).
 MIN_PRECISION = 0
-MAX_PRECISION = 10
+MAX_PRECISION = 20
 
-# Guard against accidental memory blow-up in get_cells_in_bbox.
-MAX_BBOX_CELLS = 1_000_000
+# Quadtree super-root: 65536 km (2 ** 16), SW-aligned at (X_MIN, Y_MIN). A
+# cell's level is its depth below the super-root; precision = level - 6.
+SUPER_ROOT_KM = 65536
+_SUPER_ROOT_M = float(SUPER_ROOT_KM * 1000)
+_MIN_LEVEL = MIN_PRECISION + 6  # 6  (precision 0, 1024 km)
+_MAX_LEVEL = MAX_PRECISION + 6  # 26 (precision 20, ~0.98 m)
 
-# Geohash-style base-4 identifiers: a quadtree path over a square super-root that
-# bounds the projection domain. The super-root edge is the smallest power-of-two
-# km >= the domain's larger dimension (~34735 km wide), SW-aligned at
-# (X_MIN, Y_MIN). An identifier's length equals its super-root level == 6 +
-# precision, so size_km == SUPER_ROOT_KM >> level.
-SUPER_ROOT_KM = 65536  # 2 ** 16 km; >= domain width (~34735 km)
-_SUPER_ROOT_LEVEL = SUPER_ROOT_KM.bit_length() - 1  # 16
-_MIN_LEVEL = _SUPER_ROOT_LEVEL - MAX_PRECISION  # 6  (precision 0, 1024 km)
-_MAX_LEVEL = _SUPER_ROOT_LEVEL - MIN_PRECISION  # 16 (precision 10, 1 km)
-_ID_RE = re.compile(r"^[0-3]+$")
+# Mean Earth radius (km) used for the 'rads^2' area unit, matching the core's
+# geodesic area constant.
+_EARTH_RADIUS_KM = 6371.0088
+
+_HEX_DIGITS = set("0123456789abcdef")
 
 
-def _precision_to_size_km(precision: int) -> int:
+def _precision_to_size_km(precision: int) -> float:
     """Cell edge length in km for a precision level (2 ** (10 - precision))."""
-    return int(2 ** (MAX_PRECISION - precision))
+    return 2.0 ** (10 - precision)
 
 
-def _size_km_to_precision(size_km: int) -> int:
-    """Inverse of :func:`_precision_to_size_km` for power-of-two km sizes."""
-    return MAX_PRECISION - (size_km.bit_length() - 1)
+def _size_m(level: int) -> float:
+    """Cell edge in metres at a level; exact in f64 (125 * 2^k every level)."""
+    return _SUPER_ROOT_M / (1 << level)
 
 
-def _ncols(size_km: int) -> int:
-    """Return the column count spanning the projected width at this cell size."""
-    return math.ceil(WIDTH / (size_km * 1000))
+def _ncols(level: int) -> int:
+    """Return the column count spanning the projected width at this level."""
+    return math.ceil(WIDTH / _size_m(level))
 
 
-def _nrows(size_km: int) -> int:
-    """Return the row count spanning the projected height at this cell size."""
-    return math.ceil(HEIGHT / (size_km * 1000))
+def _nrows(level: int) -> int:
+    """Return the row count spanning the projected height at this level."""
+    return math.ceil(HEIGHT / _size_m(level))
 
 
-def _format_id(size_km: int, col: int, row: int) -> str:
+def _xy2d(level: int, x: int, y: int) -> int:
     """
-    Encode a cell as a Geohash-style base-4 quadtree path.
+    Hilbert index of ``(x, y)`` on the ``2**level x 2**level`` lattice.
 
-    The string has one digit per level from the super-root down to the cell;
-    each digit ``0-3`` selects a quadrant (``0=SW, 1=SE, 2=NW, 3=NE``). ``col``
-    and ``row`` are the cell's indices (in units of its own size) from the SW
-    origin: their high bits give the coarse digits, so any prefix of the string
-    is an ancestor cell.
+    SW origin (x east, y north). The curve is hierarchical: a parent's index is
+    its child's index shifted right by two bits, which makes a token's bit
+    prefix its ancestor (the S2 property).
     """
-    level = _SUPER_ROOT_LEVEL - (size_km.bit_length() - 1)
-    return "".join(
-        str(2 * ((row >> i) & 1) + ((col >> i) & 1)) for i in range(level - 1, -1, -1)
-    )
+    d = 0
+    s = 1 << (level - 1)
+    while s > 0:
+        rx = 1 if x & s else 0
+        ry = 1 if y & s else 0
+        d += s * s * ((3 * rx) ^ ry)
+        x &= s - 1
+        y &= s - 1
+        if ry == 0:
+            if rx == 1:
+                x = s - 1 - x
+                y = s - 1 - y
+            x, y = y, x
+        s >>= 1
+    return d
+
+
+def _d2xy(level: int, d: int) -> tuple[int, int]:
+    """Inverse of :func:`_xy2d`: Hilbert index -> ``(x, y)``."""
+    x = y = 0
+    s = 1
+    while s < (1 << level):
+        rx = 1 & (d // 2)
+        ry = 1 & (d ^ rx)
+        if ry == 0:
+            if rx == 1:
+                x = s - 1 - x
+                y = s - 1 - y
+            x, y = y, x
+        x += s * rx
+        y += s * ry
+        d //= 4
+        s <<= 1
+    return x, y
+
+
+def _format_id(level: int, col: int, row: int) -> str:
+    """Encode a cell as an S2-style hex token (trailing zeros stripped)."""
+    d = _xy2d(level, col, row)
+    cell_id = (d << (64 - 2 * level)) | (1 << (63 - 2 * level))
+    return f"{cell_id:016x}".rstrip("0")
 
 
 def _parse_id(identifier: str) -> tuple[int, int, int]:
     """
-    Decode a base-4 quadtree path into ``(size_km, col, row)``.
+    Decode a hex token into ``(level, col, row)``.
 
     Raises
     ------
     ValueError
-        If the identifier is not a base-4 string, or its length does not
-        correspond to a valid precision level (6 to 16 characters inclusive).
+        If the token is not 1-16 lowercase hex characters, its sentinel bit
+        does not encode a level between 6 and 26 inclusive, or the cell lies
+        fully outside the projection domain.
     """
-    if _ID_RE.match(identifier) is None:
+    if (
+        not 1 <= len(identifier) <= 16
+        or not set(identifier) <= _HEX_DIGITS
+        or int(identifier, 16) == 0
+    ):
         raise ValueError(f"Invalid EA-Quad identifier: {identifier}")
-    level = len(identifier)
+    cell_id = int(identifier, 16) << (4 * (16 - len(identifier)))
+    trailing = (cell_id & -cell_id).bit_length() - 1
+    if (63 - trailing) % 2 != 0:
+        raise ValueError(f"Invalid EA-Quad identifier: {identifier}")
+    level = (63 - trailing) // 2
     if not _MIN_LEVEL <= level <= _MAX_LEVEL:
-        raise ValueError(f"Invalid EA-Quad identifier length: {identifier}")
-    size_km = SUPER_ROOT_KM >> level
-    col = row = 0
-    for ch in identifier:
-        digit = int(ch)
-        col = (col << 1) | (digit & 1)
-        row = (row << 1) | ((digit >> 1) & 1)
-    return size_km, col, row
+        raise ValueError(f"Invalid EA-Quad identifier: {identifier}")
+    col, row = _d2xy(level, cell_id >> (64 - 2 * level))
+    if col >= _ncols(level) or row >= _nrows(level):
+        raise ValueError(f"EA-Quad cell outside projection domain: {identifier}")
+    return level, col, row
 
 
 class EAQuadGrid(CoreBackedGrid):
@@ -146,20 +189,20 @@ class EAQuadGrid(CoreBackedGrid):
     EA-Quad (Equal-Area Quadtree) grid system.
 
     Global square quadtree grid on an equal-area projection (EPSG:6933) with
-    power-of-two kilometre cells and exact hierarchical containment.
+    power-of-two cell edges and exact hierarchical containment.
 
     Attributes
     ----------
     precision : int
-        Precision level (0-10). Higher precision means smaller cells.
-        ``size_km == 2 ** (10 - precision)`` so precision 0 = 1024 km and
-        precision 10 = 1 km.
+        Precision level (0-20). Higher precision means smaller cells.
+        ``size_km == 2 ** (10 - precision)`` so precision 0 = 1024 km,
+        precision 10 = 1 km and precision 20 ~ 0.98 m.
     """
 
     KEY = "eaq"
     GRID_NAME = "EA-Quad"
     # Mirror the module-level bounds as the BaseGrid metadata attributes so
-    # consumers (GridWrapper, AreaCalculator, ...) see EA-Quad's true 0-10 range.
+    # consumers (GridWrapper, AreaCalculator, ...) see EA-Quad's true 0-20 range.
     MIN_PRECISION = MIN_PRECISION
     MAX_PRECISION = MAX_PRECISION
     DEFAULT_PRECISION = 4
@@ -171,7 +214,7 @@ class EAQuadGrid(CoreBackedGrid):
         Parameters
         ----------
         precision : int, optional
-            Precision level (0-10), by default 4 (64 km cells).
+            Precision level (0-20), by default 4 (64 km cells).
 
             ===========  =========
             precision    cell edge
@@ -179,17 +222,19 @@ class EAQuadGrid(CoreBackedGrid):
             0            1024 km
             4            64 km
             10           1 km
+            14           62.5 m
+            20           ~0.98 m
             ===========  =========
 
         Raises
         ------
         ValueError
-            If precision is not between 0 and 10.
+            If precision is not between 0 and 20.
         """
         super().__init__(precision)
 
     @property
-    def size_km(self) -> int:
+    def size_km(self) -> float:
         """Cell edge length in kilometres at this grid's precision."""
         return _precision_to_size_km(self.precision)
 
@@ -205,7 +250,8 @@ class EAQuadGrid(CoreBackedGrid):
         multiple of every cell size, so the easternmost/northernmost (and polar)
         cells are clipped to the domain and are physically smaller than nominal.
         Like the other M3S grids, ``area_km2`` still reports the nominal
-        ``size_km ** 2`` for those boundary cells.
+        ``size_km ** 2``; use :meth:`native_cell_area` for the exact (clipped)
+        area of an individual cell.
 
         Returns
         -------
@@ -213,6 +259,47 @@ class EAQuadGrid(CoreBackedGrid):
             Theoretical (nominal) area in square kilometres.
         """
         return float(self.size_km**2)
+
+    @override
+    def native_cell_area(self, identifier: str, unit: str) -> float | None:
+        """
+        Exact ground area of a cell, accounting for domain clipping.
+
+        The projection is equal-area, so a cell's true ground area equals its
+        projected rectangle's area after clipping to the EPSG:6933 domain --
+        analytic, with no polygon involved. Interior cells report the nominal
+        ``size_km ** 2``; the easternmost/northernmost (and polar) cells report
+        their physically smaller clipped area.
+
+        Parameters
+        ----------
+        identifier : str
+            Cell identifier (hex token).
+        unit : str
+            Area unit: ``'km^2'``, ``'m^2'`` or ``'rads^2'``.
+
+        Returns
+        -------
+        float | None
+            Exact area in ``unit``, or None for an unknown unit.
+
+        Raises
+        ------
+        ValueError
+            If the identifier is invalid.
+        """
+        level, col, row = _parse_id(identifier)
+        size_m = _size_m(level)
+        width_m = min(X_MAX, X_MIN + (col + 1) * size_m) - (X_MIN + col * size_m)
+        height_m = min(Y_MAX, Y_MIN + (row + 1) * size_m) - (Y_MIN + row * size_m)
+        area_km2 = width_m * height_m / 1e6
+        if unit == "km^2":
+            return area_km2
+        if unit == "m^2":
+            return area_km2 * 1e6
+        if unit == "rads^2":
+            return area_km2 / _EARTH_RADIUS_KM**2
+        return None
 
     @override
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:
@@ -258,8 +345,8 @@ class EAQuadGrid(CoreBackedGrid):
         ValueError
             If the cell is already at the coarsest level (1024 km).
         """
-        size_km, _, _ = _parse_id(cell.identifier)
-        if size_km >= _precision_to_size_km(MIN_PRECISION):
+        level, _, _ = _parse_id(cell.identifier)
+        if level <= _MIN_LEVEL:
             raise ValueError("Cell has no parent (already at coarsest 1024 km level)")
         return cell_from_core(m3s_core.eaq_parent(cell.identifier))
 
@@ -276,10 +363,10 @@ class EAQuadGrid(CoreBackedGrid):
         -------
         list[GridCell]
             The 4 children, or an empty list if already at the finest level
-            (1 km).
+            (~0.98 m).
         """
-        size_km, _, _ = _parse_id(cell.identifier)
-        if size_km <= _precision_to_size_km(MAX_PRECISION):
+        level, _, _ = _parse_id(cell.identifier)
+        if level >= _MAX_LEVEL:
             return []
         return cells_from_core_packed(m3s_core.eaq_children(cell.identifier))
 
@@ -287,7 +374,7 @@ class EAQuadGrid(CoreBackedGrid):
     def identifier_to_precision(self, identifier: str) -> int | None:
         """Native precision encoded in the identifier, or None if invalid."""
         try:
-            size_km, _, _ = _parse_id(identifier)
+            level, _, _ = _parse_id(identifier)
         except ValueError:
             return None
-        return _size_km_to_precision(size_km)
+        return level - 6

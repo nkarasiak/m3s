@@ -75,7 +75,7 @@ class GARSGrid(CoreBackedGrid):
         validate_lat_lon(lat, lon)
         return self.get_cell_from_point(lat, lon).identifier
 
-    def decode(self, gars_id: str) -> tuple:
+    def decode(self, gars_id: str) -> tuple[float, float, float, float]:
         """
         Decode a GARS identifier into latitude/longitude bounds.
 

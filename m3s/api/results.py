@@ -5,7 +5,8 @@ Provides explicit accessors to eliminate type ambiguity when working with
 grid cells - no more guessing if you'll get one cell or many.
 """
 
-from typing import List, Optional, Union
+from collections.abc import Iterator
+from typing import Any, List, Optional, Union
 
 import geopandas as gpd
 import pandas as pd
@@ -29,7 +30,9 @@ class GridQueryResult:
     """
 
     def __init__(
-        self, cells: Union[GridCell, List[GridCell]], metadata: Optional[dict] = None
+        self,
+        cells: Union[GridCell, List[GridCell]],
+        metadata: Optional[dict[str, Any]] = None,
     ):
         """
         Initialize result container.
@@ -112,11 +115,11 @@ class GridQueryResult:
         """Return number of cells in result."""
         return len(self._cells)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[GridCell]:
         """Iterate over cells."""
         return iter(self._cells)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx: Union[int, slice]) -> Union[GridCell, List[GridCell]]:
         """Access cell by index."""
         return self._cells[idx]
 

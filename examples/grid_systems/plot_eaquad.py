@@ -3,9 +3,10 @@ EA-Quad grid
 ============
 
 Equal-Area Quadtree — square cells in a single global equal-area projection
-(EPSG:6933, EASE-Grid 2.0). Cell edges are powers of two kilometres (1, 2, 4,
-… 1024 km) with exact hierarchical containment, so every cell of a given size
-covers the same ground area worldwide.
+(EPSG:6933, EASE-Grid 2.0). Cell edges are powers of two kilometres (~1 m up
+to 1024 km) with exact hierarchical containment, so every cell of a given size
+covers the same ground area worldwide. Ids are S2-style hex tokens: a 64-bit
+Hilbert-curve index whose prefix is shared with every ancestor cell.
 
 The **interactive explorer** below is rendered with
 `deck.gl <https://deck.gl/>`_ and behaves like the
@@ -14,8 +15,9 @@ level and cells are generated **in the browser** for whatever is in view. Two
 neighbouring precisions are shown at once — the current level with a darker,
 heavier border and the next finer level with a lighter, thinner one — so the
 aperture-4 nesting stays visible. Cell geometry is produced by the shared
-``m3s_core`` WASM build (EPSG:6933 projection, power-of-two km grid, base-4
-quadtree ids), so the browser and the Python package produce identical cells.
+``m3s_core`` WASM build (EPSG:6933 projection, power-of-two km grid,
+Hilbert-curve hex-token ids), so the browser and the Python package produce
+identical cells.
 GIS-native ``(lon, lat)`` order is used throughout.
 
 Why EA-Quad?
@@ -23,7 +25,7 @@ Why EA-Quad?
 
 Pick EA-Quad when cells must compare fairly across the globe: an 8 km cell
 covers the same ground area in Norway as in Kenya, so counts and densities
-aggregate without latitude bias. Sizes are plain kilometres (1, 2, 4, …
+aggregate without latitude bias. Sizes are plain powers of two (~1 m up to
 1024 km), not abstract levels, which makes resolutions easy to reason about.
 The tradeoff: the squares are square in the EASE-Grid projection, so they look
 slightly stretched on a Web-Mercator basemap, and the ids mean nothing to tile

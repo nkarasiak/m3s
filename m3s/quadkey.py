@@ -76,7 +76,7 @@ class QuadkeyGrid(CoreBackedGrid):
         tile_size_km = earth_circumference_km / tiles_per_side
 
         # Area (square)
-        return tile_size_km * tile_size_km
+        return float(tile_size_km * tile_size_km)
 
     def _pixel_to_lat_lon(self, px: int, py: int, map_size: int) -> tuple[float, float]:
         """
@@ -271,5 +271,5 @@ class QuadkeyGrid(CoreBackedGrid):
 
         return min_lat, min_lon, max_lat, max_lon
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"QuadkeyGrid(precision={self.precision})"

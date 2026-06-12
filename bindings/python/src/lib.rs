@@ -10,7 +10,7 @@
 use ::m3s_core::{
     a5_grid as a5, csquares_grid as cs, eaquad_grid as eaq, gars_grid as gars, geohash_grid as gh,
     h3_grid as h3, maidenhead_grid as mh, mgrs_grid as mgrs, pluscode_grid as pc,
-    quadkey_grid as qk, s2_grid as s2, slippy_grid as sl, Cell,
+    quadkey_grid as qk, rhealpix_grid as rhp, s2_grid as s2, slippy_grid as sl, Cell,
 };
 use numpy::{IntoPyArray, PyArray1};
 use pyo3::exceptions::PyValueError;
@@ -122,6 +122,8 @@ grid_base!(a5);
 grid_hierarchy!(a5);
 grid_base!(eaq);
 grid_hierarchy!(eaq);
+grid_base!(rhp);
+grid_hierarchy!(rhp);
 grid_base!(s2);
 grid_hierarchy!(s2);
 
@@ -134,6 +136,12 @@ grid_base!(mgrs);
 #[pyfunction]
 fn a5_cell_area_m2(precision: u8) -> f64 {
     a5::cell_area_m2(precision)
+}
+
+// rhealpix-only extra: equal-area, so a resolution has one exact cell area.
+#[pyfunction]
+fn rhp_cell_area_km2(precision: u8) -> f64 {
+    rhp::cell_area_km2(precision)
 }
 
 // ---- shared -----------------------------------------------------------------
@@ -193,12 +201,15 @@ fn m3s_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     reg_hierarchy!(m, a5);
     reg_base!(m, eaq);
     reg_hierarchy!(m, eaq);
+    reg_base!(m, rhp);
+    reg_hierarchy!(m, rhp);
     reg_base!(m, s2);
     reg_hierarchy!(m, s2);
     reg_base!(m, gars);
     reg_base!(m, mh);
     reg_base!(m, mgrs);
     m.add_function(wrap_pyfunction!(a5_cell_area_m2, m)?)?;
+    m.add_function(wrap_pyfunction!(rhp_cell_area_km2, m)?)?;
     m.add_function(wrap_pyfunction!(geodesic_area_km2, m)?)?;
     m.add_function(wrap_pyfunction!(all_precision_bounds, m)?)?;
     Ok(())

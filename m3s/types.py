@@ -119,7 +119,7 @@ class PrecisionSpec:
     area_km2: float | None = None
     edge_length_km: float | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate precision after initialization."""
         from .constants import PRECISION_LIMITS
 
@@ -157,7 +157,7 @@ class BoundingBox:
     max_lat: float
     max_lon: float
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate bounds after initialization."""
         from .constants import (
             MAX_LATITUDE,

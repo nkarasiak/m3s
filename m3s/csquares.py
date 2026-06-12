@@ -2,7 +2,7 @@
 C-squares (Concise Spatial Query and Representation System) grid implementation.
 """
 
-from typing import override
+from typing import Any, override
 
 import m3s_core
 
@@ -191,9 +191,9 @@ class CSquaresGrid(CoreBackedGrid):
         str
             C-squares identifier
         """
-        return m3s_core.cs_cell_from_point(lat, lon, precision)[0]
+        return str(m3s_core.cs_cell_from_point(lat, lon, precision)[0])
 
-    def _decode_csquare(self, identifier: str) -> tuple:
+    def _decode_csquare(self, identifier: str) -> tuple[float, float, float, float]:
         """
         Decode C-squares identifier to bounding box coordinates.
 
@@ -246,7 +246,7 @@ class CSquaresGrid(CoreBackedGrid):
         sizes = {1: 10.0, 2: 5.0, 3: 1.0, 4: 0.5, 5: 0.1}
         return sizes[precision]
 
-    def get_precision_info(self) -> dict:
+    def get_precision_info(self) -> dict[str, Any]:
         """
         Get detailed information about the current precision level.
 

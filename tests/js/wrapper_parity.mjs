@@ -32,6 +32,7 @@ const GRID = {
   csquares: m3s.CSquares,
   pluscode: m3s.PlusCode,
   eaquad: m3s.EAQuad,
+  rhealpix: m3s.RHEALPix,
   mgrs: m3s.MGRS,
   a5: m3s.A5,
   s2: m3s.S2,

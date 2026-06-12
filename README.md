@@ -1,6 +1,6 @@
 # M3S - Multi Spatial Subdivision System
 
-A unified Python package for working with hierarchical spatial grid systems. M3S (Multi Spatial Subdivision System) provides a consistent interface for working with different spatial indexing systems including Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, C-squares, GARS, Maidenhead, and Plus Codes.
+A unified Python package for working with hierarchical spatial grid systems. M3S (Multi Spatial Subdivision System) provides a consistent interface for working with different spatial indexing systems including Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, C-squares, GARS, Maidenhead, Plus Codes, EA-Quad, rHEALPix, and A5.
 
 ## Features
 
@@ -108,6 +108,9 @@ same = m3s.H3.from_ids(cells.to_ids())   # ids -> wrapper-aware collection
 - `m3s.GARS` - Global Area Reference System
 - `m3s.Maidenhead` - Amateur radio locator
 - `m3s.PlusCode` - Open Location Codes
+- `m3s.EAQuad` - Equal-area quadtree (power-of-two km cells)
+- `m3s.RHEALPix` - rHEALPix equal-area DGGS (aperture 9)
+- `m3s.A5` - Pentagonal equal-area DGGS
 
 > **Coordinate order:** the simplified API uses GIS-native **(lon, lat)** / (x, y)
 > order for coordinate tuples — matching shapely, geopandas and pyproj.

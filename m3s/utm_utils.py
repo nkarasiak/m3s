@@ -6,7 +6,7 @@ of coordinates, offering 10-100x speedup compared to iterative approaches.
 """
 
 import logging
-from typing import Tuple, Union
+from typing import Any, Tuple, Union, cast
 
 import numpy as np
 
@@ -14,10 +14,10 @@ from .constants import UTM_ZONE_WIDTH_DEGREES
 
 logger = logging.getLogger(__name__)
 
+ArrayLike = Union[np.ndarray, "list[float]", "tuple[float, ...]"]
 
-def calculate_utm_zones_vectorized(
-    lats: Union[np.ndarray, list, tuple], lons: Union[np.ndarray, list, tuple]
-) -> np.ndarray:
+
+def calculate_utm_zones_vectorized(lats: ArrayLike, lons: ArrayLike) -> np.ndarray:
     """
     Calculate UTM zones for arrays of coordinates using vectorized operations.
 
@@ -89,9 +89,7 @@ def calculate_utm_zones_vectorized(
     return zones
 
 
-def calculate_utm_epsg_codes_vectorized(
-    lats: Union[np.ndarray, list, tuple], lons: Union[np.ndarray, list, tuple]
-) -> np.ndarray:
+def calculate_utm_epsg_codes_vectorized(lats: ArrayLike, lons: ArrayLike) -> np.ndarray:
     """
     Calculate UTM EPSG codes for arrays of coordinates.
 
@@ -132,12 +130,10 @@ def calculate_utm_epsg_codes_vectorized(
     base_code = np.where(lats >= 0, 32600, 32700)
     epsg_codes = base_code + zones
 
-    return epsg_codes.astype(np.int32)
+    return cast(np.ndarray, epsg_codes.astype(np.int32))
 
 
-def calculate_utm_hemisphere_vectorized(
-    lats: Union[np.ndarray, list, tuple],
-) -> np.ndarray:
+def calculate_utm_hemisphere_vectorized(lats: ArrayLike) -> np.ndarray:
     """
     Determine UTM hemisphere (north/south) for arrays of latitudes.
 
@@ -163,7 +159,7 @@ def calculate_utm_hemisphere_vectorized(
 
 
 def get_utm_zone_info_vectorized(
-    lats: Union[np.ndarray, list, tuple], lons: Union[np.ndarray, list, tuple]
+    lats: ArrayLike, lons: ArrayLike
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Get complete UTM zone information for arrays of coordinates.
@@ -207,8 +203,8 @@ def get_utm_zone_info_vectorized(
 
 
 def batch_calculate_utm_zones(
-    lats: Union[np.ndarray, list, tuple],
-    lons: Union[np.ndarray, list, tuple],
+    lats: ArrayLike,
+    lons: ArrayLike,
     chunk_size: int = 10000,
 ) -> np.ndarray:
     """
@@ -255,7 +251,7 @@ def batch_calculate_utm_zones(
 
 
 # Benchmark function for performance testing
-def benchmark_utm_calculations(n_points: int = 10000) -> dict:
+def benchmark_utm_calculations(n_points: int = 10000) -> dict[str, Any]:
     """
     Benchmark vectorized UTM calculations.
 
