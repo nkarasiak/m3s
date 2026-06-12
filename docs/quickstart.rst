@@ -11,6 +11,11 @@ The **Simplified API** is available in both Python and JavaScript (the JS build
 wraps the same Rust core). The GridBuilder, PrecisionSelector and GeoPandas
 features are Python-only; see :doc:`javascript` for the JS surface.
 
+.. seealso::
+
+   Prefer to see it run? :doc:`auto_examples/guides/quickstart` is this guide
+   executed for real — with rendered plots and an interactive cell map.
+
 Installation
 ------------
 
