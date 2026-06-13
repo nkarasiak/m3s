@@ -10,7 +10,7 @@ computed getters and never reimplements grid math.
 ## Install
 
 ```bash
-npm install m3s
+npm install @nkarasiak/m3s
 ```
 
 ## Build from source
@@ -28,7 +28,7 @@ wasm-pack build --target web    --out-dir pkg-web  # Web build   (used by index.
 
 ```js
 // Node
-import * as m3s from "m3s";
+import * as m3s from "@nkarasiak/m3s";
 await m3s.ready();                                  // no-op on Node
 
 const cell = m3s.H3.fromPoint(-74.0060, 40.7128, 7); // (lon, lat, precision)
@@ -40,7 +40,7 @@ console.log(cells.length, cells.toIds());
 
 ```js
 // Browser / bundler
-import * as m3s from "m3s";                          // resolves index.web.js
+import * as m3s from "@nkarasiak/m3s";                          // resolves index.web.js
 await m3s.ready();                                   // loads + inits the WASM
 const cell = m3s.S2.fromPoint(2.35, 48.86, 12);
 ```

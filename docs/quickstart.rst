@@ -32,7 +32,7 @@ Installation
 
       .. code-block:: bash
 
-         npm install m3s
+         npm install @nkarasiak/m3s
 
 Get started
 -----------
@@ -65,7 +65,7 @@ Get Cell at a Point
 
       .. code-block:: javascript
 
-         import * as m3s from "m3s";
+         import * as m3s from "@nkarasiak/m3s";
          await m3s.ready();
 
          // Get cell at New York City  (lon, lat, precision)
@@ -113,7 +113,7 @@ Generate Cells for an Area
 
       .. code-block:: javascript
 
-         import * as m3s from "m3s";
+         import * as m3s from "@nkarasiak/m3s";
          await m3s.ready();
 
          // Cells across a bounding box  [minLon, minLat, maxLon, maxLat]
@@ -153,7 +153,7 @@ Get Neighbors
 
       .. code-block:: javascript
 
-         import * as m3s from "m3s";
+         import * as m3s from "@nkarasiak/m3s";
          await m3s.ready();
 
          // Get cell  (lon, lat, precision)
@@ -199,7 +199,7 @@ Convert Between Grid Systems
 
       .. code-block:: javascript
 
-         import * as m3s from "m3s";
+         import * as m3s from "@nkarasiak/m3s";
          await m3s.ready();
 
          const bbox = [-74.1, 40.7, -73.9, 40.8];
@@ -244,7 +244,7 @@ Find Optimal Precision
 
       .. code-block:: javascript
 
-         import * as m3s from "m3s";
+         import * as m3s from "@nkarasiak/m3s";
          await m3s.ready();
 
          m3s.H3.precisionRange;     // [0, 15]
@@ -290,7 +290,7 @@ Collection Operations
 
       .. code-block:: javascript
 
-         import * as m3s from "m3s";
+         import * as m3s from "@nkarasiak/m3s";
          await m3s.ready();
 
          const cells = m3s.H3.fromBbox([-74.1, 40.7, -73.9, 40.8], 8);
@@ -345,7 +345,7 @@ languages:
 
       .. code-block:: javascript
 
-         import * as m3s from "m3s";
+         import * as m3s from "@nkarasiak/m3s";
          await m3s.ready();
 
          m3s.A5;          // Pentagonal DGGS

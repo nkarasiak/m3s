@@ -68,7 +68,7 @@ The easiest way to get started:
 
       .. code-block:: javascript
 
-         import * as m3s from "m3s";
+         import * as m3s from "@nkarasiak/m3s";
          await m3s.ready();
 
          // Direct grid access — (lon, lat, precision)

@@ -33,7 +33,7 @@ uv pip install m3s   # or: pip install m3s
 **JavaScript** — from npm:
 
 ```bash
-npm install m3s
+npm install @nkarasiak/m3s
 ```
 
 The npm package bundles both a Node (CommonJS WASM) and a browser (ESM WASM)
@@ -135,7 +135,7 @@ The wrapper is thin — polygon fill, precision strategies, GeoPandas export and
 cross-grid conversion stay Python-only.
 
 ```js
-import * as m3s from "m3s";
+import * as m3s from "@nkarasiak/m3s";
 await m3s.ready();                                   // awaits WASM init (no-op on Node)
 
 // Direct grid access — (lon, lat, precision)

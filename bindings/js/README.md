@@ -10,7 +10,7 @@ computed getters and never reimplements grid math.
 ## Install
 
 ```bash
-npm install m3s
+npm install @nkarasiak/m3s
 ```
 
 The package ships both a Node (CommonJS WASM) and a browser (ESM WASM) build;
@@ -19,7 +19,7 @@ the right one is selected automatically through the `exports` map.
 ## Use
 
 ```js
-import * as m3s from "m3s";
+import * as m3s from "@nkarasiak/m3s";
 await m3s.ready();                                   // awaits WASM init (no-op on Node)
 
 const cell = m3s.H3.fromPoint(-74.0060, 40.7128, 7); // (lon, lat, precision)

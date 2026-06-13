@@ -17,7 +17,7 @@ Install
 
 .. code-block:: bash
 
-   npm install m3s
+   npm install @nkarasiak/m3s
 
 The package bundles both a Node (CommonJS WASM) and a browser (ESM WASM) build;
 the right one is selected automatically through the ``exports`` map.
@@ -49,7 +49,7 @@ line works everywhere.
 
       .. code-block:: javascript
 
-         import * as m3s from "m3s";          // resolves index.web.js
+         import * as m3s from "@nkarasiak/m3s";          // resolves index.web.js
          await m3s.ready();                   // loads + inits the WASM
 
          const cell = m3s.H3.fromPoint(2.35, 48.86, 9);  // (lon, lat, precision)
@@ -59,7 +59,7 @@ line works everywhere.
 
       .. code-block:: javascript
 
-         import * as m3s from "m3s";
+         import * as m3s from "@nkarasiak/m3s";
          await m3s.ready();                   // no-op on Node
 
          const cell = m3s.H3.fromPoint(2.35, 48.86, 9);

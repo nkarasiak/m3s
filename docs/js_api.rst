@@ -9,7 +9,7 @@ reference for both.
 Wrapper surface
 ---------------
 
-Top-level exports (``import * as m3s from "m3s"``):
+Top-level exports (``import * as m3s from "@nkarasiak/m3s"``):
 
 .. list-table::
    :header-rows: 1

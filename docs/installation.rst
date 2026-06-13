@@ -23,7 +23,7 @@ core, so both produce identical cell geometry.
 
       .. code-block:: bash
 
-         npm install m3s
+         npm install @nkarasiak/m3s
 
       The package bundles both a Node (CommonJS WASM) and a browser (ESM WASM)
       build; the right one is selected automatically through the ``exports`` map.
@@ -84,7 +84,7 @@ To verify that M3S is installed correctly, run:
 
       .. code-block:: javascript
 
-         import * as m3s from "m3s";
+         import * as m3s from "@nkarasiak/m3s";
          await m3s.ready();
 
          // Get an H3 cell at New York City  (lon, lat, precision)
