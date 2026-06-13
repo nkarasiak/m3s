@@ -1,6 +1,6 @@
 # M3S - Multi Spatial Subdivision System
 
-A unified Python package for working with hierarchical spatial grid systems. M3S (Multi Spatial Subdivision System) provides a consistent interface for working with different spatial indexing systems including Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, C-squares, GARS, Maidenhead, Plus Codes, EA-Quad, rHEALPix, and A5.
+A unified package for working with hierarchical spatial grid systems in **Python** and **JavaScript** (via WASM). Both bindings call one shared Rust core, so a cell encoded in one language decodes identically in the other. M3S (Multi Spatial Subdivision System) provides a consistent interface for working with different spatial indexing systems including Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, C-squares, GARS, Maidenhead, Plus Codes, EA-Quad, rHEALPix, and A5.
 
 ## Features
 
@@ -12,7 +12,7 @@ A unified Python package for working with hierarchical spatial grid systems. M3S
 - **📦 Powerful Collections**: Filter, map, export with `GridCellCollection`
 
 ### Core Capabilities
-- **10 Grid Systems**: Geohash, MGRS, H3, Quadkey, S2, Slippy, C-squares, GARS, Maidenhead, Plus Codes
+- **13 Grid Systems**: Geohash, MGRS, H3, Quadkey, S2, Slippy, C-squares, GARS, Maidenhead, Plus Codes, EA-Quad, rHEALPix, A5
 - **Area Calculations**: All grids support `area_km2` property
 - **GeoPandas Integration**: Native GeoDataFrame support with automatic CRS transformation
 - **UTM Zone Integration**: Automatic UTM zone detection and inclusion
@@ -24,9 +24,22 @@ A unified Python package for working with hierarchical spatial grid systems. M3S
 
 ## Installation
 
+**Python** — from PyPI:
+
 ```bash
-uv pip install m3s
+uv pip install m3s   # or: pip install m3s
 ```
+
+**JavaScript** — from npm:
+
+```bash
+npm install m3s
+```
+
+The npm package bundles both a Node (CommonJS WASM) and a browser (ESM WASM)
+build; the right one is selected automatically through the `exports` map. See
+[bindings/js/README.md](bindings/js/README.md) for the JS API and how to build
+from source.
 
 For development:
 
@@ -37,8 +50,6 @@ uv sync          # create the dev environment (.venv) from uv.lock
 ```
 
 ## Quick Start
-
-### Quick start
 
 M3S gives direct access to grid systems, auto-precision selection, and universal geometry handling:
 
@@ -116,6 +127,25 @@ same = m3s.H3.from_ids(cells.to_ids())   # ids -> wrapper-aware collection
 > order for coordinate tuples — matching shapely, geopandas and pyproj.
 > `GridCell.bounds`, `GridCell.centroid` and `from_bbox` all follow the same
 > order, so `grid.from_bbox(collection.bounds)` round-trips correctly.
+
+### JavaScript
+
+The JS API mirrors the Python facade in camelCase and produces identical cells.
+The wrapper is thin — polygon fill, precision strategies, GeoPandas export and
+cross-grid conversion stay Python-only.
+
+```js
+import * as m3s from "m3s";
+await m3s.ready();                                   // awaits WASM init (no-op on Node)
+
+// Direct grid access — (lon, lat, precision)
+const cell = m3s.Geohash.fromPoint(-74.0060, 40.7128, 6);
+console.log(`Cell: ${cell.id}, Area: ${cell.areaKm2.toFixed(2)} km²`);
+
+// Cells across a bounding box  [minLon, minLat, maxLon, maxLat]
+const cells = m3s.H3.fromBbox([-74.1, 40.7, -73.9, 40.8], 8);
+console.log(`${cells.length} cells`, cells.toIds());
+```
 
 ## Grid Systems
 

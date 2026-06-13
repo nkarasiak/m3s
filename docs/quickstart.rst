@@ -30,13 +30,9 @@ Installation
 
    .. tab-item:: JavaScript
 
-      Build the WASM targets from source (no npm package yet):
-
       .. code-block:: bash
 
-         cd m3s/bindings/js
-         wasm-pack build --target nodejs --out-dir pkg
-         wasm-pack build --target web    --out-dir pkg-web
+         npm install m3s
 
 Get started
 -----------

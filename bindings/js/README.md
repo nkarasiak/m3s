@@ -1,8 +1,8 @@
-# m3s — JavaScript / WASM wrapper
+# m3s — JavaScript / WASM
 
-An ergonomic JS API over the shared m3s Rust core. The grid classes mirror the
-Python facade (`m3s.H3`, `m3s.Geohash`, …) in camelCase and produce **identical
-results** — JS and Python consume the same `m3s-core` crate.
+An ergonomic JS API over the shared **m3s** Rust core. The grid classes mirror
+the Python facade (`m3s.H3`, `m3s.Geohash`, …) in camelCase and produce
+**identical results** — JS and Python consume the same `m3s-core` crate.
 
 This is a thin layer: it wraps the generated WASM functions into classes and
 computed getters and never reimplements grid math.
@@ -13,23 +13,14 @@ computed getters and never reimplements grid math.
 npm install m3s
 ```
 
-## Build from source
-
-To build from a checkout instead, compile the two WASM targets, then import the
-wrapper directly.
-
-```bash
-cd bindings/js
-wasm-pack build --target nodejs --out-dir pkg      # Node build  (used by index.node.js)
-wasm-pack build --target web    --out-dir pkg-web  # Web build   (used by index.web.js)
-```
+The package ships both a Node (CommonJS WASM) and a browser (ESM WASM) build;
+the right one is selected automatically through the `exports` map.
 
 ## Use
 
 ```js
-// Node
 import * as m3s from "m3s";
-await m3s.ready();                                  // no-op on Node
+await m3s.ready();                                   // awaits WASM init (no-op on Node)
 
 const cell = m3s.H3.fromPoint(-74.0060, 40.7128, 7); // (lon, lat, precision)
 console.log(cell.id, cell.areaKm2);
@@ -38,15 +29,16 @@ const cells = m3s.Geohash.fromBbox([-74.02, 40.70, -73.93, 40.80], 6);
 console.log(cells.length, cells.toIds());
 ```
 
-```js
-// Browser / bundler
-import * as m3s from "m3s";                          // resolves index.web.js
-await m3s.ready();                                   // loads + inits the WASM
-const cell = m3s.S2.fromPoint(2.35, 48.86, 12);
-```
-
 `await m3s.ready()` is required on the web (it awaits WASM init) and harmless on
 Node, so the same line works everywhere.
+
+## Build from source
+
+```bash
+cd bindings/js
+wasm-pack build --target nodejs --out-dir pkg      # Node build  (used by index.node.js)
+wasm-pack build --target web    --out-dir pkg-web  # Web build   (used by index.web.js)
+```
 
 ## API at a glance
 

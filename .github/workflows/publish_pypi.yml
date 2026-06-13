@@ -54,3 +54,55 @@ jobs:
       with:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
+
+  npm:
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write   # npm provenance attestation
+      contents: read
+
+    steps:
+    - name: Wait for JS parity
+      uses: lewagon/wait-on-check-action@v1.3.4
+      with:
+        ref: ${{ github.ref }}
+        check-name: 'js-parity'
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        wait-interval: 20
+        allowed-conclusions: success
+
+    - uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install wasm-pack
+      uses: jetli/wasm-pack-action@v0.4.0
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        registry-url: 'https://registry.npmjs.org'
+
+    # Trusted Publishing (OIDC) needs npm >= 11.5; node 20 ships npm 10.
+    - name: Upgrade npm for OIDC trusted publishing
+      run: npm install -g npm@latest
+
+    # The published package bundles both targets: pkg (Node/CJS) and pkg-web
+    # (browser/ESM). The exports map in bindings/js/package.json picks one.
+    - name: Build WASM (node + web targets)
+      run: |
+        wasm-pack build bindings/js --target nodejs --out-dir pkg
+        wasm-pack build bindings/js --target web    --out-dir pkg-web
+
+    - name: Stamp version from tag
+      run: npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version
+      working-directory: bindings/js
+
+    # No token: authenticated via OIDC trusted publishing (id-token: write).
+    # Configure the trusted publisher on npmjs.com (repo + this workflow +
+    # the `release` environment) before the first OIDC publish.
+    - name: Publish to npm
+      run: npm publish
+      working-directory: bindings/js

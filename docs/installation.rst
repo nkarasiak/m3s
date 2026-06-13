@@ -19,18 +19,15 @@ core, so both produce identical cell geometry.
 
    .. tab-item:: JavaScript
 
-      No npm package is published yet — build the two WASM targets from source
-      with `wasm-pack <https://rustwasm.github.io/wasm-pack/>`_, then import the
-      ergonomic wrapper directly:
+      Install the published package from npm:
 
       .. code-block:: bash
 
-         git clone https://github.com/nkarasiak/m3s.git
-         cd m3s/bindings/js
-         wasm-pack build --target nodejs --out-dir pkg      # Node build
-         wasm-pack build --target web    --out-dir pkg-web  # browser build
+         npm install m3s
 
-      See the :doc:`javascript` guide for the full API.
+      The package bundles both a Node (CommonJS WASM) and a browser (ESM WASM)
+      build; the right one is selected automatically through the ``exports`` map.
+      To build from a checkout instead, see the :doc:`javascript` guide.
 
 Install from Source
 -------------------
@@ -87,7 +84,7 @@ To verify that M3S is installed correctly, run:
 
       .. code-block:: javascript
 
-         import * as m3s from "./bindings/js/wrapper/index.node.js";
+         import * as m3s from "m3s";
          await m3s.ready();
 
          // Get an H3 cell at New York City  (lon, lat, precision)

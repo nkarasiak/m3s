@@ -1,0 +1,53 @@
+{
+  "name": "m3s",
+  "version": "0.6.0",
+  "type": "module",
+  "license": "MIT",
+  "description": "Ergonomic JS/WASM wrapper over the shared m3s Rust core (parity with the Python API).",
+  "homepage": "https://github.com/nkarasiak/m3s#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nkarasiak/m3s.git",
+    "directory": "bindings/js"
+  },
+  "bugs": {
+    "url": "https://github.com/nkarasiak/m3s/issues"
+  },
+  "keywords": [
+    "geospatial",
+    "grid",
+    "geohash",
+    "h3",
+    "s2",
+    "mgrs",
+    "quadkey",
+    "wasm",
+    "gis"
+  ],
+  "exports": {
+    ".": {
+      "browser": "./wrapper/index.web.js",
+      "node": "./wrapper/index.node.js",
+      "default": "./wrapper/index.web.js"
+    }
+  },
+  "main": "./wrapper/index.node.js",
+  "files": [
+    "wrapper",
+    "pkg/m3s_core_js.js",
+    "pkg/m3s_core_js.d.ts",
+    "pkg/m3s_core_js_bg.wasm",
+    "pkg/m3s_core_js_bg.wasm.d.ts",
+    "pkg/package.json",
+    "pkg-web/m3s_core_js.js",
+    "pkg-web/m3s_core_js.d.ts",
+    "pkg-web/m3s_core_js_bg.wasm",
+    "pkg-web/m3s_core_js_bg.wasm.d.ts",
+    "pkg-web/package.json",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

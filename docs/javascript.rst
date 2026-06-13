@@ -12,10 +12,20 @@ camelCase.
    Polygon fill, precision strategies, GeoPandas and cross-grid conversion are
    **Python-only** — see :ref:`js-not-here` below.
 
+Install
+-------
+
+.. code-block:: bash
+
+   npm install m3s
+
+The package bundles both a Node (CommonJS WASM) and a browser (ESM WASM) build;
+the right one is selected automatically through the ``exports`` map.
+
 Build from source
 -----------------
 
-No npm package is published yet. Build the two WASM targets with
+To build from a checkout instead, compile the two WASM targets with
 `wasm-pack <https://rustwasm.github.io/wasm-pack/>`_, then import the wrapper
 directly:
 
@@ -49,7 +59,7 @@ line works everywhere.
 
       .. code-block:: javascript
 
-         import * as m3s from "./bindings/js/wrapper/index.node.js";
+         import * as m3s from "m3s";
          await m3s.ready();                   // no-op on Node
 
          const cell = m3s.H3.fromPoint(2.35, 48.86, 9);
