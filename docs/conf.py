@@ -139,7 +139,7 @@ html_theme_options = {
     # "analytics": {"google_analytics_id": "your-analytics-id"},
 
     # Color scheme
-    "pygments_light_style": "default",
+    "pygments_light_style": "monokai",
     "pygments_dark_style": "monokai",
 
     # External links

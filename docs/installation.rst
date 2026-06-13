@@ -1,17 +1,6 @@
 Installation
 ============
 
-Requirements
-------------
-
-M3S requires Python 3.12 or later and has the following dependencies:
-
-* **shapely** >= 2.0.0 - For geometric operations and polygon handling
-* **pyproj** >= 3.4.0 - For coordinate system transformations (MGRS)
-* **mgrs** >= 1.4.0 - For MGRS coordinate conversions
-* **h3** >= 3.7.0 - For H3 hexagonal grid operations
-* **geopandas** >= 0.13.0 - For spatial data manipulation
-
 Install
 -------
 

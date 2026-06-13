@@ -56,6 +56,53 @@ code.literal {
   padding: 0.1em 0.35em;
 }
 
+/* Code blocks: h3geo-style dark slab with rounded corners in both themes.
+   pygments_light_style is monokai too, so tokens stay bright on this dark
+   ground regardless of the page's light/dark mode. */
+.highlight {
+  border-radius: 0.6rem;
+  overflow: hidden;
+}
+html[data-theme="light"] .highlight,
+html[data-theme="light"] .highlight pre {
+  background-color: #272822 !important;
+}
+/* Untokenised text (and the copy prompt) inherits pre's color, which the theme
+   keeps dark in light mode -> invisible on the dark slab. Force it light. */
+html[data-theme="light"] .highlight pre {
+  color: #f8f8f2 !important;
+}
+
+/* Tabs: h3geo-style flat text tabs. Override the PyData theme's boxed look
+   (it scopes under .bd-content, so match that and use !important on killers). */
+.bd-content .sd-tab-set > label.sd-tab-label {
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0.35rem 0.35rem 0 0;
+  background: transparent !important;
+  color: var(--pst-color-text, #24292f);
+  font-weight: 700;
+  padding: 0.4rem 0.9rem;
+  margin: 0 0.15rem;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.bd-content .sd-tab-set > input:not(:checked) + label.sd-tab-label:hover {
+  background: var(--pst-color-surface, #f0f1f3) !important;
+  color: var(--pst-color-text, #24292f);
+  text-decoration: none;
+}
+.bd-content .sd-tab-set > input:checked + label.sd-tab-label {
+  border-bottom-color: var(--m3s-accent) !important;
+  color: var(--m3s-accent);
+  background: transparent !important;
+}
+/* Drop the blue panel box; let the dark code slab stand on its own. */
+.bd-content .sd-tab-set .sd-tab-content {
+  border: none !important;
+  box-shadow: none !important;
+  padding: 1rem 0 0 0 !important;
+}
+
 /* Drop the breadcrumb's bottom margin and the article's top padding so the
    hero map sits tight beneath the breadcrumb. */
 .bd-breadcrumbs {
