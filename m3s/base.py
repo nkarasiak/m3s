@@ -111,7 +111,7 @@ class GridCell:
         Centroid of the cell.
 
         Uses GIS-native (lon, lat) / (x, y) axis order, consistent with
-        ``bounds`` and the simplified ``GridWrapper`` API.
+        ``bounds`` and the ``GridWrapper`` API.
 
         Returns
         -------

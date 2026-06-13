@@ -63,7 +63,7 @@ from _deckmap import DeckExplorer, read_grid_js
 
 DeckExplorer(
     center=(2.35, 48.86),
-    zoom=11,
+    zoom=12,
     grid_js=read_grid_js("h3"),
     wasm=True,
     hover="#ffeb3b",

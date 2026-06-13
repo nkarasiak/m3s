@@ -355,7 +355,7 @@ interactive map:
 * :doc:`auto_examples/grid_systems/plot_eaquad` — the EA-Quad equal-area grid
 * :doc:`auto_examples/grid_systems/plot_rhealpix` — the rHEALPix equal-area DGGS
 * :doc:`auto_examples/grid_systems/plot_a5` — the A5 equal-area pentagonal grid
-* :doc:`auto_examples/guides/quickstart` — the simplified, GIS-native API
+* :doc:`auto_examples/guides/quickstart` — the GIS-native M3S API
 * :doc:`auto_examples/guides/precision_selection_example` — intelligent precision
   selection
 * :doc:`auto_examples/guides/grid_enhancements_example` — conversion, relationship

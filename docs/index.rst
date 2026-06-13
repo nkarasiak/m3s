@@ -3,68 +3,13 @@ M3S: Multi Spatial Subdivision System
 
 **Unified spatial grid systems for Python and JavaScript — one consistent API, one shared Rust/WASM core, across 12 indexing systems.**
 
-.. image:: https://img.shields.io/pypi/v/m3s.svg
-   :target: https://pypi.org/project/m3s/
-   :alt: PyPI version
-.. image:: https://img.shields.io/pypi/pyversions/m3s.svg
-   :target: https://pypi.org/project/m3s/
-   :alt: Supported Python versions
-.. image:: https://img.shields.io/github/license/nkarasiak/m3s.svg
-   :target: https://github.com/nkarasiak/m3s/blob/main/LICENSE
-   :alt: License
-
-.. grid:: 3
-   :gutter: 2
-   :margin: 2 0 0 0
-
-   .. grid-item::
-
-      .. button-ref:: quickstart
-         :ref-type: doc
-         :color: primary
-         :expand:
-
-         🚀 Get started
-
-   .. grid-item::
-
-      .. button-ref:: auto_examples/index
-         :ref-type: doc
-         :color: secondary
-         :expand:
-
-         🗺️ Examples
-
-   .. grid-item::
-
-      .. button-link:: https://github.com/nkarasiak/m3s
-         :color: secondary
-         :expand:
-
-         ⭐ GitHub
+:doc:`Examples <auto_examples/index>` · `GitHub <https://github.com/nkarasiak/m3s>`__
 
 M3S (Multi Spatial Subdivision System) provides an intuitive interface for working with **13 spatial grid systems** including **H3**, **Geohash**, **S2**, **MGRS**, **A5**, and more — in **Python** and in **JavaScript** (via WASM). Both bindings call the same Rust core, so a cell encoded in one language decodes identically in the other.
 
-The simplified API gives direct grid access, universal geometry handling, and intelligent auto-precision selection. No instantiation required: just ``import m3s`` and start working.
+M3S gives direct grid access, universal geometry handling, and intelligent auto-precision selection. No instantiation required: just ``import m3s`` and start working.
 
 **Also Available**: Advanced GridBuilder API with fluent interface and 5 intelligent precision selection strategies.
-
-.. grid:: 3
-
-   .. grid-item-card:: 🌍 Multi-Grid Support
-      :class-header: bg-light
-
-      Support for 13 spatial grid systems including Geohash, MGRS, H3, S2, QuadKey, and more with a consistent API.
-
-   .. grid-item-card:: ⚡ Performance Optimized
-      :class-header: bg-light
-
-      Built with performance in mind, offering threaded parallelism for large-scale spatial operations.
-
-   .. grid-item-card:: 🔧 Easy Integration
-      :class-header: bg-light
-
-      Seamless integration with GeoPandas, Shapely, and the broader Python geospatial ecosystem.
 
 Getting Started
 ===============
@@ -84,8 +29,8 @@ Or using pip:
 
    pip install m3s
 
-Quick example - simplified API
-------------------------------
+Quick example
+-------------
 
 The easiest way to get started:
 
@@ -257,8 +202,8 @@ M3S supports **13 spatial grid systems** with unified precision parameters:
 Key Features
 ============
 
-✨ **Simplified API**
-   Direct grid access with ``m3s.H3``, ``m3s.Geohash``, etc. No instantiation needed, just import and use.
+⚡ **Direct grid access**
+   Reach any grid with ``m3s.H3``, ``m3s.Geohash``, etc. No instantiation needed, just import and use.
 
 🌐 **Universal Geometry Handling**
    Single ``from_geometry()`` method accepts points, polygons, bounding boxes, and GeoDataFrames.

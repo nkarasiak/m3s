@@ -1,13 +1,13 @@
 Quickstart
 ==========
 
-This guide shows you how to get started with M3S. Choose your workflow:
+This guide shows you how to get started with M3S. Direct grid access—no setup
+required—covers most workflows; two optional tiers go further:
 
-1. **Simplified API (Recommended)** - Easy, direct access to grid systems—no setup required
-2. **GridBuilder API (Advanced)** - Fluent interface for complex workflows
-3. **Help me choose precision** - Intelligent precision selection
+1. **GridBuilder API (Advanced)** - Fluent interface for complex workflows
+2. **Help me choose precision** - Intelligent precision selection
 
-The **Simplified API** is available in both Python and JavaScript (the JS build
+Direct grid access is available in both Python and JavaScript (the JS build
 wraps the same Rust core). The GridBuilder, PrecisionSelector and GeoPandas
 features are Python-only; see :doc:`javascript` for the JS surface.
 
@@ -38,8 +38,8 @@ Installation
          wasm-pack build --target nodejs --out-dir pkg
          wasm-pack build --target web    --out-dir pkg-web
 
-Simplified API (Recommended)
------------------------------
+Get started
+-----------
 
 The easiest way to work with spatial grids. Direct access, no instantiation needed!
 
@@ -372,7 +372,7 @@ GridBuilder API (Advanced)
 .. note::
 
    The GridBuilder, PrecisionSelector and MultiGridComparator APIs below are
-   **Python-only**. The JavaScript build exposes the Simplified API above; see
+   **Python-only**. The JavaScript build exposes the direct grid API above; see
    :doc:`javascript`.
 
 For complex workflows with method chaining, use the GridBuilder API.

@@ -1,5 +1,5 @@
 """
-Tests for GridWrapper simplified API.
+Tests for GridWrapper API.
 """
 
 import geopandas as gpd
@@ -321,7 +321,7 @@ class TestBackwardCompatibility:
 
 
 class TestAxisOrder:
-    """Lock in GIS-native (lon, lat) axis order across the simplified API."""
+    """Lock in GIS-native (lon, lat) axis order across the M3S API."""
 
     def test_centroid_is_lon_lat(self):
         """Centroid returns (lon, lat) matching shapely x, y."""

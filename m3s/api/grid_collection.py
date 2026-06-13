@@ -1,5 +1,5 @@
 """
-Grid cell collection for simplified API operations.
+Grid cell collection for M3S grid operations.
 
 Provides a container for multiple grid cells with utility methods for
 conversion, filtering, and operations.

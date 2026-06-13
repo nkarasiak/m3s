@@ -1,5 +1,5 @@
 """
-Simplified grid wrapper API for easy access to grid systems.
+Grid wrapper API for easy access to grid systems.
 
 Provides a clean, intuitive interface for working with grid systems
 without requiring deep knowledge of precision levels or grid internals.
@@ -18,7 +18,7 @@ from .precision_finder import PrecisionFinder
 
 class GridWrapper(H3VerbsMixin):
     """
-    Simplified wrapper providing easy access to grid systems.
+    Wrapper providing easy access to grid systems.
 
     Enables working with grids without requiring upfront precision selection,
     with intelligent defaults and auto-precision capabilities.

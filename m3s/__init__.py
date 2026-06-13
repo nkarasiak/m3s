@@ -5,7 +5,7 @@ A unified Python package for working with hierarchical spatial grid systems,
 including grid conversion utilities, relationship analysis, and multi-resolution
 operations.
 
-Recommended entry point (the "golden path") is the simplified grid-singleton
+The default entry point (the "golden path") is the grid-singleton
 API, which uses GIS-native (lon, lat) coordinate order::
 
     import m3s
@@ -90,7 +90,7 @@ from .rhealpix import RHEALPixGrid
 from .s2 import S2Grid
 from .slippy import SlippyGrid
 
-# Simplified API: Grid system singletons for direct access.
+# Grid system singletons for direct access.
 # Default precision and valid range come from each grid class (DEFAULT_PRECISION
 # / MIN_PRECISION / MAX_PRECISION), so the wrapper needs no per-grid config here.
 A5 = GridWrapper(A5Grid)
@@ -168,7 +168,7 @@ def grid(name: str, precision: int | None = None) -> GridWrapper:
 
 __version__ = "0.5.2"
 __all__ = [
-    # Simplified API: Grid singletons
+    # Grid singletons
     "A5",
     "Geohash",
     "MGRS",

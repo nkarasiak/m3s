@@ -65,7 +65,7 @@ from _deckmap import DeckExplorer, read_grid_js
 
 DeckExplorer(
     center=(9.5, 48.5),
-    zoom=5,
+    zoom=7,
     grid_js=read_grid_js("csquares"),
     hover="#0072B2",
     wasm=True,

@@ -2,7 +2,7 @@
 Quickstart
 ==========
 
-The simplified, GIS-native M3S API — the recommended entry point.
+The GIS-native M3S API — the default entry point.
 
 It provides:
 
@@ -224,7 +224,7 @@ print(f"Chained workflow result: {len(result)} cells")
 # %%
 # Summary
 # -------
-# The simplified API provides:
+# M3S provides:
 # 1. Direct access: m3s.H3, m3s.Geohash, m3s.S2, etc. (no instantiation needed)
 # 2. Universal from_geometry(): handles any geometry type
 # 3. Auto-precision: intelligent defaults based on coverage optimization
@@ -232,5 +232,5 @@ print(f"Chained workflow result: {len(result)} cells")
 # 5. Visual checks: .plot() for figures, .explore() for interactive maps
 
 print("\n" + "=" * 60)
-print("The simplified API makes M3S easy to use without sacrificing power!")
+print("M3S is easy to use without sacrificing power!")
 print("=" * 60)

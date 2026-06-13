@@ -6,7 +6,7 @@
 
 Computation times
 =================
-**00:15.178** total execution time for 16 files **from all galleries**:
+**00:47.361** total execution time for 17 files **from all galleries**:
 
 .. container::
 
@@ -33,7 +33,7 @@ Computation times
      - Time
      - Mem (MB)
    * - :ref:`sphx_glr_auto_examples_guides_quickstart.py` (``..\examples\guides\quickstart.py``)
-     - 00:15.178
+     - 00:47.361
      - 0.0
    * - :ref:`sphx_glr_auto_examples_grid_systems_plot_a5.py` (``..\examples\grid_systems\plot_a5.py``)
      - 00:00.000
@@ -63,6 +63,9 @@ Computation times
      - 00:00.000
      - 0.0
    * - :ref:`sphx_glr_auto_examples_grid_systems_plot_quadkey.py` (``..\examples\grid_systems\plot_quadkey.py``)
+     - 00:00.000
+     - 0.0
+   * - :ref:`sphx_glr_auto_examples_grid_systems_plot_rhealpix.py` (``..\examples\grid_systems\plot_rhealpix.py``)
      - 00:00.000
      - 0.0
    * - :ref:`sphx_glr_auto_examples_grid_systems_plot_s2.py` (``..\examples\grid_systems\plot_s2.py``)

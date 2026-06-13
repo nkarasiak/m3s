@@ -3,7 +3,7 @@ JavaScript / WASM
 
 M3S ships a JavaScript build that wraps the **same Rust core** as the Python
 package, so a cell encoded in Python decodes identically in JavaScript and vice
-versa. The JS API mirrors the Python :doc:`Simplified API <quickstart>` in
+versa. The JS API mirrors the Python API (:doc:`quickstart`) in
 camelCase.
 
 .. note::
