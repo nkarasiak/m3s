@@ -28,20 +28,6 @@ UTM_FALSE_EASTING = 500000  # False easting in meters
 UTM_NORTH_HEMISPHERE_BASE_EPSG = 32600  # EPSG code base for northern hemisphere
 UTM_SOUTH_HEMISPHERE_BASE_EPSG = 32700  # EPSG code base for southern hemisphere
 
-# Default precision levels for different grid systems
-DEFAULT_PRECISIONS = {
-    "geohash": 5,  # ~5km resolution
-    "h3": 7,  # ~5km resolution
-    "quadkey": 12,  # ~5km resolution
-    "s2": 13,  # ~5km resolution
-    "slippy": 12,  # ~5km resolution
-    "mgrs": 5,  # 1km resolution
-    "csquares": 2,  # 10° resolution
-    "gars": 2,  # 5' resolution
-    "maidenhead": 3,  # ~12km resolution (fields/squares)
-    "pluscode": 4,  # ~12.5m resolution in this implementation
-}
-
 # Precision/resolution limits for grid systems, derived from the shared Rust
 # core (``m3s_core.all_precision_bounds``) so they cannot drift from the grid
 # math. The core is the single source of truth for precision bounds (ADR 0001
@@ -71,20 +57,6 @@ MAX_LONGITUDE = 180.0
 # Spatial tolerance values
 GEOMETRY_SIMPLIFY_TOLERANCE = 1e-6  # Tolerance for geometry simplification
 COORDINATE_EPSILON = 1e-10  # Small epsilon for coordinate comparisons
-
-# Grid system names (for validation and conversion)
-GRID_SYSTEMS = [
-    "geohash",
-    "h3",
-    "quadkey",
-    "s2",
-    "slippy",
-    "mgrs",
-    "csquares",
-    "gars",
-    "maidenhead",
-    "pluscode",
-]
 
 # CRS/EPSG codes
 WGS84_EPSG = "EPSG:4326"  # WGS84 geographic coordinate system

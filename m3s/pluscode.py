@@ -2,8 +2,6 @@
 Plus codes (Open Location Code) grid implementation.
 """
 
-from functools import cached_property
-
 import m3s_core
 
 from .base import (
@@ -44,14 +42,14 @@ class PlusCodeGrid(CoreBackedGrid):
         0.000000015625,  # 7: ~1.5mm
     ]
 
-    def __init__(self, precision: int = 4):
+    def __init__(self, precision: int = 5):
         """
         Initialize PlusCodeGrid.
 
         Parameters
         ----------
         precision : int, optional
-            Plus code precision level (1-7), by default 4.
+            Plus code precision level (1-7), by default 5.
             Higher values mean smaller cells.
 
         Raises
@@ -61,7 +59,7 @@ class PlusCodeGrid(CoreBackedGrid):
         """
         super().__init__(precision)
 
-    @cached_property
+    @property
     def area_km2(self) -> float:
         """
         Approximate area of a Plus Code cell at this precision in square kilometers.

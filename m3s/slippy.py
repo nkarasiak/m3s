@@ -102,26 +102,6 @@ class SlippyGrid(CoreBackedGrid):
         except Exception as e:
             raise ValueError(f"Invalid Slippy tile identifier: {identifier}") from e
 
-    @override
-    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
-        """
-        Get neighboring tiles of the given tile.
-
-        Parameters
-        ----------
-        cell : GridCell
-            The tile for which to find neighbors
-
-        Returns
-        -------
-        list[GridCell]
-            List of neighboring tiles (up to 8 neighbors)
-        """
-        try:
-            return cells_from_core_packed(m3s_core.sl_neighbors(cell.identifier))
-        except ValueError:
-            return []
-
     def get_children(self, cell: GridCell) -> list[GridCell]:
         """
         Get child tiles at the next zoom level.
@@ -144,7 +124,7 @@ class SlippyGrid(CoreBackedGrid):
         except ValueError:
             return []
 
-    def get_parent(self, cell: GridCell) -> GridCell | None:
+    def get_parent(self, cell: GridCell) -> GridCell:
         """
         Get parent tile at the previous zoom level.
 
@@ -155,16 +135,18 @@ class SlippyGrid(CoreBackedGrid):
 
         Returns
         -------
-        GridCell | None
-            Parent tile, or None if already at zoom 0
+        GridCell
+            Parent tile
+
+        Raises
+        ------
+        ValueError
+            If the tile is already at the coarsest zoom level (0).
         """
         if self.precision <= 0:
-            return None
+            raise ValueError("Tile has no parent (already at zoom 0)")
 
-        try:
-            return cell_from_core(m3s_core.sl_parent(cell.identifier))
-        except ValueError:
-            return None
+        return cell_from_core(m3s_core.sl_parent(cell.identifier))
 
     def get_covering_cells(
         self, polygon: Polygon, max_cells: int = 100

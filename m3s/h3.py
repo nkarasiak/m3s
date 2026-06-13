@@ -127,26 +127,6 @@ class H3Grid(CoreBackedGrid):
         except Exception as e:
             raise ValueError(f"Invalid H3 identifier: {identifier}") from e
 
-    @override
-    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
-        """
-        Get neighboring H3 cells (6 neighbors for hexagons).
-
-        Parameters
-        ----------
-        cell : GridCell
-            The H3 cell for which to find neighbors
-
-        Returns
-        -------
-        list[GridCell]
-            List of neighboring H3 cells (typically 6 for hexagons)
-        """
-        try:
-            return cells_from_core_packed(m3s_core.h3_neighbors(cell.identifier))
-        except ValueError:
-            return []
-
     def get_edge_length_km(self) -> float:
         """
         Get the edge length of hexagons at current resolution in kilometers.
@@ -225,10 +205,11 @@ class H3Grid(CoreBackedGrid):
         Returns
         -------
         list[GridCell]
-            List of child cells at resolution + 1 (typically 7 children)
+            List of child cells at resolution + 1 (typically 7 children),
+            or an empty list if already at the finest resolution (15).
         """
-        if self.precision >= 15:
-            return [cell]  # No children at maximum resolution
+        if self.precision >= self.MAX_PRECISION:
+            return []  # No children at maximum resolution
 
         try:
             return cells_from_core_packed(m3s_core.h3_children(cell.identifier))
@@ -248,14 +229,16 @@ class H3Grid(CoreBackedGrid):
         -------
         GridCell
             Parent cell at resolution - 1
+
+        Raises
+        ------
+        ValueError
+            If the cell is already at the coarsest resolution (0).
         """
         if self.precision <= 0:
-            return cell  # No parent at minimum resolution
+            raise ValueError("Cell has no parent (already at H3 resolution 0)")
 
-        try:
-            return cell_from_core(m3s_core.h3_parent(cell.identifier))
-        except ValueError:
-            return cell
+        return cell_from_core(m3s_core.h3_parent(cell.identifier))
 
     def get_resolution_info(self) -> dict[str, Any]:
         """

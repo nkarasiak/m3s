@@ -156,9 +156,9 @@ class TestS2Grid:
         """Test getting parent at root level."""
         grid = S2Grid(precision=0)
         cell = grid.get_cell_from_point(40.7128, -74.0060)
-        parent = grid.get_parent(cell)
 
-        assert parent is None  # No parent at level 0
+        with pytest.raises(ValueError, match="no parent"):
+            grid.get_parent(cell)  # No parent at level 0
 
     def test_get_cells_in_bbox_small(self, grid_level_10):
         """Test getting cells in a small bounding box."""

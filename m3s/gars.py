@@ -2,8 +2,6 @@
 GARS (Global Area Reference System) grid implementation.
 """
 
-from functools import cached_property
-
 from .base import CoreBackedGrid, validate_lat_lon
 
 
@@ -21,14 +19,14 @@ class GARSGrid(CoreBackedGrid):
     MAX_PRECISION = 3
     DEFAULT_PRECISION = 2
 
-    def __init__(self, precision: int = 1):
+    def __init__(self, precision: int = 2):
         """
         Initialize GARSGrid.
 
         Parameters
         ----------
         precision : int, optional
-            GARS precision level (1-3), by default 1.
+            GARS precision level (1-3), by default 2.
 
             Precision levels:
                 1 = 30' × 30' (0.5° × 0.5°) - e.g., "001AA"
@@ -42,7 +40,7 @@ class GARSGrid(CoreBackedGrid):
         """
         super().__init__(precision)
 
-    @cached_property
+    @property
     def area_km2(self) -> float:
         """
         Approximate area of a GARS cell at this precision in square kilometers.

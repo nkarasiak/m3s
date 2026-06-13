@@ -117,7 +117,7 @@ class S2Grid(CoreBackedGrid):
 
         return cells_from_core_packed(m3s_core.s2_children(cell.identifier))
 
-    def get_parent(self, cell: GridCell) -> GridCell | None:
+    def get_parent(self, cell: GridCell) -> GridCell:
         """
         Get parent cell at the previous level.
 
@@ -128,11 +128,16 @@ class S2Grid(CoreBackedGrid):
 
         Returns
         -------
-        GridCell | None
-            Parent cell, or None if already at level 0
+        GridCell
+            Parent cell
+
+        Raises
+        ------
+        ValueError
+            If the cell is already at the coarsest level (0).
         """
         if self.precision <= self.MIN_PRECISION:
-            return None
+            raise ValueError("Cell has no parent (already at S2 level 0)")
 
         return cell_from_core(m3s_core.s2_parent(cell.identifier))
 

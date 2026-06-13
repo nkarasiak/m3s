@@ -167,9 +167,9 @@ class TestSlippyGrid:
         """Test getting parent at root zoom level."""
         grid = SlippyGrid(precision=0)
         cell = grid.get_cell_from_point(40.7128, -74.0060)
-        parent = grid.get_parent(cell)
 
-        assert parent is None  # No parent at zoom 0
+        with pytest.raises(ValueError, match="no parent"):
+            grid.get_parent(cell)  # No parent at zoom 0
 
     def test_get_cells_in_bbox_small(self, grid_zoom_10):
         """Test getting tiles in a small bounding box."""

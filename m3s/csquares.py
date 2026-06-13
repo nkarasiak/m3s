@@ -30,14 +30,14 @@ class CSquaresGrid(CoreBackedGrid):
     MAX_PRECISION = 5
     DEFAULT_PRECISION = 5
 
-    def __init__(self, precision: int = 3):
+    def __init__(self, precision: int = 5):
         """
         Initialize CSquaresGrid.
 
         Parameters
         ----------
         precision : int, optional
-            C-squares precision level (1-5), by default 3.
+            C-squares precision level (1-5), by default 5.
 
             Precision levels:
                 1 = 10° x 10° cells (base level)
@@ -102,27 +102,6 @@ class CSquaresGrid(CoreBackedGrid):
             return cell_from_core(m3s_core.cs_cell_from_id(identifier))
         except Exception as e:
             raise ValueError(f"Invalid C-squares identifier: {identifier}") from e
-
-    @override
-    def get_neighbors(self, cell: GridCell) -> list[GridCell]:
-        """
-        Get neighboring C-squares cells.
-
-        Parameters
-        ----------
-        cell : GridCell
-            The C-squares cell for which to find neighbors
-
-        Returns
-        -------
-        list[GridCell]
-            List of neighboring C-squares cells (up to 8 neighbors)
-        """
-        try:
-            return cells_from_core_packed(m3s_core.cs_neighbors(cell.identifier))
-        except Exception:
-            # Return empty list if cell lookup fails
-            return []
 
     def get_children(self, cell: GridCell) -> list[GridCell]:
         """

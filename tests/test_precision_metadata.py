@@ -84,6 +84,20 @@ def test_default_precision_in_range(name):
 
 
 @pytest.mark.parametrize("name", list(_GRID_CLASSES))
+def test_constructor_default_matches_default_precision(name):
+    """``__init__(precision=...)`` default must equal ``DEFAULT_PRECISION``.
+
+    Otherwise the bare constructor and the golden-path singleton (which uses
+    ``DEFAULT_PRECISION``) disagree on the default precision for the same grid.
+    """
+    import inspect
+
+    cls = _GRID_CLASSES[name]
+    ctor_default = inspect.signature(cls).parameters["precision"].default
+    assert ctor_default == cls.DEFAULT_PRECISION
+
+
+@pytest.mark.parametrize("name", list(_GRID_CLASSES))
 def test_area_calculator_range_matches_class(name):
     """AreaCalculator derives its range from the grid class, not a copy."""
     calc = AreaCalculator(name)

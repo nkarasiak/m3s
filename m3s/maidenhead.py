@@ -2,8 +2,6 @@
 Maidenhead locator system grid implementation.
 """
 
-from functools import cached_property
-
 from .base import CoreBackedGrid, validate_lat_lon
 
 
@@ -21,14 +19,14 @@ class MaidenheadGrid(CoreBackedGrid):
     MAX_PRECISION = 4
     DEFAULT_PRECISION = 4
 
-    def __init__(self, precision: int = 3):
+    def __init__(self, precision: int = 4):
         """
         Initialize MaidenheadGrid.
 
         Parameters
         ----------
         precision : int, optional
-            Maidenhead precision level (1-4), by default 3.
+            Maidenhead precision level (1-4), by default 4.
 
             Precision levels:
                 1 = Field (20° × 10°) - e.g., "JO"
@@ -43,7 +41,7 @@ class MaidenheadGrid(CoreBackedGrid):
         """
         super().__init__(precision)
 
-    @cached_property
+    @property
     def area_km2(self) -> float:
         """
         Approximate area of a Maidenhead cell at this precision in square kilometers.

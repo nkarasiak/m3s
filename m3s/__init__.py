@@ -5,16 +5,16 @@ A unified Python package for working with hierarchical spatial grid systems,
 including grid conversion utilities, relationship analysis, and multi-resolution
 operations.
 
-The default entry point (the "golden path") is the grid-singleton
-API, which uses GIS-native (lon, lat) coordinate order::
+The default entry point is the grid-singleton API, which uses GIS-native
+(lon, lat) coordinate order::
 
     import m3s
     cell = m3s.H3.from_geometry((-74.0060, 40.7128))   # (lon, lat)
     cells = m3s.H3.from_geometry(polygon)
 
-The classic ``*Grid`` classes and the advanced ``GridBuilder`` /
-``PrecisionSelector`` / ``MultiGridComparator`` tools are optional; see the
-README "Which API should I use?" section.
+The ``*Grid`` classes and the advanced ``GridBuilder`` / ``PrecisionSelector``
+/ ``MultiGridComparator`` tools are also available for lower-level and
+multi-grid work.
 """
 
 # Modern API

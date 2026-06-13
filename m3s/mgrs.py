@@ -24,14 +24,14 @@ class MGRSGrid(CoreBackedGrid):
     MAX_PRECISION = 5
     DEFAULT_PRECISION = 3
 
-    def __init__(self, precision: int = 1):
+    def __init__(self, precision: int = 3):
         """
         Initialize MGRSGrid.
 
         Parameters
         ----------
         precision : int, optional
-            MGRS precision level (0-5), by default 1.
+            MGRS precision level (0-5), by default 3.
 
             Precision levels:
                 0 = 100km grid

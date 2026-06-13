@@ -15,7 +15,7 @@ class TestCSquaresGrid:
     def test_init_default(self):
         """Test default initialization."""
         grid = CSquaresGrid()
-        assert grid.precision == 3
+        assert grid.precision == 5
 
     def test_init_custom_precision(self):
         """Test initialization with custom precision."""
@@ -327,9 +327,9 @@ class TestCSquaresGrid:
             "invalid:format", Polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]), 3
         )
 
-        # Should return empty list when exceptions occur
-        neighbors = grid.get_neighbors(invalid_cell)
-        assert neighbors == []
+        # An unparseable identifier propagates the core error (no silent empty)
+        with pytest.raises(ValueError):
+            grid.get_neighbors(invalid_cell)
 
     def test_decode_csquare_edge_cases(self):
         """Malformed C-squares identifiers are rejected with ValueError."""
