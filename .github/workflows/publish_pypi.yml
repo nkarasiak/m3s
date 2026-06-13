@@ -49,11 +49,11 @@ jobs:
     - name: Build package
       run: uv build
 
+    # Tokenless via PyPI Trusted Publishing (OIDC, id-token: write above).
+    # Configure the publisher on pypi.org (project m3s -> Publishing) with this
+    # repo, workflow `publish_pypi.yml`, and the `release` environment.
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
 
   npm:
     runs-on: ubuntu-latest
