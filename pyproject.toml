@@ -8,7 +8,7 @@ version = "0.6.0"
 authors = [
     {name = "Nicolas Karasiak", email = "karasiak.nicolas@gmail.com"},
 ]
-description = "Multi Spatial Subdivision System - A unified Python package for working with spatial grid systems"
+description = "M3S is a unified package for spatial grid systems like H3, A5, MGRS, and Geohash: encode coordinates to cells, convert between systems, and get cell geometry as polygons."
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.12"
