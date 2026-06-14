@@ -401,8 +401,8 @@ class GridWrapper(H3VerbsMixin):
         Parameters
         ----------
         use_case : str
-            Use case: 'building', 'block', 'neighborhood', 'city',
-            'region', or 'country'
+            Use case: 'global', 'continental', 'country', 'region', 'city',
+            'neighborhood', 'street', 'building', or 'room'
 
         Returns
         -------

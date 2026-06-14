@@ -11,20 +11,8 @@ from typing import Any
 
 import pandas as pd
 
-from .a5 import A5Grid
 from .base import BaseGrid, GridCell
-from .csquares import CSquaresGrid
-from .eaquad import EAQuadGrid
-from .gars import GARSGrid
-from .geohash import GeohashGrid
-from .h3 import H3Grid
-from .maidenhead import MaidenheadGrid
-from .mgrs import MGRSGrid
-from .pluscode import PlusCodeGrid
-from .quadkey import QuadkeyGrid
-from .rhealpix import RHEALPixGrid
-from .s2 import S2Grid
-from .slippy import SlippyGrid
+from .registry import GRID_CLASSES
 
 
 class GridConverter:
@@ -35,22 +23,10 @@ class GridConverter:
     find equivalent cells, and perform batch conversions.
     """
 
-    # Mapping of grid system names to classes
-    GRID_SYSTEMS: dict[str, type[BaseGrid]] = {
-        "a5": A5Grid,
-        "geohash": GeohashGrid,
-        "mgrs": MGRSGrid,
-        "h3": H3Grid,
-        "quadkey": QuadkeyGrid,
-        "s2": S2Grid,
-        "slippy": SlippyGrid,
-        "csquares": CSquaresGrid,
-        "gars": GARSGrid,
-        "maidenhead": MaidenheadGrid,
-        "pluscode": PlusCodeGrid,
-        "eaquad": EAQuadGrid,
-        "rhealpix": RHEALPixGrid,
-    }
+    # Mapping of grid system names to classes. The canonical map lives in
+    # ``m3s.registry``; this alias keeps the public ``GridConverter.GRID_SYSTEMS``
+    # attribute pointing at it (single source, no duplicate list).
+    GRID_SYSTEMS: dict[str, type[BaseGrid]] = GRID_CLASSES
 
     # Default precision/resolution mappings chosen for roughly *equivalent area
     # coverage across grids* (so a conversion lands at a comparable cell size).

@@ -23,15 +23,37 @@ precision. The core speaks cells as `(id, ring, precision)` tuples; Python wraps
 them into `GridCell` (`m3s/base.py`), JS into GeoJSON.
 
 **Registry**
-The map of grid-system name → grid (`m3s/__init__.py::_GRID_REGISTRY`), surfaced
-via `grid(name)` / `grids()`. The set of grids is the set of core modules.
+The map of grid-system name → grid. Two layers, one source:
+- *Class registry* — name → grid *class* (`"h3"` → `H3Grid`): the single place
+  that knows the set of grids and how to construct one at any precision. A
+  cycle-free module (it cannot live in `m3s/__init__.py`, which imports `api/`).
+  Consumed wherever a grid is built from a name — the singleton registry,
+  `GridConverter`, and `PrecisionSelector`. Replaces the duplicated
+  `GridConverter.GRID_SYSTEMS` map.
+- *Singleton registry* — name → grid *singleton wrapper*
+  (`m3s/__init__.py::_GRID_REGISTRY`), surfaced via `grid(name)` / `grids()`,
+  built from the class registry.
+
+The set of grids is the set of core modules.
 
 **Area model**
 Two distinct numbers, do not conflate:
 - *Cell area* — actual area of a specific cell. Core-owned geodesic formula
   (`m3s_core.geodesic_area_km2`), identical across Python + JS (ADR 0001 §3).
-- *Theoretical area at precision* — `Grid.area_km2`, a per-grid-system nominal
-  size at a precision level. Per-grid data, not derived from the core.
+- *Theoretical area at precision* — `Grid.area_km2`, a single representative
+  cell size at a precision level. **Derived from the core**, not hand-kept, and
+  single-sourced: the former per-grid `area_km2` dicts and
+  `AreaCalculator.AREA_TABLES` (which disagreed — geohash p5 was both 4892 and
+  2.443 km²) are gone. The default (`m3s/base.py::BaseGrid.area_km2`) is the
+  geodesic area (`m3s_core.geodesic_area_km2`) of a reference cell sampled at a
+  canonical latitude (45°), cached per `(grid, precision)` so precision sweeps
+  stay cheap. Equal-area grids (a5, rhealpix via the core; eaquad analytic) and
+  the approximately-equal-area s2 **override** with their exact value — both
+  because it is more accurate and because sampling degenerates for huge cells
+  (an s2 level-0 cell spans a sixth of the planet). `AreaCalculator.get_area`
+  reads `Grid.area_km2`, so selection and the grid object can never drift.
+  Precision selection over a real region samples at that region's centroid
+  latitude (`nominal_area_km2(grid, latitude=…)`) for true local area.
 
 ## Architecture (module names)
 

@@ -9,16 +9,16 @@ import math
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Tuple
 
-from ..base import BaseGrid
-from ..conversion import GridConverter
+from ..base import BaseGrid, nominal_area_km2
 from ..geohash import GeohashGrid
+from ..registry import GRID_CLASSES
 
-# Name -> grid class. Reuses the conversion registry as the single name->class
+# Name -> grid class. Reuses the canonical registry as the single name->class
 # map, plus the ``geohash_int`` alias used by the builder/parameters layer.
 # Precision ranges come from each class's MIN_PRECISION/MAX_PRECISION (the
 # single source of truth), so AreaCalculator never keeps its own range copy.
 _GRID_CLASSES: dict[str, type[BaseGrid]] = {
-    **GridConverter.GRID_SYSTEMS,
+    **GRID_CLASSES,
     "geohash_int": GeohashGrid,
 }
 
@@ -64,325 +64,75 @@ class PrecisionRecommendation:
 
 class AreaCalculator:
     """
-    Precomputed area lookup tables for fast precision selection.
+    Nominal cell-area lookups for precision selection.
 
-    This class provides O(1) area lookups for all grid systems with optional
-    latitude-based corrections for systems with significant distortion.
+    Areas come from the shared core via geodesic sampling
+    (:func:`m3s.base.nominal_area_km2`) — the single source of nominal area, so
+    this can never drift from ``Grid.area_km2``. Each sampled ``(grid,
+    precision)`` value is cached, so after first touch it is effectively an O(1)
+    lookup. Passing a ``latitude`` samples the cell there for the true local area
+    (used by region-based selection); omitting it uses the canonical 45° nominal.
+
+    The valid precision range comes from the grid class
+    (``MIN_PRECISION``/``MAX_PRECISION``), the single source of truth.
     """
-
-    # Precomputed average cell areas in km² for each grid system
-    # Values derived from grid system specifications and empirical testing
-    AREA_TABLES = {
-        "a5": [  # resolution 0-30, from pya5 cell_area (authalic, km²)
-            4.25055e07,  # 0
-            8.50109e06,  # 1
-            2.12527e06,  # 2
-            531318.0,  # 3
-            132830.0,  # 4
-            33207.4,  # 5
-            8301.85,  # 6
-            2075.46,  # 7
-            518.866,  # 8
-            129.716,  # 9
-            32.4291,  # 10
-            8.10727,  # 11
-            2.02682,  # 12
-            0.506705,  # 13
-            0.126676,  # 14
-            0.031669,  # 15
-            0.00791726,  # 16
-            0.00197932,  # 17
-            0.000494829,  # 18
-            0.000123707,  # 19
-            3.09268e-05,  # 20
-            7.7317e-06,  # 21
-            1.93292e-06,  # 22
-            4.83231e-07,  # 23
-            1.20808e-07,  # 24
-            3.0202e-08,  # 25
-            7.55049e-09,  # 26
-            1.88762e-09,  # 27
-            4.71906e-10,  # 28
-            1.17976e-10,  # 29
-            2.94941e-11,  # 30
-        ],
-        "geohash": [  # precision 1-12
-            5003.771,
-            625.471,
-            78.184,
-            19.546,
-            2.443,
-            0.610,
-            0.152,
-            0.019,
-            0.0048,
-            0.0012,
-            0.00030,
-            0.000074,
-        ],
-        "h3": [  # resolution 0-15
-            4357449.416,
-            609788.441,
-            86801.780,
-            12392.264,
-            1770.323,
-            252.903,
-            36.129,
-            5.161,
-            0.737,
-            0.105,
-            0.015,
-            0.002,
-            0.0003,
-            0.00005,
-            0.000007,
-            0.000001,
-        ],
-        "s2": [  # level 0-30, approximate average
-            85011012.19,
-            21252753.05,
-            5313188.26,
-            1328297.07,
-            332074.27,
-            83018.57,
-            20754.64,
-            5188.66,
-            1297.17,
-            324.29,
-            81.07,
-            20.27,
-            5.07,
-            1.27,
-            0.32,
-            0.08,
-            0.02,
-            0.005,
-            0.001,
-            0.0003,
-            0.00008,
-            0.00002,
-            0.000005,
-            0.000001,
-            0.00000032,
-            0.00000008,
-            0.00000002,
-            0.000000005,
-            0.000000001,
-            0.00000000032,
-            0.00000000008,
-        ],
-        "quadkey": [  # level 1-23
-            127516118.0,
-            31879029.5,
-            7969757.38,
-            1992439.34,
-            498109.84,
-            124527.46,
-            31131.86,
-            7782.97,
-            1945.74,
-            486.43,
-            121.61,
-            30.40,
-            7.60,
-            1.90,
-            0.47,
-            0.12,
-            0.03,
-            0.007,
-            0.002,
-            0.0005,
-            0.0001,
-            0.00003,
-            0.000008,
-        ],
-        "slippy": [  # zoom 0-20 (same as quadkey)
-            510072000.0,
-            127518000.0,
-            31879500.0,
-            7969875.0,
-            1992469.0,
-            498117.0,
-            124529.0,
-            31132.0,
-            7783.0,
-            1946.0,
-            486.5,
-            121.6,
-            30.4,
-            7.6,
-            1.9,
-            0.475,
-            0.119,
-            0.030,
-            0.007,
-            0.002,
-            0.0005,
-        ],
-        "geohash_int": [  # Same as geohash for now
-            5003.771,
-            625.471,
-            78.184,
-            19.546,
-            2.443,
-            0.610,
-            0.152,
-            0.019,
-            0.0048,
-            0.0012,
-            0.00030,
-            0.000074,
-        ],
-        "mgrs": [  # 1m to 100km grid squares
-            10000.0,  # 100km
-            100.0,  # 10km
-            1.0,  # 1km
-            0.01,  # 100m
-            0.0001,  # 10m
-            0.000001,  # 1m
-        ],
-        "csquares": [  # C-squares resolutions
-            2827433.39,  # 10° × 10°
-            282743.34,  # 1° × 1°
-            2827.43,  # 0.1° × 0.1°
-            28.27,  # 0.01° × 0.01°
-            0.28,  # 0.001° × 0.001°
-        ],
-        "gars": [  # GARS resolutions
-            155400.0,  # 30' × 30'
-            6475.0,  # 15' × 15'
-            269.8,  # 5' × 5'
-        ],
-        "maidenhead": [  # Maidenhead locator precision 1-8
-            2000000.0,  # 10° × 20° (2 chars)
-            200000.0,  # 1° × 2° (4 chars)
-            5000.0,  # 2.5' × 5' (6 chars)
-            125.0,  # 0.625' × 1.25' (8 chars)
-            3.125,  # 0.0625' × 0.125' (10 chars)
-            0.078,  # 0.00625' × 0.0125' (12 chars)
-        ],
-        "pluscode": [  # Plus Codes precision 2-15
-            24900000.0,  # 2 digits
-            2490000.0,  # 4 digits
-            249000.0,  # 6 digits
-            24900.0,  # 8 digits
-            3113.0,  # 10 digits (standard)
-            389.0,  # 11 digits
-            48.6,  # 12 digits
-            6.1,  # 13 digits
-            0.76,  # 14 digits
-            0.095,  # 15 digits
-        ],
-        "eaquad": [  # precision 0-20, analytic: (2 ** (10 - p)) ** 2 km²
-            1048576.0,  # 0: 1024 km cells
-            262144.0,  # 1: 512 km
-            65536.0,  # 2: 256 km
-            16384.0,  # 3: 128 km
-            4096.0,  # 4: 64 km
-            1024.0,  # 5: 32 km
-            256.0,  # 6: 16 km
-            64.0,  # 7: 8 km
-            16.0,  # 8: 4 km
-            4.0,  # 9: 2 km
-            1.0,  # 10: 1 km
-            0.25,  # 11: 500 m
-            0.0625,  # 12: 250 m
-            0.015625,  # 13: 125 m
-            0.00390625,  # 14: 62.5 m
-            0.0009765625,  # 15: 31.25 m
-            0.000244140625,  # 16: 15.625 m
-            6.103515625e-05,  # 17: ~7.81 m
-            1.52587890625e-05,  # 18: ~3.91 m
-            3.814697265625e-06,  # 19: ~1.95 m
-            9.5367431640625e-07,  # 20: ~0.98 m
-        ],
-        "rhealpix": [  # resolution 0-15, analytic: (2*pi/3) * R_A² / 9**r km²
-            85010936.9540148,  # 0
-            9445659.6615572,  # 1
-            1049517.740173022,  # 2
-            116613.0822414469,  # 3
-            12957.009137938545,  # 4
-            1439.6676819931718,  # 5
-            159.96307577701907,  # 6
-            17.77367508633545,  # 7
-            1.9748527873706059,  # 8
-            0.21942808748562287,  # 9
-            0.024380898609513653,  # 10
-            0.002708988734390406,  # 11
-            0.00030099874826560065,  # 12
-            3.3444305362844515e-05,  # 13
-            3.716033929204946e-06,  # 14
-            4.1289265880054957e-07,  # 15
-        ],
-    }
 
     def __init__(self, grid_system: str):
         """
-        Initialize area calculator for specific grid system.
+        Initialize area calculator for a specific grid system.
 
         Parameters
         ----------
         grid_system : str
-            Name of the grid system (e.g., 'geohash', 'h3', 's2')
+            Name of the grid system (e.g., 'geohash', 'h3', 's2').
         """
-        if grid_system not in self.AREA_TABLES:
+        if grid_system not in _GRID_CLASSES:
             raise ValueError(
                 f"Unknown grid system: {grid_system}. "
-                f"Valid systems: {', '.join(self.AREA_TABLES.keys())}"
+                f"Valid systems: {', '.join(_GRID_CLASSES)}"
             )
         self.grid_system = grid_system
-        self.area_table = self.AREA_TABLES[grid_system]
-        # Range comes from the grid class (single source of truth), not a local
-        # copy, so it always matches the grid's own constructor validation.
-        self.min_precision, self.max_precision = _GRID_CLASSES[
-            grid_system
-        ].precision_range()
+        self._grid_class = _GRID_CLASSES[grid_system]
+        # Range comes from the grid class (single source of truth), so it always
+        # matches the grid's own constructor validation.
+        self.min_precision, self.max_precision = self._grid_class.precision_range()
+
+    @property
+    def area_table(self) -> list[float]:
+        """
+        Nominal area (km²) at each precision in range, sampled at canonical 45°.
+
+        Derived on demand from the per-precision sampled areas (each cached), so
+        it stays consistent with :meth:`get_area` and ``Grid.area_km2``.
+        """
+        return [
+            self.get_area(p) for p in range(self.min_precision, self.max_precision + 1)
+        ]
 
     def get_area(self, precision: int, latitude: Optional[float] = None) -> float:
         """
-        Get cell area at given precision with optional latitude correction.
+        Nominal cell area at ``precision``, optionally sampled at ``latitude``.
 
         Parameters
         ----------
         precision : int
-            Precision level
+            Precision level.
         latitude : Optional[float]
-            Latitude for distortion correction (used for Geohash, MGRS)
+            Latitude to sample at, for the true local area. Defaults to the
+            canonical nominal latitude (45°).
 
         Returns
         -------
         float
-            Cell area in km²
+            Cell area in km².
         """
         if not self.min_precision <= precision <= self.max_precision:
             raise ValueError(
                 f"Precision {precision} out of range "
                 f"[{self.min_precision}, {self.max_precision}] for {self.grid_system}"
             )
-
-        # Get base area from lookup table
-        idx = precision - self.min_precision
-        if idx >= len(self.area_table):
-            # Extrapolate for very high precisions
-            idx = len(self.area_table) - 1
-            scale = 4 ** (precision - (self.min_precision + idx))
-            base_area = self.area_table[idx] / scale
-        else:
-            base_area = self.area_table[idx]
-
-        # Apply latitude correction for systems with significant distortion
-        if latitude is not None and self.grid_system in [
-            "geohash",
-            "geohash_int",
-            "mgrs",
-        ]:
-            # Cells shrink in area at higher latitudes due to meridian convergence
-            # Simple cosine correction (approximate)
-            lat_rad = math.radians(latitude)
-            correction = math.cos(lat_rad)
-            return float(base_area * correction)
-
-        return float(base_area)
+        grid = self._grid_class(precision=precision)
+        return nominal_area_km2(grid, latitude=latitude)
 
     def find_precision_for_area(
         self, target_area_km2: float, latitude: Optional[float] = None
@@ -728,17 +478,23 @@ class PrecisionSelector:
         lon_km = lon_diff * 111.32 * math.cos(math.radians(center_lat))
         region_area_km2 = lat_km * lon_km
 
-        # Target area per cell
-        target_area_per_cell = region_area_km2 / target_count
-
-        # Find precision for that area
-        precision = self.area_calculator.find_precision_for_area(
-            target_area_per_cell, center_lat
-        )
-        actual_area = self.area_calculator.get_area(precision, center_lat)
-
-        # Estimate actual cell count
-        estimated_count = int(region_area_km2 / actual_area)
+        # Pick the precision whose estimated cell count is closest to the
+        # target. Optimising the count objective directly is more accurate than
+        # going via a per-cell target area, especially for grids with coarse
+        # precision steps where the nearest cell area lands far from the count.
+        precision = self.area_calculator.min_precision
+        estimated_count = 0
+        best_diff = float("inf")
+        for candidate in range(
+            self.area_calculator.min_precision, self.area_calculator.max_precision + 1
+        ):
+            cell_area = self.area_calculator.get_area(candidate, center_lat)
+            count = int(region_area_km2 / cell_area) if cell_area > 0 else 0
+            diff = abs(count - target_count)
+            if diff < best_diff:
+                best_diff = diff
+                precision = candidate
+                estimated_count = count
 
         deviation = abs(estimated_count - target_count) / target_count
         confidence = max(0.0, 1.0 - (deviation / tolerance))
@@ -918,7 +674,11 @@ class PrecisionSelector:
             self.area_calculator.min_precision, self.area_calculator.max_precision + 1
         ):
             cell_area = self.area_calculator.get_area(precision)
-            estimated_cells = int(region_size_km2 / cell_area)
+            # Sub-resolution cells can sample to ~0 area; treat as effectively
+            # unbounded cell count so the budget loop stops at this precision.
+            estimated_cells = (
+                int(region_size_km2 / cell_area) if cell_area > 0 else 10**12
+            )
 
             estimated_time = self.performance_profiler.estimate_operation_time(
                 operation_type, estimated_cells, self.grid_system
@@ -935,7 +695,9 @@ class PrecisionSelector:
                 break
 
         actual_area = self.area_calculator.get_area(best_precision)
-        estimated_cells = int(region_size_km2 / actual_area)
+        estimated_cells = (
+            int(region_size_km2 / actual_area) if actual_area > 0 else 10**12
+        )
         estimated_time = self.performance_profiler.estimate_operation_time(
             operation_type, estimated_cells, self.grid_system
         )

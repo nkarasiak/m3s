@@ -12,6 +12,10 @@ import geopandas as gpd
 from shapely.geometry import MultiPolygon, Polygon
 from shapely.ops import unary_union
 
+from ..base import NOMINAL_SAMPLE_LAT, nominal_area_km2
+from ..registry import name_for_class
+from .precision import PrecisionSelector
+
 if TYPE_CHECKING:
     from .grid_wrapper import GridWrapper
 
@@ -29,20 +33,27 @@ class PrecisionFinder:
         Reference to parent grid wrapper
     """
 
-    # Use case to target area mapping (in km²)
-    USE_CASE_AREAS = {
-        "building": (0.001, 0.01),  # Individual buildings
-        "block": (0.01, 0.1),  # City blocks
-        "neighborhood": (1.0, 10.0),  # Neighborhoods
-        "city": (100.0, 1000.0),  # Cities
-        "region": (10000.0, 100000.0),  # States/provinces
-        "country": (100000.0, 1000000.0),  # Countries
-    }
-
     def __init__(self, grid_wrapper: "GridWrapper"):
         """Initialize precision finder with grid wrapper."""
         self._grid = grid_wrapper
         self._cache: Dict[str, int] = {}
+        # The non-geometry strategies (area, use-case) delegate to the shared
+        # PrecisionSelector so there is one area source and one use-case table.
+        self._selector = PrecisionSelector(name_for_class(grid_wrapper._grid_class))
+        # Latitude at which cell areas are sampled while ranking precisions for a
+        # geometry; set per call to the region's centroid (true local area).
+        self._sample_lat: float = NOMINAL_SAMPLE_LAT
+
+    def _ref_cell_area(self, precision: int) -> float:
+        """
+        Nominal cell area at ``precision``, sampled at the current region latitude.
+
+        Routes through :func:`m3s.base.nominal_area_km2`, the single area source,
+        so the geometry strategies rank precisions off the same numbers as the
+        rest of the API (equal-area grids return their exact value).
+        """
+        grid = self._grid._get_grid(precision)
+        return nominal_area_km2(grid, latitude=self._sample_lat)
 
     def for_geometries(
         self,
@@ -74,6 +85,10 @@ class PrecisionFinder:
         if geometry is None or geometry.is_empty:
             return self._grid._default_precision
 
+        # Rank precisions using cell areas sampled at this region's latitude
+        # (true local area for lat-distorted grids), not a fixed reference point.
+        self._sample_lat = geometry.centroid.y
+
         # Calculate geometry properties
         geom_area = self._calculate_area_km2(geometry)
         if geom_area == 0:
@@ -85,11 +100,8 @@ class PrecisionFinder:
         # OPTIMIZATION: For very large areas that would produce many cells,
         # use fast approximation instead of testing all candidates
         estimated = self._estimate_precision_for_area(geom_area)
-        test_grid = self._grid._get_grid(estimated)
-        test_cell = test_grid.get_cell_from_point(0, 0)
-        estimated_cells = (
-            int(geom_area / test_cell.area_km2) if test_cell.area_km2 > 0 else 0
-        )
+        ref_area = self._ref_cell_area(estimated)
+        estimated_cells = int(geom_area / ref_area) if ref_area > 0 else 0
 
         # If estimated cells > 10000, use fast path (skip expensive coverage testing)
         if estimated_cells > 10000:
@@ -128,6 +140,8 @@ class PrecisionFinder:
         """
         Find precision closest to target cell area.
 
+        Delegates to the shared :class:`PrecisionSelector` (single area source).
+
         Parameters
         ----------
         target_km2 : float
@@ -140,39 +154,20 @@ class PrecisionFinder:
         int
             Precision with cell area closest to target
         """
-        # Test all valid precisions for this grid system
-        min_precision, max_precision = self._grid._get_precision_range()
-
-        best_precision = min_precision
-        best_error = float("inf")
-
-        for precision in range(min_precision, max_precision + 1):
-            # Get typical cell area at this precision
-            test_cell = self._grid._get_grid(precision).get_cell_from_point(0, 0)
-            cell_area = test_cell.area_km2
-
-            # Calculate relative error
-            error = abs(cell_area - target_km2) / target_km2
-
-            if error < best_error:
-                best_error = error
-                best_precision = precision
-
-            # Stop if within tolerance
-            if error <= tolerance:
-                break
-
-        return best_precision
+        return self._selector.for_area(target_km2, tolerance).precision
 
     def for_use_case(self, use_case: str) -> int:
         """
-        Find precision for predefined use case.
+        Find precision for a predefined use case.
+
+        Delegates to the shared :class:`PrecisionSelector`, whose per-grid
+        curated presets are the single use-case table.
 
         Parameters
         ----------
         use_case : str
-            Use case name: 'building', 'block', 'neighborhood', 'city',
-            'region', or 'country'
+            Use case name: 'global', 'continental', 'country', 'region', 'city',
+            'neighborhood', 'street', 'building', or 'room'.
 
         Returns
         -------
@@ -184,17 +179,7 @@ class PrecisionFinder:
         ValueError
             If use case not recognized
         """
-        if use_case not in self.USE_CASE_AREAS:
-            raise ValueError(
-                f"Unknown use case: {use_case}. "
-                f"Valid cases: {', '.join(self.USE_CASE_AREAS.keys())}"
-            )
-
-        # Get target area range for use case
-        min_area, max_area = self.USE_CASE_AREAS[use_case]
-        target_area = math.sqrt(min_area * max_area)  # Geometric mean
-
-        return self.for_area(target_area, tolerance=0.3)
+        return self._selector.for_use_case(use_case).precision
 
     # Internal helper methods
 
@@ -279,9 +264,7 @@ class PrecisionFinder:
 
         while min_p < max_p:
             mid = (min_p + max_p) // 2
-            test_cell = self._grid._get_grid(mid).get_cell_from_point(0, 0)
-
-            if test_cell.area_km2 > target_cell_area:
+            if self._ref_cell_area(mid) > target_cell_area:
                 min_p = mid + 1
             else:
                 max_p = mid
@@ -516,8 +499,7 @@ class PrecisionFinder:
         best_error = float("inf")
 
         for precision in candidates:
-            test_cell = self._grid._get_grid(precision).get_cell_from_point(0, 0)
-            cell_area = test_cell.area_km2
+            cell_area = self._ref_cell_area(precision)
             error = abs(cell_area - target_cell_area)
 
             if error < best_error:
@@ -529,10 +511,10 @@ class PrecisionFinder:
     def _estimate_cell_count(self, geom_area: float, precision: int) -> int:
         """Estimate number of cells for geometry area at precision."""
         try:
-            test_cell = self._grid._get_grid(precision).get_cell_from_point(0, 0)
-            if test_cell.area_km2 <= 0:
+            cell_area = self._ref_cell_area(precision)
+            if cell_area <= 0:
                 return 0
-            return int(geom_area / test_cell.area_km2)
+            return int(geom_area / cell_area)
         except Exception:
             return 0
 

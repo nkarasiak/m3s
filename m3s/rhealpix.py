@@ -118,10 +118,11 @@ class RHEALPixGrid(CoreBackedGrid):
         """
         Exact area of a cell at this resolution in km^2.
 
-        rHEALPix is equal-area, so every cell at a given resolution has the
-        same ground area: ``(2*pi/3) * R_A^2 / 9 ** resolution`` with ``R_A``
-        the WGS84 authalic radius (one sixth of the Earth's surface at
-        resolution 0). Analytic; no polygon involved.
+        rHEALPix is equal-area, so every cell at a given resolution has the same
+        ground area: ``(2*pi/3) * R_A^2 / 9 ** resolution`` with ``R_A`` the
+        WGS84 authalic radius. Taken straight from the shared core
+        (``rhp_cell_area_km2``) -- exact, not the geodesic-sampled nominal the
+        base class would compute.
 
         Returns
         -------

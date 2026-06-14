@@ -241,22 +241,19 @@ class EAQuadGrid(CoreBackedGrid):
     @property
     def area_km2(self) -> float:
         """
-        Theoretical area of a cell at this precision in km^2.
+        Exact nominal area of a cell at this precision in km^2.
 
-        Equal-area projection: the area is analytic and constant worldwide,
-        ``size_km ** 2``. No projection of the polygon is needed.
-
-        This is the *nominal* cell area. The projection domain is not an integer
-        multiple of every cell size, so the easternmost/northernmost (and polar)
-        cells are clipped to the domain and are physically smaller than nominal.
-        Like the other M3S grids, ``area_km2`` still reports the nominal
-        ``size_km ** 2``; use :meth:`native_cell_area` for the exact (clipped)
-        area of an individual cell.
+        EPSG:6933 is an equal-area projection, so the nominal cell area is
+        analytic and constant worldwide: ``size_km ** 2`` -- exact, not the
+        geodesic-sampled value the base class would compute. (The
+        easternmost/northernmost cells are clipped to the projection domain and
+        are physically smaller; use :meth:`native_cell_area` for an individual
+        cell's exact clipped area.)
 
         Returns
         -------
         float
-            Theoretical (nominal) area in square kilometres.
+            Nominal area in square kilometres.
         """
         return float(self.size_km**2)
 

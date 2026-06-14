@@ -52,32 +52,6 @@ class QuadkeyGrid(CoreBackedGrid):
         """
         super().__init__(precision)
 
-    @property
-    def area_km2(self) -> float:
-        """
-        Get the theoretical area of Quadkey tiles at this level in square kilometers.
-
-        Returns
-        -------
-        float
-            Theoretical area in square kilometers for tiles at this level
-        """
-        # Quadkey tiles are squares in Web Mercator projection
-        # At each level, tiles are half the size in each dimension
-        # Level 1: 2×2 tiles, Level 2: 4×4 tiles, etc.
-
-        # Earth's circumference in Web Mercator projection
-        earth_circumference_km = 40075.0  # At equator
-
-        # Number of tiles at this level (2^level × 2^level)
-        tiles_per_side = 2**self.precision
-
-        # Size of each tile
-        tile_size_km = earth_circumference_km / tiles_per_side
-
-        # Area (square)
-        return float(tile_size_km * tile_size_km)
-
     def _pixel_to_lat_lon(self, px: int, py: int, map_size: int) -> tuple[float, float]:
         """
         Convert pixel coordinates to latitude/longitude.

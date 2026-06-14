@@ -55,33 +55,6 @@ class SlippyGrid(CoreBackedGrid):
         """
         super().__init__(precision)
 
-    @property
-    def area_km2(self) -> float:
-        """
-        Get the theoretical area of Slippy Map tiles.
-
-        At this zoom level, returns the area in square kilometers.
-
-        Returns
-        -------
-        float
-            Theoretical area in square kilometers for tiles at this zoom level
-        """
-        # Slippy tiles are squares in Web Mercator projection
-        # At zoom level z, there are 2^z × 2^z tiles
-
-        # Earth's circumference in Web Mercator projection (at equator)
-        earth_circumference_km = 40075.0
-
-        # Number of tiles at this zoom level
-        tiles_per_side = 2**self.precision
-
-        # Size of each tile
-        tile_size_km = earth_circumference_km / tiles_per_side
-
-        # Area (square)
-        return float(tile_size_km * tile_size_km)
-
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """

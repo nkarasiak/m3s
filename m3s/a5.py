@@ -85,12 +85,12 @@ class A5Grid(CoreBackedGrid):
     @property
     def area_km2(self) -> float:
         """
-        Theoretical area of a cell at this precision in km^2.
+        Exact area of a cell at this precision in km^2.
 
         A5 is equal-area, so every cell at a given resolution has the same
         ground area. The value comes straight from the shared core's authalic,
-        ellipsoid-aware ``a5_cell_area_m2`` (the same a5 crate ``pya5`` wraps),
-        in m^2, converted to km^2.
+        ellipsoid-aware ``a5_cell_area_m2`` (the same a5 crate ``pya5`` wraps) --
+        exact, not the geodesic-sampled nominal the base class would compute.
 
         Returns
         -------

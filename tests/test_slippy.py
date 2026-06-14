@@ -38,21 +38,20 @@ class TestSlippyGrid:
                 SlippyGrid(precision=zoom)
 
     def test_area_km2_property(self):
-        """Test area_km2 property calculation."""
-        # Test zoom 0 (1 tile covering the world)
+        """area_km2 is the geodesic-sampled nominal: world-scale at zoom 0 and
+        strictly shrinking with zoom.
+
+        Zoom 0 is a single tile spanning the whole web-mercator world, so its
+        geodesic area is on the order of Earth's surface (~5.1e8 km²) — not the
+        old mercator-planar ``40075**2``.
+        """
         grid_0 = SlippyGrid(precision=0)
-        expected_area_0 = 40075.0**2  # Earth circumference squared
-        assert abs(grid_0.area_km2 - expected_area_0) < 1000  # Allow some tolerance
+        assert 4.5e8 < grid_0.area_km2 < 5.2e8
 
-        # Test zoom 1 (4 tiles)
+        # Each zoom level quarters the tile; areas shrink monotonically.
         grid_1 = SlippyGrid(precision=1)
-        expected_area_1 = (40075.0 / 2) ** 2
-        assert abs(grid_1.area_km2 - expected_area_1) < 1000
-
-        # Test that higher zoom levels have smaller areas
-        grid_10 = SlippyGrid(precision=10)
-        grid_15 = SlippyGrid(precision=15)
-        assert grid_15.area_km2 < grid_10.area_km2
+        assert grid_1.area_km2 < grid_0.area_km2
+        assert SlippyGrid(precision=15).area_km2 < SlippyGrid(precision=10).area_km2
 
     def test_get_cell_from_point_nyc(self, grid_zoom_10):
         """Test getting tile from NYC coordinates."""

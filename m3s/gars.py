@@ -40,20 +40,6 @@ class GARSGrid(CoreBackedGrid):
         """
         super().__init__(precision)
 
-    @property
-    def area_km2(self) -> float:
-        """
-        Approximate area of a GARS cell at this precision in square kilometers.
-
-        Returns
-        -------
-        float
-            Approximate area in square kilometers
-        """
-        size_degrees = {1: 0.5, 2: 0.25, 3: 0.25 / 3}[self.precision]
-        size_km = size_degrees * 111.32
-        return size_km * size_km
-
     def encode(self, lat: float, lon: float) -> str:
         """
         Encode a latitude/longitude into a GARS identifier.

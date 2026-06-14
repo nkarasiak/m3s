@@ -677,4 +677,4 @@ class GridBuilder:
         grid_class = grid_classes[system]
 
         # Every grid accepts the standardized ``precision`` keyword.
-        return grid_class(precision=precision)  # type: ignore[abstract]
+        return grid_class(precision=precision)

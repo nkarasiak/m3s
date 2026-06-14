@@ -48,21 +48,6 @@ class MGRSGrid(CoreBackedGrid):
         """
         super().__init__(precision)
 
-    @property
-    def area_km2(self) -> float:
-        """
-        Get the theoretical area of MGRS cells at this precision in square kilometers.
-
-        Returns
-        -------
-        float
-            Theoretical area in square kilometers for cells at this precision
-        """
-        # MGRS cells are square grids with well-defined sizes
-        grid_size_m = self._get_grid_size()  # Get size in meters
-        area_m2 = grid_size_m * grid_size_m  # Square area
-        return area_m2 / 1_000_000  # Convert to km²
-
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
         """Get an MGRS cell from its identifier."""
@@ -98,11 +83,6 @@ class MGRSGrid(CoreBackedGrid):
             return 32700 + zone_number
         else:
             return 32600 + zone_number
-
-    def _get_grid_size(self) -> float:
-        """Get grid size in meters for the current precision."""
-        sizes = {0: 100000, 1: 10000, 2: 1000, 3: 100, 4: 10, 5: 1}
-        return sizes[self.precision]
 
     @override
     def _get_additional_columns(self, cell: GridCell) -> dict[str, Any]:

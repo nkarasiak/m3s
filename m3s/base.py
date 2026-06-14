@@ -265,6 +265,52 @@ def cells_from_core_packed(packed: tuple[str, Any, Any, Any]) -> list[GridCell]:
     ]
 
 
+# Canonical sample point for the nominal per-precision cell area. Mid-latitude
+# (45°) matches the intent of the former hand-kept area tables and avoids the
+# equator/meridian degeneracies some grids hit at (0, 0).
+NOMINAL_SAMPLE_LAT = 45.0
+NOMINAL_SAMPLE_LON = 9.0
+
+_nominal_area_cache: dict[tuple[str, int, float], float] = {}
+
+
+def _sample_area_km2(grid: "BaseGrid", latitude: float) -> float:
+    """
+    Geodesic area of ``grid``'s reference cell at ``(latitude, NOMINAL_SAMPLE_LON)``.
+
+    The shared Rust core owns the area formula (``m3s_core.geodesic_area_km2``),
+    so this is the single source of nominal area. Cached per
+    ``(grid class, precision, latitude)`` so repeated reads and precision sweeps
+    stay cheap.
+    """
+    key = (type(grid).__name__, grid.precision, latitude)
+    cached = _nominal_area_cache.get(key)
+    if cached is not None:
+        return cached
+    area = grid.get_cell_from_point(latitude, NOMINAL_SAMPLE_LON).area_km2
+    _nominal_area_cache[key] = area
+    return area
+
+
+def nominal_area_km2(grid: "BaseGrid", latitude: float | None = None) -> float:
+    """
+    Nominal cell area for ``grid`` at its precision.
+
+    With ``latitude=None`` (the default) this returns :attr:`BaseGrid.area_km2` --
+    the canonical nominal, which honours the exact equal-area overrides (a5,
+    rhealpix, eaquad, s2) rather than re-sampling them. Passing an explicit
+    latitude samples the real cell there for the true local area, used by
+    precision selection over a concrete region (its centroid latitude).
+
+    Equal-area grids override ``area_km2`` with a latitude-independent exact
+    value, so even with an explicit latitude they return that value (which also
+    avoids sampling a degenerate huge cell, e.g. an s2 level-0 face).
+    """
+    if latitude is None or type(grid).area_km2 is not BaseGrid.area_km2:
+        return grid.area_km2
+    return _sample_area_km2(grid, latitude)
+
+
 def validate_lat_lon(lat: float, lon: float) -> None:
     """
     Validate that a coordinate lies within valid WGS84 bounds.
@@ -344,17 +390,29 @@ class BaseGrid(ABC):
         return (cls.MIN_PRECISION, cls.MAX_PRECISION)
 
     @property
-    @abstractmethod
     def area_km2(self) -> float:
         """
-        Theoretical area of a cell at this grid's precision/resolution.
+        Theoretical (nominal) area of a cell at this grid's precision.
+
+        A single representative number derived from the shared core: the
+        geodesic area of a reference cell sampled at the canonical latitude
+        (:data:`NOMINAL_SAMPLE_LAT`, 45°). This is the single source of nominal
+        area across every grid — the former hand-maintained per-grid tables are
+        gone (CONTEXT.md "Area model"). The value is cached per
+        ``(grid, precision)``.
+
+        For the true area of a *specific* cell use :attr:`GridCell.area_km2`; for
+        the local area at a given latitude use :func:`nominal_area_km2`.
+
+        Equal-area grids (a5, rhealpix, eaquad) override this with their exact
+        core/analytic value instead of sampling.
 
         Returns
         -------
         float
-            Approximate area of a single cell in square kilometers
+            Nominal area of a single cell in square kilometers.
         """
-        ...
+        return _sample_area_km2(self, NOMINAL_SAMPLE_LAT)
 
     @abstractmethod
     def get_cell_from_point(self, lat: float, lon: float) -> GridCell:

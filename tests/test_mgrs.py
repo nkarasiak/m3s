@@ -65,18 +65,6 @@ class TestMGRSGrid:
         for cell in intersecting_cells:
             assert isinstance(cell.polygon, Polygon)
 
-    def test_grid_size(self):
-        """Compute grid size for each precision."""
-        grid0 = MGRSGrid(precision=0)
-        grid1 = MGRSGrid(precision=1)
-        grid2 = MGRSGrid(precision=2)
-        grid3 = MGRSGrid(precision=3)
-
-        assert grid0._get_grid_size() == 100000
-        assert grid1._get_grid_size() == 10000
-        assert grid2._get_grid_size() == 1000
-        assert grid3._get_grid_size() == 100
-
     def test_get_neighbors(self):
         """Return neighbor cells."""
         grid = MGRSGrid(precision=1)

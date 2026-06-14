@@ -73,6 +73,7 @@ from .parallel import (
 )
 from .pluscode import PlusCodeGrid
 from .quadkey import QuadkeyGrid
+from .registry import GRID_CLASSES
 from .relationships import (
     GridRelationshipAnalyzer,
     RelationshipType,
@@ -93,36 +94,27 @@ from .slippy import SlippyGrid
 # Grid system singletons for direct access.
 # Default precision and valid range come from each grid class (DEFAULT_PRECISION
 # / MIN_PRECISION / MAX_PRECISION), so the wrapper needs no per-grid config here.
-A5 = GridWrapper(A5Grid)
-Geohash = GridWrapper(GeohashGrid)
-MGRS = GridWrapper(MGRSGrid)
-H3 = GridWrapper(H3Grid)
-S2 = GridWrapper(S2Grid)
-Quadkey = GridWrapper(QuadkeyGrid)
-Slippy = GridWrapper(SlippyGrid)
-CSquares = GridWrapper(CSquaresGrid)
-GARS = GridWrapper(GARSGrid)
-Maidenhead = GridWrapper(MaidenheadGrid)
-PlusCode = GridWrapper(PlusCodeGrid)
-EAQuad = GridWrapper(EAQuadGrid)
-RHEALPix = GridWrapper(RHEALPixGrid)
-
-# Registry mapping canonical names to grid singletons, for dynamic access.
+#
+# The registry is built from the canonical class registry (m3s.registry) so the
+# set of grids is listed in exactly one place; the named singletons below are
+# the public handles into it.
 _GRID_REGISTRY: dict[str, GridWrapper] = {
-    "a5": A5,
-    "geohash": Geohash,
-    "mgrs": MGRS,
-    "h3": H3,
-    "s2": S2,
-    "quadkey": Quadkey,
-    "slippy": Slippy,
-    "csquares": CSquares,
-    "gars": GARS,
-    "maidenhead": Maidenhead,
-    "pluscode": PlusCode,
-    "eaquad": EAQuad,
-    "rhealpix": RHEALPix,
+    name: GridWrapper(cls) for name, cls in GRID_CLASSES.items()
 }
+
+A5 = _GRID_REGISTRY["a5"]
+Geohash = _GRID_REGISTRY["geohash"]
+MGRS = _GRID_REGISTRY["mgrs"]
+H3 = _GRID_REGISTRY["h3"]
+S2 = _GRID_REGISTRY["s2"]
+Quadkey = _GRID_REGISTRY["quadkey"]
+Slippy = _GRID_REGISTRY["slippy"]
+CSquares = _GRID_REGISTRY["csquares"]
+GARS = _GRID_REGISTRY["gars"]
+Maidenhead = _GRID_REGISTRY["maidenhead"]
+PlusCode = _GRID_REGISTRY["pluscode"]
+EAQuad = _GRID_REGISTRY["eaquad"]
+RHEALPix = _GRID_REGISTRY["rhealpix"]
 
 
 def grids() -> list[str]:

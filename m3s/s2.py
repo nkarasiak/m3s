@@ -59,24 +59,20 @@ class S2Grid(CoreBackedGrid):
     @property
     def area_km2(self) -> float:
         """
-        Get the theoretical area of S2 cells at this level in square kilometers.
+        Nominal area of an S2 cell at this level in km^2.
+
+        S2 cells are approximately equal-area by construction, so the nominal
+        size is analytic — Earth's surface split across ``6 * 4 ** level`` cells.
+        Used instead of geodesic sampling because a level-0 S2 cell spans a sixth
+        of the planet, where sampling a single ring degenerates.
 
         Returns
         -------
         float
-            Theoretical area in square kilometers for cells at this level
+            Nominal cell area in square kilometres.
         """
-        # S2 cells are roughly equal area due to spherical geometry
-        # Earth's surface area: ~510 million km²
-        earth_surface_km2 = 510_072_000.0
-
-        # S2 has 6 root cells (one per cube face)
-        # At each level, cells are divided into 4 children
-        # Total cells at level L = 6 × 4^L
-        total_cells = 6 * (4**self.precision)
-
-        # Average area per cell
-        return float(earth_surface_km2 / total_cells)
+        # 6 root (cube-face) cells, each subdivided into 4 per level.
+        return float(510_072_000.0 / (6 * 4**self.precision))
 
     @override
     def get_cell_from_identifier(self, identifier: str) -> GridCell:
