@@ -176,7 +176,8 @@ cells_uc = m3s.H3.with_precision(precision).from_geometry(
 )
 print(f"Neighborhood-level precision {precision}: {len(cells_uc)} cells")
 
-# Other use cases: 'building', 'block', 'city', 'region', 'country'
+# Other use cases: 'global', 'continental', 'country', 'region', 'city',
+#                  'neighborhood', 'street', 'building', 'room'
 building_precision = m3s.Geohash.find_precision_for_use_case("building")
 city_precision = m3s.S2.find_precision_for_use_case("city")
 print(f"Building precision: {building_precision}")

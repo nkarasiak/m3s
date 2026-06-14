@@ -232,7 +232,8 @@ Find Optimal Precision
 
          # Or by use case
          precision = m3s.Geohash.find_precision_for_use_case('neighborhood')
-         # Available: 'building', 'block', 'neighborhood', 'city', 'region', 'country'
+         # Available: 'global', 'continental', 'country', 'region', 'city',
+         #            'neighborhood', 'street', 'building', 'room'
 
          # Or by target area
          precision = m3s.H3.find_precision_for_area(target_km2=10.0)

@@ -1,7 +1,7 @@
 //! Hot-path benchmarks: `cells_in_bbox` per grid (the map-view query) plus
 //! `pluscode::children` (largest fan-out). Boxes are sized to yield from a few
 //! hundred to a few tens of thousands of cells — the range interactive maps
-//! actually request. Numbers are tracked in OPTIMIZATION_PLAN.md.
+//! actually request.
 
 use criterion::{criterion_group, criterion_main, Criterion};
 use std::hint::black_box;

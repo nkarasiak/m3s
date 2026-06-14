@@ -93,7 +93,8 @@ polygons = cells.to_polygons()
 
 # Find precision by use case
 precision = m3s.Geohash.find_precision_for_use_case('neighborhood')  # ~1-10 km²
-# Other use cases: 'building', 'block', 'city', 'region', 'country'
+# Other use cases: 'global', 'continental', 'country', 'region',
+#                  'city', 'neighborhood', 'street', 'building', 'room'
 
 # Dynamic, config-driven grid access by name
 grid = m3s.grid('h3', precision=7)       # -> same wrapper as m3s.H3
