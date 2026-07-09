@@ -85,9 +85,11 @@ jobs:
         node-version: 22
         registry-url: 'https://registry.npmjs.org'
 
-    # Trusted Publishing (OIDC) needs npm >= 11.5; latest npm needs node >= 22.
+    # Trusted Publishing (OIDC) needs npm >= 11.5. Pin to npm@11 rather than
+    # @latest: npm@12 has a broken global-install that drops the optional
+    # `sigstore` dep, breaking provenance/publish (MODULE_NOT_FOUND: sigstore).
     - name: Upgrade npm for OIDC trusted publishing
-      run: npm install -g npm@latest
+      run: npm install -g npm@11
 
     # The published package bundles both targets: pkg (Node/CJS) and pkg-web
     # (browser/ESM). The exports map in bindings/js/package.json picks one.

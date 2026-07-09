@@ -1,6 +1,6 @@
 {
   "name": "@nkarasiak/m3s",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "type": "module",
   "license": "MIT",
   "description": "M3S is a unified package for spatial grid systems like H3, A5, MGRS, and Geohash (JS/WASM): encode coordinates to cells, convert between systems, and get cell geometry as GeoJSON.",

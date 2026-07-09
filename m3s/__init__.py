@@ -158,7 +158,7 @@ def grid(name: str, precision: int | None = None) -> GridWrapper:
     return wrapper.with_precision(precision) if precision is not None else wrapper
 
 
-__version__ = "0.6.3"
+__version__ = "0.6.4"
 __all__ = [
     # Grid singletons
     "A5",
