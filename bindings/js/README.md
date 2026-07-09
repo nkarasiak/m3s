@@ -1,5 +1,8 @@
 # m3s — JavaScript / WASM
 
+> [!WARNING]
+> This project is a vibe-coded experiment built entirely with [Claude Code](https://claude.com/claude-code) as a test of AI-assisted development. It is **not production-tested or audited**. For a mature, production-grade unified grid library, use [**vgrid**](https://github.com/opengeoshub/vgrid) instead.
+
 An ergonomic JS API over the shared **m3s** Rust core. The grid classes mirror
 the Python facade (`m3s.H3`, `m3s.Geohash`, …) in camelCase and produce
 **identical results** — JS and Python consume the same `m3s-core` crate.

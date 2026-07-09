@@ -1,5 +1,8 @@
 # M3S - Multi Spatial Subdivision System
 
+> [!WARNING]
+> This project is a vibe-coded experiment built entirely with [Claude Code](https://claude.com/claude-code) as a test of AI-assisted development. It is **not production-tested or audited**. For a mature, production-grade unified grid library, use [**vgrid**](https://github.com/opengeoshub/vgrid) instead.
+
 A unified package for working with hierarchical spatial grid systems in **Python** and **JavaScript** (via WASM). Both bindings call one shared Rust core, so a cell encoded in one language decodes identically in the other. M3S (Multi Spatial Subdivision System) provides a consistent interface for working with different spatial indexing systems including Geohash, MGRS, H3, Quadkey, S2, Slippy Map tiles, C-squares, GARS, Maidenhead, Plus Codes, EA-Quad, rHEALPix, and A5.
 
 ## Features

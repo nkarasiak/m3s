@@ -1,6 +1,10 @@
 M3S: Multi Spatial Subdivision System
 =====================================
 
+.. warning::
+
+   This project is a vibe-coded experiment built entirely with `Claude Code <https://claude.com/claude-code>`__ as a test of AI-assisted development. It is **not production-tested or audited**. For a mature, production-grade unified grid library, use `vgrid <https://github.com/opengeoshub/vgrid>`__ instead.
+
 **Unified spatial grid systems for Python and JavaScript — one consistent API, one shared Rust/WASM core, across 12 indexing systems.**
 
 :doc:`Examples <auto_examples/index>` · `GitHub <https://github.com/nkarasiak/m3s>`__
